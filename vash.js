@@ -1102,7 +1102,7 @@ VCP.visitExpressionTok = function(tok, parentNode, index, isHomogenous){
 
 	if(parentParentIsNotEXP && (index === 0 ) ){
 		this.insertDebugVars(tok);
-		start = "__vbuffer.push(" + start;
+		start = "_buffer.WriteString(" + start;
 	}
 
 	if( parentParentIsNotEXP && index === parentNode.length - 1 ){
@@ -1166,17 +1166,33 @@ VCP.replaceDevTokens = function( str ){
 }
 
 VCP.addHead = function(body){
+	var lines = body.split("\n");
+	var params = [];
 
-	var options = this.options;
+	for(var i=0; i< lines.length; i++) {
+		var l = lines[i].trim();
+		if (l.indexOf("var ") == 0 ){
+			params.push(l.substring(4));
+		}
+		if(l == "}") {
+			break;
+		}
+	}
 
-	var head = ''
-		+ (options.debug ? 'try { \n' : '')
-		+ 'var __vbuffer = HELPERSNAME.buffer; \n'
-		+ 'HELPERSNAME.options = __vopts; \n'
-		+ 'MODELNAME = MODELNAME || {}; \n'
-		+ (options.useWith ? 'with( MODELNAME ){ \n' : '');
+	body = lines.slice(i+1).join("\n");
 
-	head = this.replaceDevTokens( head );
+
+	var head = 'package ' + this.options["package"] + '\n\
+\n\
+import (\n\
+"bytes"\n\
+)\n\
+\n\
+	func ' + this.options["name"] + '(' + params.join(", ") + ') string {\n\
+		var _buffer bytes.Buffer\n';
+
+
+
 	return head + body;
 }
 
@@ -1195,23 +1211,7 @@ VCP.addHelperHead = function(body){
 }
 
 VCP.addFoot = function(body){
-
-	var options = this.options;
-
-	var foot = ''
-		+ (options.simple
-			? 'return HELPERSNAME.buffer.join(""); \n'
-			: '(__vopts && __vopts.onRenderEnd && __vopts.onRenderEnd(null, HELPERSNAME)); \n'
-				+ 'return (__vopts && __vopts.asContext) \n'
-				+ '  ? HELPERSNAME \n'
-				+ '  : HELPERSNAME.toString(); \n' )
-		+ (options.useWith ? '} \n' : '')
-		+ (options.debug ? '} catch( e ){ \n'
-			+ '  HELPERSNAME.reportError( e, HELPERSNAME.vl, HELPERSNAME.vc, "ORIGINALMARKUP" ); \n'
-			+ '} \n' : '');
-
-	foot = this.replaceDevTokens( foot )
-		.replace( this.reOriginalMarkup, this.escapeForDebug( this.originalMarkup ) );
+	var foot = 'return _buffer.String()\n}\n';
 
 	return body + foot;
 }
@@ -1243,8 +1243,8 @@ VCP.generate = function(){
 	var joined = this.buffer
 		.join("")
 		.split(")MKPMKP(").join('')
-		.split("MKP(").join( "__vbuffer.push('")
-		.split(")MKP").join("'); \n");
+		.split("MKP(").join( "\n_buffer.WriteString(`")
+		.split(")MKP").join("`); \n");
 
 	if(!options.asHelper){
 		joined = this.addHead( joined );
@@ -1259,8 +1259,7 @@ VCP.generate = function(){
 		console.log(options);
 	}
 
-	this.cmpFunc = vash.link( joined, options );
-	return this.cmpFunc;
+	return joined;
 }
 
 VCompiler.noop = function(){}

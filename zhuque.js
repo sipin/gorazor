@@ -1,4 +1,4 @@
-var vash = require('./vash/build/vash.js');
+var vash = require('./vash.js');
 var fs = require('fs');
 
 fs.readFile("test.gohtml", 'utf8', function(err, data) {
