@@ -1092,11 +1092,11 @@ VCP.visitExpressionTok = function(tok, parentNode, index, isHomogenous){
 	if(this.options.htmlEscape !== false){
 
 		if( parentParentIsNotEXP && index === 0 && isHomogenous ){
-			start += this.options.helpersName + '.escape(';
+			start += 'gorazor.HTMLEscape(';
 		}
 
 		if( parentParentIsNotEXP && index === parentNode.length - 1 && isHomogenous){
-			end += ").toHtmlString()";
+			end += ")";
 		}
 	}
 
@@ -1181,8 +1181,8 @@ VCP.addHead = function(body){
 		}
 	}
 
-	if (body.indexOf("template.HTMLEscapeString(") > 0) {
-		imports['"html/template"'] = 1;
+	if (body.indexOf("gorazor.HTMLEscape(") > 0) {
+		imports['"gorazor"'] = 1;
 	}
 
 	imports = Object.keys(imports).join("\n");
