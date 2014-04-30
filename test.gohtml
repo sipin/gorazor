@@ -1,21 +1,20 @@
 @{
 import (
-	"zp"
-	"bytes"
+	"kp/models"
 )
 	var totalMessage int
-	var u *User
+	var u *kpm.User
 }
 <html>
 <body>
 @if totalMessage > 0 {
 	@if totalMessage == 1 {
-		<p>@User.Name has 1 message</p>
+		<p>@u.Name has 1 message</p>
 	} else {
-		<p>@User.Name has @totalMessage messages</p>
+		<p>@u.Name has @totalMessage messages</p>
 	}
 } else {
-	<p>@User.Email has no messages</p>
+	<p>@u.Email has no messages</p>
 }
 
 </body>
