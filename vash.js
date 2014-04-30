@@ -1106,7 +1106,7 @@ VCP.visitExpressionTok = function(tok, parentNode, index, isHomogenous){
 	}
 
 	if( parentParentIsNotEXP && index === parentNode.length - 1 ){
-		end += "); \n";
+		end += ")\n";
 	}
 
 	this.buffer.push( start + tok.val + end );
@@ -1252,7 +1252,7 @@ VCP.generate = function(){
 		.join("")
 		.split(")MKPMKP(").join('')
 		.split("MKP(").join( '\n_buffer.WriteString("')
-		.split(")MKP").join('"); \n');
+		.split(")MKP").join('")\n');
 
 	if(!options.asHelper){
 		joined = this.addHead( joined );
