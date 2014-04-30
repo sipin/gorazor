@@ -1251,8 +1251,8 @@ VCP.generate = function(){
 	var joined = this.buffer
 		.join("")
 		.split(")MKPMKP(").join('')
-		.split("MKP(").join( "\n_buffer.WriteString(`")
-		.split(")MKP").join("`); \n");
+		.split("MKP(").join( '\n_buffer.WriteString("')
+		.split(")MKP").join('"); \n');
 
 	if(!options.asHelper){
 		joined = this.addHead( joined );
