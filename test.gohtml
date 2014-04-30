@@ -12,18 +12,17 @@ import (
 	msg := u.Name + "(" + u.Email + ")"
 }
 
-
 <h4>@msg</h4>
-
-@if totalMessage > 0 {
-	@if totalMessage == 1 {
-		<p>@u.Name has 1 message</p>
+@for i := 0; i < 2; i++ {
+	@if totalMessage > 0 {
+		@if totalMessage == 1 {
+			<p>@u.Name has 1 message</p>
+		} else {
+			<p>@u.Name has @gorazor.Itoa(totalMessage) messages</p>
+		}
 	} else {
-		<p>@u.Name has @gorazor.Itoa(totalMessage) messages</p>
+		<p>@u.Name has no messages</p>
 	}
-} else {
-	<p>@u.Name has no messages</p>
 }
-
 </body>
 </html>
