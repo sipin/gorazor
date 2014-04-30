@@ -1188,7 +1188,21 @@ VCP.addHead = function(body){
 	imports = Object.keys(imports).join("\n");
 	params = params.join(", ");
 
-	body = lines.slice(i+1).join("\n");
+	lines = lines.slice(i+1);
+	var extraOpen = false;
+	for(var i=0; i< lines.length; i++) {
+		var l = lines[i].trim();
+		if (l == "{" && extraOpen == false) {
+			lines[i] = "";
+			extraOpen = true;
+		}
+		if (l == "}" && extraOpen == true) {
+			lines[i] = "";
+			extraOpen = false;
+		}
+	}
+
+	body = lines.join("\n");
 
 
 	var head = 'package ' + this.options["package"] + '\n\

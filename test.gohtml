@@ -7,6 +7,14 @@ import (
 }
 <html>
 <body>
+
+@{
+	msg := u.Name + "(" + u.Email + ")"
+}
+
+
+<h4>@msg</h4>
+
 @if totalMessage > 0 {
 	@if totalMessage == 1 {
 		<p>@u.Name has 1 message</p>
