@@ -5,12 +5,10 @@ import (
 	"strconv"
 )
 
-func HTMLEscape(obj interface{}) string {
-	switch obj := obj.(type) {
-	case int:
-		return strconv.Itoa(obj)
-	case string:
-		return template.HTMLEscapeString(obj)
-	}
-	return obj.(string)
+func HTMLEscape(obj string) string {
+	return template.HTMLEscapeString(obj)
+}
+
+func Itoa(obj int) string {
+	return strconv.Itoa(obj)
 }

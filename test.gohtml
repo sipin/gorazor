@@ -19,7 +19,7 @@ import (
 	@if totalMessage == 1 {
 		<p>@u.Name has 1 message</p>
 	} else {
-		<p>@u.Name has @totalMessage messages</p>
+		<p>@u.Name has @gorazor.Itoa(totalMessage) messages</p>
 	}
 } else {
 	<p>@u.Name has no messages</p>
