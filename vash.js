@@ -1168,27 +1168,35 @@ VCP.replaceDevTokens = function( str ){
 VCP.addHead = function(body){
 	var lines = body.split("\n");
 	var params = [];
+	var imports = {'"bytes"':1};
 
 	for(var i=0; i< lines.length; i++) {
 		var l = lines[i].trim();
-		if (l.indexOf("var ") == 0 ){
+		if (l.indexOf('"') == 0 ){
+			imports[l] = 1;
+		} else if (l.indexOf("var ") == 0 ){
 			params.push(l.substring(4));
-		}
-		if(l == "}") {
+		} else if(l == "}") {
 			break;
 		}
 	}
+
+	if (body.indexOf("template.HTMLEscapeString(") > 0) {
+		imports['"html/template"'] = 1;
+	}
+
+	imports = Object.keys(imports).join("\n");
+	params = params.join(", ");
 
 	body = lines.slice(i+1).join("\n");
 
 
 	var head = 'package ' + this.options["package"] + '\n\
 \n\
-import (\n\
-"bytes"\n\
-)\n\
+import (\n' +
+imports +'\n)\n\
 \n\
-	func ' + this.options["name"] + '(' + params.join(", ") + ') string {\n\
+	func ' + this.options["name"] + '(' + params + ') string {\n\
 		var _buffer bytes.Buffer\n';
 
 
