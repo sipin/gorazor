@@ -1,18 +1,18 @@
 # GoRazor
 
-GoRazor is the Go port of the razor template engine originated from [asp.net world](http://weblogs.asp.net/scottgu/archive/2010/07/02/introducing-razor.aspx).
+GoRazor is the Go port of the razor view engine originated from [asp.net](http://weblogs.asp.net/scottgu/archive/2010/07/02/introducing-razor.aspx) in 2011, and it's ususally considered as the
 
 In summay, it's:
 
 * Consice syntax
-* Able to mix go code in template
+* Able to mix go code in view template
   * import & call arbitrary go module & functions
   * Insert code block
 * Use code generation approach
   * No reflection overhead
   * Go compiler validation for free
-* Strong type template model
-* Support template embedding
+* Strong type view model
+* Support embedding
 * Template layout (in progress)
 
 # Usage
@@ -70,7 +70,7 @@ So, gorazor needs [node.js](http://nodejs.org) to run, but it only needs node, n
 }
 ```
 
-Please use [example](https://github.com/Wuvist/gorazor/blob/master/tpl/main.gohtml) for reference.
+Please use [example](https://github.com/Wuvist/gorazor/blob/master/tpl/home.gohtml) for reference.
 
 ## Code block
 
@@ -139,7 +139,7 @@ So, using a helper template is similar to:
 
 GoRazor won't HTML escape the output of `helper.XXX`.
 
-Please use [example](https://github.com/Wuvist/gorazor/blob/master/tpl/main.gohtml) for reference.
+Please use [example](https://github.com/Wuvist/gorazor/blob/master/tpl/home.gohtml) for reference.
 
 ## Layout
 
