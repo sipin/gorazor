@@ -1090,9 +1090,13 @@ VCP.visitExpressionTok = function(tok, parentNode, index, isHomogenous){
 		,parentParentIsNotEXP = parentNode.parent && parentNode.parent.mode !== EXP;
 
 	if(this.options.htmlEscape !== false){
-
 		if( parentParentIsNotEXP && index === 0 && isHomogenous ){
-			start += 'gorazor.HTMLEscape(';
+			if (tok.val == "helper") {
+				start += '(';
+			} else {
+				start += 'gorazor.HTMLEscape(';	
+			}
+			
 		}
 
 		if( parentParentIsNotEXP && index === parentNode.length - 1 && isHomogenous){
