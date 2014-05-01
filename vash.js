@@ -1166,18 +1166,43 @@ VCP.replaceDevTokens = function( str ){
 }
 
 VCP.addHead = function(body){
+	//todo: should refactor these quick & dirty code
+	//      most likely move them to visitNodes
 	var lines = body.split("\n");
 	var params = [];
 	var imports = {'"bytes"':1};
 
-	for(var i=0; i< lines.length; i++) {
-		var l = lines[i].trim();
-		if (l.indexOf('"') == 0 ){
-			imports[l] = 1;
-		} else if (l.indexOf("var ") == 0 ){
-			params.push(l.substring(4));
-		} else if(l == "}") {
-			break;
+	var i;
+	// Process fisrt code block, if there is
+	if(lines[0].trim() == "{") {
+		var isImportBlock = false;
+
+		for(i = 1; i< lines.length; i++) {
+			var l = lines[i].trim();
+
+			// End of first code
+			if(l == "}") {
+				break;
+			}
+
+			if (l.indexOf('import') == 0) {
+				isImportBlock = true
+				continue
+			}
+
+			// End of import
+			if (l == ")") {
+				isImportBlock = false
+				continue
+			}
+
+			if (isImportBlock){
+				imports[l] = 1;
+			} else if (l.indexOf("var ") == 0 ){
+				params.push(l.substring(4));
+			} else {
+				params.push(l);
+			}
 		}
 	}
 

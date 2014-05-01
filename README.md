@@ -18,7 +18,7 @@ In summay, GoRazor is:
 
 # Convension
 
-The first code block in template is strictly for decleration:
+The *first code block* in template is strictly for decleration:
 
 * imports
 * model type
@@ -36,6 +36,8 @@ like:
 }
 ....
 ```
+
+*first code block* must be at the begining of the template, i.e. before any html.
 
 Any other codes inside the first code block will *be ignored*.
 
