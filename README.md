@@ -109,7 +109,7 @@ like:
 ```
 @{
 	import  (
-		"kp/models"
+		kpm "kp/models"
 	)
 	var totalMessage int
 	var u *kpm.User
@@ -121,9 +121,9 @@ like:
 
 Any other codes inside the first code block will **be ignored**.
 
-import must be wrapped in `()`, `import "packagename"` is not yet supported.
+import must be wrapped in `()`, `import "package_name"` is not yet supported.
 
-The variables declared in **first code block** will be the models of the template, they will become the parameters of generated function.
+The variables declared in **first code block** will be the models of the template, i.e. the parameters of generated function.
 
 If your template doesn't need any model input, then just leave it blank.
 
@@ -175,7 +175,7 @@ TBA
 # Todo
 
 * Refactor all the quick & dirty code
-  * Maybe reimplement go 
+  * Maybe reimplement vash compiler in go?
 * Test suite
 * Add tools, like monitor template changes and auto re-generate
 * Performance benchmark
