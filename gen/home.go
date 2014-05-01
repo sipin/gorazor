@@ -7,7 +7,7 @@ import (
 	"tpl/helper"
 )
 
-func Main(totalMessage int, u *User) string {
+func Home(totalMessage int, u *User) string {
 	var _buffer bytes.Buffer
 	_buffer.WriteString("\n\n")
 	_buffer.WriteString((helper.Header()))
