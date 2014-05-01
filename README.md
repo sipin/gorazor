@@ -16,6 +16,30 @@ In summay, GoRazor is:
 * Strong type template model
 * Utils class
 
+# Convension
+
+The first code block in template is strictly for decleration:
+
+* imports
+* model type
+* layout
+
+like:
+
+```
+@{
+	import  (
+		"kp/models"
+	)
+	var totalMessage int
+	var u *kpm.User
+}
+....
+```
+
+Any other codes inside the first code block will *be ignored*.
+
+Must wrapped import in `()`, `import "packagename"` is not yet supported.
 
 # FAQ
 
