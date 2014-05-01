@@ -7,8 +7,11 @@ import (
 
 
 @{
-	msg := u.Name + "(" + u.Email + ")"
+	username := u.Name
+	if u.Email != "" {
+		username += "(" + u.Email + ")"
+	}
 }
 <div class="welcome">
-<h4>Hello @msg</h4>
+<h4>Hello @username</h4>
 </div>
