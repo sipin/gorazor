@@ -1,18 +1,15 @@
 @{
 import (
 	. "kp/models"
+	"tpl/helper"
 )
 	var totalMessage int
 	var u *User
 }
-<html>
-<body>
 
-@{
-	msg := u.Name + "(" + u.Email + ")"
-}
+@helper.Header()
+@helper.Msg(u)
 
-<h4>@msg</h4>
 @for i := 0; i < 2; i++ {
 	@if totalMessage > 0 {
 		@if totalMessage == 1 {
@@ -24,5 +21,5 @@ import (
 		<p>@u.Name has no messages</p>
 	}
 }
-</body>
-</html>
+
+@helper.Footer()

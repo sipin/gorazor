@@ -52,12 +52,34 @@ function process_folder(tpl_path, output_path) {
 	tpl_path = normalize_sep(tpl_path);
 	output_path = normalize_sep(output_path);
 
+	if(!fs.existsSync(output_path)) {
+		fs.mkdirSync(output_path);	
+	}
+
 	fs.readdir(tpl_path, function(err, files) {
 		if (err) throw err;
+		console.log("Processing Folder: " + tpl_path);
+
+		//process files
 		for(var i=0; i < files.length; i++) {
 			var input = tpl_path + files[i];
-			var output = output_path + files[i].replace(gz_extension, go_extension);
-			process_file(input, output);
+			var stats = fs.statSync(input);
+
+			if (stats.isFile() && path.extname(input) == gz_extension) {
+				var output = output_path + files[i].replace(gz_extension, go_extension);
+				console.log("Processing File: " + input);
+				process_file(input, output);				
+			}
+		}
+
+		//process sub-folders
+		for(var i=0; i < files.length; i++) {
+			var input = tpl_path + files[i];
+			var stats = fs.statSync(input);
+
+			if (stats.isDirectory()) {
+				process_folder(input, output_path + files[i]);
+			}
 		}
 	});
 }
