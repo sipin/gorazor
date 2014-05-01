@@ -4,13 +4,11 @@ import (
 )
 	var u *User
 }
-<html>
-<body>
+
 
 @{
 	msg := u.Name + "(" + u.Email + ")"
 }
-
+<div class="welcome">
 <h4>Hello @msg</h4>
-</body>
-</html>
+</div>

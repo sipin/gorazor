@@ -8,13 +8,13 @@ import (
 
 func Msg(u *User) string {
 	var _buffer bytes.Buffer
-	_buffer.WriteString("\n<html>\n<body>\n\n")
+	_buffer.WriteString("\n\n\n")
 
 	msg := u.Name + "(" + u.Email + ")"
 
-	_buffer.WriteString("\n\n<h4>Hello ")
+	_buffer.WriteString("\n<div class=\"welcome\">\n<h4>Hello ")
 	_buffer.WriteString(gorazor.HTMLEscape(msg))
 
-	_buffer.WriteString("</h4>\n</body>\n</html>\n")
+	_buffer.WriteString("</h4>\n</div>\n")
 	return _buffer.String()
 }
