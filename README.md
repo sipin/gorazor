@@ -41,6 +41,14 @@ So, gorazor needs [node.js](http://nodejs.org) to run, but it only needs node, n
 <div>Hello @strings.ToUpper(req.CurrentUser.Name)</div>
 ```
 
+Use `raw` to skip escaping:
+
+```html
+<div>@raw(user.Name)</div>
+```
+
+Only use `raw` when you are 100% sure what you are doing, please always be aware of [XSS attack](http://en.wikipedia.org/wiki/Cross-site_scripting).
+
 ## Flow Control
 
 ```php

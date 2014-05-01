@@ -1091,12 +1091,13 @@ VCP.visitExpressionTok = function(tok, parentNode, index, isHomogenous){
 
 	if(this.options.htmlEscape !== false){
 		if( parentParentIsNotEXP && index === 0 && isHomogenous ){
-			if (tok.val == "helper") {
+			if (tok.val == 'helper' || tok.val == 'raw') {
+				//todo: this actually results in: _buffer.WriteString((u.Intro))
+				//      should remove the extra braket
 				start += '(';
 			} else {
-				start += 'gorazor.HTMLEscape(';	
+				start += 'gorazor.HTMLEscape(';
 			}
-			
 		}
 
 		if( parentParentIsNotEXP && index === parentNode.length - 1 && isHomogenous){
@@ -1113,7 +1114,12 @@ VCP.visitExpressionTok = function(tok, parentNode, index, isHomogenous){
 		end += ")\n";
 	}
 
-	this.buffer.push( start + tok.val + end );
+	if (tok.val == "raw") {
+		this.buffer.push( start + end);
+	} else {
+		this.buffer.push( start + tok.val + end );	
+	}
+	
 
 	if(parentParentIsNotEXP && index === parentNode.length - 1){
 		this.insertDebugVars(tok);
