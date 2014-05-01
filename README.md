@@ -1,18 +1,16 @@
 # GoRazor
 
-GoRazor is the Go port of the razor view engine originated from [asp.net](http://weblogs.asp.net/scottgu/archive/2010/07/02/introducing-razor.aspx) in 2011, and it's ususally considered as the
+GoRazor is the Go port of the razor view engine originated from [asp.net in 2011](http://weblogs.asp.net/scottgu/archive/2010/07/02/introducing-razor.aspx). In summay, GoRazor's:
 
-In summay, it's:
-
-* Consice syntax
+* Consice syntax, no delineators like `<?`, `<%`, or `{{`.
+  * Original [Razor Syntax](http://www.asp.net/web-pages/tutorials/basics/2-introduction-to-asp-net-web-programming-using-the-razor-syntax) for asp.net.
 * Able to mix go code in view template
-  * import & call arbitrary go module & functions
-  * Insert code block
-* Use code generation approach
+  * Insert code block to import & call arbitrary go modules & functions
+* Code generation approach
   * No reflection overhead
   * Go compiler validation for free
 * Strong type view model
-* Support embedding
+* Embedding templates support
 * Template layout (in progress)
 
 # Usage
@@ -23,7 +21,7 @@ Tested on mac, but it should be trivial to adapt [gorazor.sh](https://github.com
 
 This port is essentially a re-port from razor's port in javascript: [vash](https://github.com/kirbysayshi/vash). It just modifies on vast's generation functions to emit go code instead of javascript code.
 
-So, gorazor needs [node.js](http://nodejs.org) to run, but it only needs node, no other npm modules.
+So, currently gorazor needs [node.js](http://nodejs.org) to run, but it only needs node, no other npm modules.
 
 # Syntax
 
