@@ -22,4 +22,30 @@ import (
 	}
 }
 
+
+@{
+	for i := 0; i < 2; i++ {
+		if totalMessage > 0 {
+			if totalMessage == 1 {
+				<p>@u.Name has 1 message</p>
+			} else {
+				<p>@u.Name has @gorazor.Itoa(totalMessage) messages</p>
+			}
+		} else {
+			<p>@u.Name has no messages</p>
+		}
+	}
+}
+
+@{
+	switch totalMessage {
+	case 1:
+	      <p>@u.name has 1  message</p>
+	case 2:
+	      <p>@u.name has 2 messages</p>
+	default:
+	      <p>@u.name has no messages</p>
+	}
+}
+
 @helper.Footer()

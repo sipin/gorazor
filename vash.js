@@ -1219,15 +1219,28 @@ VCP.addHead = function(body){
 
 	lines = lines.slice(i+1);
 	var extraOpen = false;
+	var counter = 0;
 	for(var i=0; i< lines.length; i++) {
 		var l = lines[i].trim();
 		if (l == "{" && extraOpen == false) {
 			lines[i] = "";
 			extraOpen = true;
+			continue;
+		} else if (l == "}" && extraOpen == true) {
+			if (counter == 0) {
+				lines[i] = "";
+				extraOpen = false;
+			} else {
+				counter -= 1;
+			}
+			continue;
 		}
-		if (l == "}" && extraOpen == true) {
-			lines[i] = "";
-			extraOpen = false;
+
+		if (l[l.length -1] == "{") {
+			counter += 1;
+		}
+		if (l[0] == "}") {
+			counter -= 1;
 		}
 	}
 
