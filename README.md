@@ -11,12 +11,20 @@ In summay, GoRazor is:
 * Consice syntax
 * Able to mix go code in template
   * import is supported
-  * Call arbitrary funtions
+  * Call arbitrary functions
 * Take code generation approach, i.e. no reflection overhead
 * Strong type template model
 * Utils class
 
-# Convension
+# Rules
+
+## Naming
+
+The *folder name* of template file will be used as *package name* in generated code.
+
+All template file name must ends with `.gohtml`.
+
+The main file name (i.e. strip of `.gohtml` extension name) will be used as the *function name* in generated code, with *fisrt letter Capitalized*. So that the function will be accessible to other modules. (I hate GO about this.)
 
 ## Decleration
 
@@ -45,12 +53,6 @@ Any other codes inside the first code block will *be ignored*.
 
 Must wrapped import in `()`, `import "packagename"` is not yet supported.
 
-## Names
-
-The *folder name* of template file will be used as *package name* in generated code.
-
-The main file name (i.e. strip of `.gohtml` extension name) will be used as the *function name* in generated code, with *fisrt letter Capitalized*. So that the function will be accessible to other modules. (I hate GO about this.)
-
 # FAQ
 
 TBA
@@ -62,3 +64,5 @@ TBA
 * Add tools, like monitor template changes and auto re-generate
 * Performance benchmark
 * Generate more function overloads, like accept additional buffer parameter for write
+* Support direct usage of int/date variables in tempate?
+  * i.e. use @user.Level directly, instead of @gorazor.Itoa(user.Level)
