@@ -2,31 +2,36 @@
 
 GoRazor is the Go port of the razor template engine originated from [asp.net world](http://weblogs.asp.net/scottgu/archive/2010/07/02/introducing-razor.aspx).
 
-This port is essentially a re-port from razor's port in javascript: [vash](https://github.com/kirbysayshi/vash).
-
-It modifies on vast's generation function to emit go code instead of javascript code.
-
-In summay, GoRazor is:
+In summay, it's:
 
 * Consice syntax
 * Able to mix go code in template
-  * import is supported
-  * Call arbitrary functions
-* Take code generation approach, i.e. no reflection overhead
+  * import & call arbitrary go module & functions
+  * Insert code block
+* Use code generation approach
+  * No reflection overhead
+  * Go compiler validation for free
 * Strong type template model
-* Utils class
+* Support template embedding
+* Template layout (in progress)
 
-## Example
+# Usage
 
-Here is a simple example of [gorazor templates](https://github.com/Wuvist/gorazor/tree/master/tpl) and the corresponding [generated codes](https://github.com/Wuvist/gorazor/tree/master/gen).
+Usage: `./gorazor.sh template_folder output_folder`
+
+Tested on mac, but it should be trivial to adapt [gorazor.sh](https://github.com/Wuvist/gorazor/blob/master/gorazor.sh) to `gorazor.bat` for using in windows.
+
+This port is essentially a re-port from razor's port in javascript: [vash](https://github.com/kirbysayshi/vash). It just modifies on vast's generation functions to emit go code instead of javascript code.
+
+So, gorazor needs [node.js](http://nodejs.org) to run, but it only needs node, no other npm modules.
 
 # Syntax
 
 ## Variable
 
 * `@variable` to insert **string** variable into html template
-  * variable should be wrapped by arbitary go functions
-  * All variable inserted will be automatcially [esacped](http://golang.org/pkg/html/template/#HTMLEscapeString)
+  * variable could be wrapped by arbitary go functions
+  * variable inserted will be automatcially [esacped](http://golang.org/pkg/html/template/#HTMLEscapeString)
 
 ```html
 <div>Hello @user.Name</div>
@@ -140,15 +145,17 @@ Please use [example](https://github.com/Wuvist/gorazor/blob/master/tpl/main.goht
 
 TBA
 
-# Rules
-
-## Naming
+# Conventions
 
 * Template **folder name** will be used as **package name** in generated code
 * Template file name must has the extension name `.gohtml`
 * Template strip of `.gohtml` extension name will be used as the **function name** in generated code, with **fisrt letter Capitalized**.
   * So that the function will be accessible to other modules. (I hate GO about this.)
 * Helper templates **must** has the package name **helper**
+
+# Example
+
+Here is a simple example of [gorazor templates](https://github.com/Wuvist/gorazor/tree/master/tpl) and the corresponding [generated codes](https://github.com/Wuvist/gorazor/tree/master/gen).
 
 # FAQ
 
@@ -162,6 +169,7 @@ TBA
 # Todo
 
 * Refactor all the quick & dirty code
+  * Maybe reimplement go 
 * Test suite
 * Add tools, like monitor template changes and auto re-generate
 * Performance benchmark
