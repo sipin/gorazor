@@ -20,11 +20,11 @@ In summay, GoRazor is:
 
 ## Naming
 
-The *folder name* of template file will be used as *package name* in generated code.
-
-All template file name must ends with `.gohtml`.
-
-The main file name (i.e. strip of `.gohtml` extension name) will be used as the *function name* in generated code, with *fisrt letter Capitalized*. So that the function will be accessible to other modules. (I hate GO about this.)
+* Template *folder name* will be used as *package name* in generated code
+* Template file name must has the extension name `.gohtml`
+* Template strip of `.gohtml` extension name will be used as the *function name* in generated code, with *fisrt letter Capitalized*.
+  * So that the function will be accessible to other modules. (I hate GO about this.)
+* Helper templates *must* has the package name *helper*
 
 ## Decleration
 
