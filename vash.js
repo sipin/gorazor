@@ -1202,6 +1202,14 @@ VCP.addHead = function(firstCodeBlock, body){
 			continue;
 		}
 
+		if(l.indexOf("section ") == 0 && l.indexOf("{") > 0 && l[l.length -1] == "}") {
+			sectionName = l.substr(8, l.indexOf("{") - 8).trim();
+			this.sections.push(sectionName);
+			lines[i] = sectionName + " := func() string {" + 
+				"\nreturn ``\n}";
+			continue;
+		}
+
 		if (l == "}" && inSection == true) {
 			if (counter == 0) {
 				lines[i] = "return _buffer.String()\n}";
