@@ -1316,11 +1316,6 @@ VCompiler.findNonExp = function(node){
 }
 
 exports["compile"] = function compile(markup, options){
-
-	if(markup === '' || typeof markup !== 'string') {
-		throw new Error('Empty or non-string cannot be compiled');
-	}
-
 	var  l
 		,tok
 		,tokens = []

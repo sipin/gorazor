@@ -37,7 +37,7 @@ function normalize_sep(folder_path) {
 function process_file(tpl_path, output_path) {
 	fs.readFile(tpl_path, 'utf8', function(err, data) {
 		if (err) throw err;
-		var options = {debug:false};
+		var options = {};
 
 		var names = get_names(tpl_path);
 		options["package"] = names.package_name;
