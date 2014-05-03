@@ -1091,7 +1091,7 @@ VCP.visitExpressionTok = function(tok, parentNode, index, isHomogenous){
 
 	if(this.options.htmlEscape !== false){
 		if( parentParentIsNotEXP && index === 0 && isHomogenous ){
-			if (tok.val == 'helper' || tok.val == 'raw') {
+			if (tok.val == 'helper' || tok.val == 'raw' || this.options['package'] == 'layout') {
 				//todo: this actually results in: _buffer.WriteString((u.Intro))
 				//      should remove the extra braket
 				start += '(';
@@ -1182,7 +1182,8 @@ VCP.addHead = function(body){
 	var params = [];
 	var returnType = "string";
 	this.sections = [];
-	var imports = {'"bytes"':1};
+	this.layout = "";
+	this.imports = {'"bytes"':1};
 
 	var i;
 	// Process fisrt code block, if there is
@@ -1209,20 +1210,31 @@ VCP.addHead = function(body){
 			}
 
 			if (isImportBlock){
-				imports[l] = 1;
+				var parts = l.split("/");
+				if (parts[parts.length - 2] == "layout") {
+					var layout = parts[parts.length - 1];
+
+					//Capitalize first character, and ignore '"' at the end
+					this.layout = layout.substr(0, 1).toUpperCase() + layout.substr(1, layout.length - 2);
+					this.imports[l.substr(0, l.length - this.layout.length - 2) + '"'] = 1;
+				} else {
+					this.imports[l] = 1;
+				}
 			} else if (l.indexOf("var ") == 0 ){
 				params.push(l.substring(4));
 			} else {
-				params.push(l);
+				console.log("Error Processing: " + this.options["package"] + "/" + this.options["name"] + ".gohtml");
+				console.log("Unexpectd: lines in first code block: " + l);
+				return;
 			}
 		}
 	}
 
 	if (body.indexOf("gorazor.HTMLEscape(") > 0) {
-		imports['"gorazor"'] = 1;
+		this.imports['"gorazor"'] = 1;
 	}
 
-	imports = Object.keys(imports).join("\n");
+	imports = Object.keys(this.imports).join("\n");
 	params = params.join(", ");
 
 	lines = lines.slice(i+1);
@@ -1256,7 +1268,7 @@ VCP.addHead = function(body){
 		if(l.indexOf("section ") == 0 && l[l.length -1] == "{") {
 			sectionName = l.substr(8, l.length - 9).trim();
 			this.sections.push(sectionName);
-			lines[i] = sectionName + " := func(){" + 
+			lines[i] = sectionName + " := func() string {" + 
 				"\nvar _buffer bytes.Buffer";
 			inSection = true;
 			extraOpen = true;
@@ -1273,9 +1285,9 @@ VCP.addHead = function(body){
 
 	body = lines.join("\n");
 
-	for (var i = 0; i < this.sections.length; i ++) {
-		returnType += ", string";
-	}
+	// for (var i = 0; i < this.sections.length; i ++) {
+	// 	returnType += ", string";
+	// }
 
 
 	var head = 'package ' + this.options["package"] + '\n\
@@ -1306,10 +1318,18 @@ VCP.addHelperHead = function(body){
 }
 
 VCP.addFoot = function(body){
-	var foot = 'return _buffer.String()'
+	var foot = '\nreturn ';
+	if(this.layout != "") {
+		foot += "layout." + this.layout + "(";
+	}
+	foot += '_buffer.String()';
 
 	for (var i = 0; i < this.sections.length; i ++) {
 		foot += ", " + this.sections[i] + "()";
+	}
+
+	if(this.layout != "") {
+		foot += ")";
 	}
 
 	foot += '\n}\n';
