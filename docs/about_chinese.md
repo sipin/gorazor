@@ -278,3 +278,17 @@ layout模板接受的参数必须是string，并且它是有顺序的；第一�
 	</html>
 
 PS: @title的处理其实也非常讨厌，layout中写成`<title>@title</title>`会让页面那边搞得很麻烦。
+
+# 使用 GoRazor
+
+因为gorazor目前依赖于vash，所以还是需要安装node并且我觉得比较方便的方式不是使用`go get`，而是手动git clone下来到独立目录，然后跟应用源码分开处理。
+
+呃，好吧，还得把gorazor的 utils.go弄到源码中。
+
+暂时用起来是很不方便的，但这方面问题我是一定会解决的。
+
+应该是可以做到在项目中直接`go get github.com/Wuvist/gorazor`，然后直接`gorazor watch`才对。
+
+明天再改改吧~
+
+当然，还是的装node，除非把[vash](https://github.com/Wuvist/gorazor/blob/master/vash.js)这1355行js全部用go重写了，呃，其实也不难。
