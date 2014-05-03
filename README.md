@@ -167,11 +167,6 @@ Here is a simple example of [gorazor templates](https://github.com/Wuvist/gorazo
 
 TBA
 
-# Bugs
-
-* `@switch .... {` is buggy, plese use `@{ switch ....`
-* closure is code block is buggy
-
 # Todo
 
 * Refactor all the quick & dirty code

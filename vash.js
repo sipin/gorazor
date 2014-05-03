@@ -1289,8 +1289,17 @@ VCP.generate = function(){
 
 	var data = this.getFirstCodeBlock(joined);
 	var firstCodeBlock = data[0];
-	var body = data[1].split("BLK({").join('')
-		.split("})BLK").join('').split("BLK(").join('')
+	var body = data[1];
+	
+	//support @switch ...{ syntax
+	var i = body.indexOf("BLK({");
+	while(i > -1) {
+		body = body.substr(0, i) + body.substr(i + 5);
+		i = body.indexOf("})BLK", i);
+		body = body.substr(0, i) + body.substr(i + 5);
+		i = body.indexOf("BLK({");
+	}
+	body = body.split("BLK(").join('')
 		.split(")BLK").join('');
 
 	joined = this.addHead( firstCodeBlock, body );
