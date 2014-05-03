@@ -114,7 +114,7 @@ func Home(totalMessage int, u *User) string {
 		_buffer.WriteString("<title>")
 		_buffer.WriteString(gorazor.HTMLEscape(u.Name))
 
-		_buffer.WriteString(" homepage</title>")
+		_buffer.WriteString("'s homepage</title>")
 
 		return _buffer.String()
 	}

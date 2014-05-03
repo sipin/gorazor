@@ -1283,7 +1283,16 @@ VCP.addHead = function(body){
 		}
 	}
 
-	body = lines.join("\n");
+	var newBody = [];
+	for(var i=0; i< lines.length; i++) {
+		var l = lines[i].trim();
+		if (l.indexOf("_buffer.WriteString") == 0) {
+			l = l.replace("\\'", "'");
+		}
+		newBody.push(l);
+	}
+
+	body = newBody.join("\n");
 
 	// for (var i = 0; i < this.sections.length; i ++) {
 	// 	returnType += ", string";
