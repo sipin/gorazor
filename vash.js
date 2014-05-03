@@ -1046,7 +1046,6 @@ VCP.visitMarkupTok = function(tok, parentNode, index){
 }
 
 VCP.visitBlockTok = function(tok, parentNode, index){
-
 	this.buffer.push( tok.val );
 }
 
@@ -1302,8 +1301,6 @@ VCP.generate = function(){
 
 	return joined;
 }
-
-VCompiler.noop = function(){}
 
 VCompiler.findNonExp = function(node){
 
