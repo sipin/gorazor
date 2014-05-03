@@ -6,20 +6,9 @@
  * Copyright (c) 2013 Andrew Petersen
  * MIT License (LICENSE)
  */
-void(0); // hack for https://github.com/mishoo/UglifyJS/issues/465
+
 ;(function(vash){
-
-	// this pattern was inspired by LucidJS,
-	// https://github.com/RobertWHurst/LucidJS/blob/master/lucid.js
-
-	if(typeof define === 'function' && define['amd']){
-		define(vash); // AMD
-	} else if(typeof module === 'object' && module['exports']){
-		module['exports'] = vash; // NODEJS
-	} else {
-		window['vash'] = vash; // BROWSER
-	}
-
+	module['exports'] = vash; // NODEJS
 })(function(exports){
 
 	var vash = exports; // neccessary for nodejs references/*jshint strict:false, asi:true, laxcomma:true, laxbreak:true, boss:true, curly:true, node:true, browser:true, devel:true */
@@ -1334,20 +1323,6 @@ VCompiler.findNonExp = function(node){
 		return false;
 	}
 }
-exports["config"] = {
-	 "useWith": false
-	,"modelName": "model"
-	,"helpersName": "html"
-	,"htmlEscape": true
-	,"simple": false
-
-	,"favorText": false
-
-	,"externs": [ 'window', 'document' ]
-
-	,"saveTextTag": false
-	,"saveAT": false
-};
 
 exports["compile"] = function compile(markup, options){
 
@@ -1495,53 +1470,6 @@ var compileSingleHelper = function(str, options){
 	return vash.compile(body, options);
 }
 
-///////////////////////////////////////////////////////////////////////////
-// VASH.COMPILEHELPER
-//
-// Allow multiple helpers to be compiled as templates, for helpers that
-// do a lot of markup output.
-//
-// Takes a template such as:
-//
-// 		vash.helpers.p = function(text){
-// 			<p>@text</p>
-// 		}
-//
-// And compiles it. The template is then added to `vash.helpers`.
-//
-// Returns the compiled templates as named properties of an object.
-//
-// This is string manipulation at its... something. It grabs the arguments
-// and function name using a regex, not actual parsing. Definitely error-
-// prone, but good enough. This is meant to facilitate helpers with complex
-// markup, but if something more advanced needs to happen, a plain helper
-// can be defined and markup added using the manual Buffer API.
-exports['compileHelper'] = compileBatchOrHelper.bind(null, 'helper');
-
-///////////////////////////////////////////////////////////////////////////
-// VASH.COMPILEBATCH
-//
-// Allow multiple templates to be contained within the same string.
-// Templates are separated via a sourceURL-esque string:
-//
-// //@batch = tplname/or/path
-//
-// The separator is forgiving in terms of whitespace:
-//
-// // @      batch=tplname/or/path
-//
-// Is just as valid.
-//
-// Returns the compiled templates as named properties of an object.
-exports['compileBatch'] = exports['batch'] = compileBatchOrHelper.bind(null, 'batch');
-
-// HELPER AND BATCH COMPILATION
-///////////////////////////////////////////////////////////////////////////
-
-exports["VLexer"] = VLexer;
-exports["VParser"] = VParser;
-exports["VCompiler"] = VCompiler;
-exports["vQuery"] = vQuery;
 /*jshint strict:false, asi: false, laxcomma:true, laxbreak:true, boss:true, curly:true, node:true, browser:true, devel:true */
 ;(function(){
 
@@ -2344,6 +2272,5 @@ exports["vQuery"] = vQuery;
 	}
 
 }());
-exports.__express = exports.renderFile;
 	return exports;
 }({ "version": "0.7.11-3" }));
