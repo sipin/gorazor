@@ -22,5 +22,6 @@ func Msg(u *User) string {
 	_buffer.WriteString((u.Intro))
 
 	_buffer.WriteString("</div>\n</div>\n")
+
 	return _buffer.String()
 }

@@ -5,11 +5,12 @@ import (
 	"gorazor"
 	. "kp/models"
 	"tpl/helper"
+	"tpl/layout"
 )
 
 func Home(totalMessage int, u *User) string {
 	var _buffer bytes.Buffer
-	_buffer.WriteString("\n\n")
+	_buffer.WriteString("\n\n\n")
 	_buffer.WriteString((helper.Header()))
 
 	_buffer.WriteString("\n")
@@ -83,21 +84,21 @@ func Home(totalMessage int, u *User) string {
 	case 1:
 
 		_buffer.WriteString("<p>")
-		_buffer.WriteString(gorazor.HTMLEscape(u.name))
+		_buffer.WriteString(gorazor.HTMLEscape(u.Name))
 
 		_buffer.WriteString(" has 1  message</p>")
 
 	case 2:
 
 		_buffer.WriteString("<p>")
-		_buffer.WriteString(gorazor.HTMLEscape(u.name))
+		_buffer.WriteString(gorazor.HTMLEscape(u.Name))
 
 		_buffer.WriteString(" has 2 messages</p>")
 
 	default:
 
 		_buffer.WriteString("<p>")
-		_buffer.WriteString(gorazor.HTMLEscape(u.name))
+		_buffer.WriteString(gorazor.HTMLEscape(u.Name))
 
 		_buffer.WriteString(" has no messages</p>")
 
@@ -105,5 +106,23 @@ func Home(totalMessage int, u *User) string {
 
 	_buffer.WriteString("\n\n")
 	_buffer.WriteString((helper.Footer()))
-	return _buffer.String()
+
+	_buffer.WriteString("\n\n")
+	title := func() string {
+		var _buffer bytes.Buffer
+
+		_buffer.WriteString("<title>")
+		_buffer.WriteString(gorazor.HTMLEscape(u.Name))
+
+		_buffer.WriteString(" homepage</title>")
+
+		return _buffer.String()
+	}
+	_buffer.WriteString("\n\n")
+	side := func() string {
+		var _buffer bytes.Buffer
+
+		return _buffer.String()
+	}
+	return layout.Base(_buffer.String(), title(), side())
 }

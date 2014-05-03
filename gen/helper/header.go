@@ -7,6 +7,7 @@ import (
 func Header() string {
 	var _buffer bytes.Buffer
 
-	_buffer.WriteString("<html>\n<body>\n")
+	_buffer.WriteString("<div>Page Header</div>")
+
 	return _buffer.String()
 }

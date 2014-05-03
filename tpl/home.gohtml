@@ -2,10 +2,12 @@
 import (
 	. "kp/models"
 	"tpl/helper"
+	"tpl/layout/base"
 )
 	var totalMessage int
 	var u *User
 }
+
 
 @helper.Header()
 @helper.Msg(u)
@@ -40,12 +42,20 @@ import (
 @{
 	switch totalMessage {
 	case 1:
-	      <p>@u.name has 1  message</p>
+	      <p>@u.Name has 1  message</p>
 	case 2:
-	      <p>@u.name has 2 messages</p>
+	      <p>@u.Name has 2 messages</p>
 	default:
-	      <p>@u.name has no messages</p>
+	      <p>@u.Name has no messages</p>
 	}
 }
 
 @helper.Footer()
+
+@section title {
+	<title>@u.Name homepage</title>
+}
+
+@section side {
+	
+}
