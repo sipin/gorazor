@@ -1324,8 +1324,6 @@ exports["compile"] = function compile(markup, options){
 		,cmp
 		,i;
 
-	options = vQuery.extend( {}, exports.config, options || {} );
-
 	l = new VLexer(markup);
 	while(tok = l.advance()) { tokens.push(tok); }
 	tokens.reverse(); // parser needs in reverse order for faster popping vs shift
