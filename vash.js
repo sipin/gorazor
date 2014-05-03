@@ -1889,51 +1889,6 @@ var compileSingleHelper = function(str, options){
 		return opts;
 	}
 
-	// shortcut for compiled helpers
-	var slice = Array.prototype.slice;
-
-	// VASH.LINK
-	///////////////////////////////////////////////////////////////////////////
-
-	///////////////////////////////////////////////////////////////////////////
-	// TPL CACHE
-
-	vash['lookup'] = function( path, model ){
-		var tpl = vash.helpers.tplcache[path];
-		if( !tpl ){ throw new Error('Could not find template: ' + path); }
-		if( model ){ return tpl(model); }
-		else return tpl;
-	};
-
-	vash['install'] = function( path, tpl ){
-		var cache = vash.helpers.tplcache;
-		if( typeof tpl === 'string' ){
-			if( !vash.compile ){ throw new Error('vash.install(path, [string]) is not available in the standalone runtime.') }
-			tpl = vash.compile(tpl);
-		} else if( typeof path === 'object' ){
-			tpl = path;
-			Object.keys(tpl).forEach(function(path){
-				cache[path] = tpl[path];
-			});
-			return cache;
-		}
-		return cache[path] = tpl;
-	};
-
-	vash['uninstall'] = function( path ){
-		var  cache = vash.helpers.tplcache
-			,deleted = false;
-
-		if( typeof path === 'string' ){
-			return delete cache[path];
-		} else {
-			Object.keys(cache).forEach(function(key){
-				if( cache[key] === path ){ deleted = delete cache[key]; }
-			})
-			return deleted;
-		}
-	};
-
 }());
 /*jshint strict:false, asi:true, laxcomma:true, laxbreak:true, boss:true, curly:true, node:true, browser:true, devel:true */
 ;(function(){
