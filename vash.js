@@ -1123,12 +1123,6 @@ VCP.visitNode = function(node){
 
 }
 
-VCP.replaceDevTokens = function( str ){
-	return str
-		.replace( this.reHelpersName, this.options.helpersName )
-		.replace( this.reModelName, this.options.modelName );
-}
-
 VCP.addHead = function(body){
 	//todo: should refactor these quick & dirty code
 	//      most likely move them to visitNodes
