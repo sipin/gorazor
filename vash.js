@@ -1289,7 +1289,9 @@ VCP.addHead = function(body){
 		if (l.indexOf("_buffer.WriteString") == 0) {
 			l = l.replace("\\'", "'");
 		}
-		newBody.push(l);
+		if(l != "" & (!l.match(/_buffer.WriteString\("(\\n)+"\)/))) {
+			newBody.push(l);
+		}
 	}
 
 	body = newBody.join("\n");
