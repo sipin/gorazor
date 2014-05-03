@@ -516,10 +516,6 @@ VParser.prototype = {
 
 		while( this.prevTokens.push( curr ), (curr = this.tokens.pop()) ){
 
-			if(this.options.debugParser){
-				console.log(this.ast && this.ast.mode, curr.type, curr.toString(), curr.val);
-			}
-
 			if(this.ast.mode === PRG || this.ast.mode === null){
 
 				this.ast = this.ast.beget( this.options.initialMode || MKP );
@@ -546,13 +542,6 @@ VParser.prototype = {
 		}
 
 		this.ast = this.ast.root();
-
-		if(this.options.debugParser && !this.options.initialMode){
-			// this should really only output on the true root
-
-			console.log(this.ast.toString());
-			console.log(this.ast.toTreeString());
-		}
 
 		return this.ast;
 	}
@@ -1057,19 +1046,8 @@ function VCompiler(ast, originalMarkup, options){
 
 var VCP = VCompiler.prototype;
 
-VCP.insertDebugVars = function(tok){
-
-	if(this.options.debug){
-		this.buffer.push(
-			this.options.helpersName + '.vl = ' + tok.line + ', '
-			,this.options.helpersName + '.vc = ' + tok.chr + '; \n'
-		);
-	}
-}
-
 VCP.visitMarkupTok = function(tok, parentNode, index){
 
-	this.insertDebugVars(tok);
 	this.buffer.push(
 		"MKP(" + tok.val
 			.replace(this.reEscapedQuote, '\\\\$1')
@@ -1106,7 +1084,6 @@ VCP.visitExpressionTok = function(tok, parentNode, index, isHomogenous){
 	}
 
 	if(parentParentIsNotEXP && (index === 0 ) ){
-		this.insertDebugVars(tok);
 		start = "_buffer.WriteString(" + start;
 	}
 
@@ -1118,11 +1095,6 @@ VCP.visitExpressionTok = function(tok, parentNode, index, isHomogenous){
 		this.buffer.push( start + end);
 	} else {
 		this.buffer.push( start + tok.val + end );	
-	}
-	
-
-	if(parentParentIsNotEXP && index === parentNode.length - 1){
-		this.insertDebugVars(tok);
 	}
 }
 
@@ -1160,13 +1132,6 @@ VCP.visitNode = function(node){
 		}
 	}
 
-}
-
-VCP.escapeForDebug = function( str ){
-	return str
-		.replace(this.reLineBreak, '!LB!')
-		.replace(this.reQuote, '\\$1')
-		.replace(this.reEscapedQuote, '\\$1')
 }
 
 VCP.replaceDevTokens = function( str ){
@@ -1314,20 +1279,6 @@ imports +'\n)\n\
 	return head + body;
 }
 
-VCP.addHelperHead = function(body){
-
-	var options = this.options;
-
-	var head = ''
-		+ (options.debug ? 'try { \n' : '')
-		+ 'var __vbuffer = this.buffer; \n'
-		+ 'var MODELNAME = this.model; \n'
-		+ 'var HELPERSNAME = this; \n';
-
-	head = this.replaceDevTokens( head );
-	return head + body;
-}
-
 VCP.addFoot = function(body){
 	var foot = '\nreturn ';
 	if(this.layout != "") {
@@ -1348,21 +1299,6 @@ VCP.addFoot = function(body){
 	return body + foot;
 }
 
-VCP.addHelperFoot = function(body){
-
-	var options = this.options;
-
-	var foot = ''
-		+ (options.debug ? '} catch( e ){ \n'
-			+ '  HELPERSNAME.reportError( e, HELPERSNAME.vl, HELPERSNAME.vc, "ORIGINALMARKUP" ); \n'
-			+ '} \n' : '');
-
-	foot = this.replaceDevTokens( foot )
-		.replace( this.reOriginalMarkup, this.escapeForDebug( this.originalMarkup ) );
-
-	return body + foot;
-}
-
 VCP.generate = function(){
 	var options = this.options;
 
@@ -1378,18 +1314,8 @@ VCP.generate = function(){
 		.split("MKP(").join( '\n_buffer.WriteString("')
 		.split(")MKP").join('")\n');
 
-	if(!options.asHelper){
-		joined = this.addHead( joined );
-		joined = this.addFoot( joined );
-	} else {
-		joined = this.addHelperHead( joined );
-		joined = this.addHelperFoot( joined );
-	}
-
-	if(options.debugCompiler){
-		console.log(joined);
-		console.log(options);
-	}
+	joined = this.addHead( joined );
+	joined = this.addFoot( joined );
 
 	return joined;
 }
@@ -1413,9 +1339,6 @@ exports["config"] = {
 	,"modelName": "model"
 	,"helpersName": "html"
 	,"htmlEscape": true
-	,"debug": true
-	,"debugParser": false
-	,"debugCompiler": false
 	,"simple": false
 
 	,"favorText": false
