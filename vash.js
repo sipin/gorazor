@@ -1046,7 +1046,7 @@ VCP.visitMarkupTok = function(tok, parentNode, index){
 }
 
 VCP.visitBlockTok = function(tok, parentNode, index){
-	this.buffer.push( tok.val );
+	this.buffer.push( "BLK(" + tok.val + ")BLK");
 }
 
 VCP.visitExpressionTok = function(tok, parentNode, index, isHomogenous){
@@ -1122,58 +1122,61 @@ VCP.visitNode = function(node){
 
 }
 
-VCP.addHead = function(body){
+VCP.getFirstCodeBlock = function(body){
+	var i = body.indexOf("BLK({");
+	var j = body.indexOf("})BLK");
+	if(i != 0 || j == -1) {
+		return ["", body];
+	}
+	var blk = body.substr(i + 5, j - 5);
+	body = body.substr(j + 5);
+	return [blk, body];
+}
+
+VCP.addHead = function(firstCodeBlock, body){
 	//todo: should refactor these quick & dirty code
 	//      most likely move them to visitNodes
-	var lines = body.split("\n");
 	var params = [];
 	var returnType = "string";
 	this.sections = [];
 	this.layout = "";
 	this.imports = {'"bytes"':1};
 
-	var i;
-	// Process fisrt code block, if there is
-	if(lines[0].trim() == "{") {
-		var isImportBlock = false;
+	//process first code block;
+	var lines = firstCodeBlock.split("\n");
+	var isImportBlock = false;
+	for(var i = 1; i< lines.length; i++) {
+		var l = lines[i].trim();
+		if (l == "") continue;
 
-		for(i = 1; i< lines.length; i++) {
-			var l = lines[i].trim();
+		if (l.indexOf('import') == 0) {
+			isImportBlock = true
+			continue
+		}
 
-			// End of first code
-			if(l == "}") {
-				break;
-			}
+		// End of import
+		if (l == ")") {
+			isImportBlock = false
+			continue
+		}
 
-			if (l.indexOf('import') == 0) {
-				isImportBlock = true
-				continue
-			}
+		if (isImportBlock){
+			var parts = l.split("/");
+			if (parts[parts.length - 2] == "layout") {
+				var layout = parts[parts.length - 1];
 
-			// End of import
-			if (l == ")") {
-				isImportBlock = false
-				continue
-			}
-
-			if (isImportBlock){
-				var parts = l.split("/");
-				if (parts[parts.length - 2] == "layout") {
-					var layout = parts[parts.length - 1];
-
-					//Capitalize first character, and ignore '"' at the end
-					this.layout = layout.substr(0, 1).toUpperCase() + layout.substr(1, layout.length - 2);
-					this.imports[l.substr(0, l.length - this.layout.length - 2) + '"'] = 1;
-				} else {
-					this.imports[l] = 1;
-				}
-			} else if (l.indexOf("var ") == 0 ){
-				params.push(l.substring(4));
+				//Capitalize first character, and ignore '"' at the end
+				this.layout = layout.substr(0, 1).toUpperCase() + layout.substr(1, layout.length - 2);
+				this.imports[l.substr(0, l.length - this.layout.length - 2) + '"'] = 1;
 			} else {
-				console.log("Error Processing: " + this.options["package"] + "/" + this.options["name"] + ".gohtml");
-				console.log("Unexpectd: lines in first code block: " + l);
-				return;
+				this.imports[l] = 1;
 			}
+		} else if (l.indexOf("var ") == 0 ){
+			params.push(l.substring(4));
+		} else {
+			console.log("Error Processing: " + this.options["package"] + "/" + this.options["name"] + ".gohtml");
+			console.log("Unexpectd: lines in first code block: " + l);
+			return;
 		}
 	}
 
@@ -1184,48 +1187,35 @@ VCP.addHead = function(body){
 	imports = Object.keys(this.imports).join("\n");
 	params = params.join(", ");
 
-	lines = lines.slice(i+1);
-	var extraOpen = false;
+	lines = body.split("\n");
+
 	var inSection = false;
 	var counter = 0;
 	for(var i=0; i< lines.length; i++) {
 		var l = lines[i].trim();
-		if (l == "{" && extraOpen == false) {
-			lines[i] = "";
-			extraOpen = true;
-			continue;
-		} else if (l == "}" && extraOpen == true) {
-			if (counter == 0) {
-				if (inSection) {
-					lines[i] = "return _buffer.String()\n}";
-					inSection = false;
-				} else {
-					lines[i] = "";	
-				}
-				
-				extraOpen = false;
-			} else {
-				counter -= 1;
-			}
-			continue;
-		}
-
-		//change section to func
-		//Todo, should moved to visit nodes
 		if(l.indexOf("section ") == 0 && l[l.length -1] == "{") {
 			sectionName = l.substr(8, l.length - 9).trim();
 			this.sections.push(sectionName);
 			lines[i] = sectionName + " := func() string {" + 
 				"\nvar _buffer bytes.Buffer";
 			inSection = true;
-			extraOpen = true;
 			continue;
 		}
 
-		if (l[l.length -1] == "{") {
+		if (l == "}" && inSection == true) {
+			if (counter == 0) {
+				lines[i] = "return _buffer.String()\n}";
+				inSection = false;
+			} else {
+				counter -= 1;
+			}
+			continue;
+		}
+
+		if (inSection == true && l[l.length -1] == "{") {
 			counter += 1;
 		}
-		if (l[0] == "}") {
+		if (inSection == true && l[0] == "}") {
 			counter -= 1;
 		}
 	}
@@ -1292,11 +1282,18 @@ VCP.generate = function(){
 	// coalesce markup
 	var joined = this.buffer
 		.join("")
+		.split(")BLKBLK(").join('')
 		.split(")MKPMKP(").join('')
 		.split("MKP(").join( '\n_buffer.WriteString("')
 		.split(")MKP").join('")\n');
 
-	joined = this.addHead( joined );
+	var data = this.getFirstCodeBlock(joined);
+	var firstCodeBlock = data[0];
+	var body = data[1].split("BLK({").join('')
+		.split("})BLK").join('').split("BLK(").join('')
+		.split(")BLK").join('');
+
+	joined = this.addHead( firstCodeBlock, body );
 	joined = this.addFoot( joined );
 
 	return joined;
