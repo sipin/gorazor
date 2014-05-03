@@ -157,7 +157,7 @@ var TESTS = [
 	}
 	,WHITESPACE, (/^(\s)/)
 	,FUNCTION, (/^(function)(?![\d\w])/)
-	,KEYWORD, (/^(case|catch|do|else|finally|for|function|goto|if|instanceof|return|switch|try|typeof|var|while|with)(?![\d\w])/)
+	,KEYWORD, (/^(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)(?![\d\w])/)
 	,IDENTIFIER, (/^([_$a-zA-Z\xA0-\uFFFF][_$a-zA-Z0-9\xA0-\uFFFF]*)/)
 
 	,FORWARD_SLASH, (/^(\/)/)
@@ -1180,6 +1180,8 @@ VCP.addHead = function(body){
 	//      most likely move them to visitNodes
 	var lines = body.split("\n");
 	var params = [];
+	var returnType = "string";
+	this.sections = [];
 	var imports = {'"bytes"':1};
 
 	var i;
@@ -1225,6 +1227,7 @@ VCP.addHead = function(body){
 
 	lines = lines.slice(i+1);
 	var extraOpen = false;
+	var inSection = false;
 	var counter = 0;
 	for(var i=0; i< lines.length; i++) {
 		var l = lines[i].trim();
@@ -1234,11 +1237,29 @@ VCP.addHead = function(body){
 			continue;
 		} else if (l == "}" && extraOpen == true) {
 			if (counter == 0) {
-				lines[i] = "";
+				if (inSection) {
+					lines[i] = "return _buffer.String()\n}";
+					inSection = false;
+				} else {
+					lines[i] = "";	
+				}
+				
 				extraOpen = false;
 			} else {
 				counter -= 1;
 			}
+			continue;
+		}
+
+		//change section to func
+		//Todo, should moved to visit nodes
+		if(l.indexOf("section ") == 0 && l[l.length -1] == "{") {
+			sectionName = l.substr(8, l.length - 9).trim();
+			this.sections.push(sectionName);
+			lines[i] = sectionName + " := func(){" + 
+				"\nvar _buffer bytes.Buffer";
+			inSection = true;
+			extraOpen = true;
 			continue;
 		}
 
@@ -1252,13 +1273,17 @@ VCP.addHead = function(body){
 
 	body = lines.join("\n");
 
+	for (var i = 0; i < this.sections.length; i ++) {
+		returnType += ", string";
+	}
+
 
 	var head = 'package ' + this.options["package"] + '\n\
 \n\
 import (\n' +
 imports +'\n)\n\
 \n\
-	func ' + this.options["name"] + '(' + params + ') string {\n\
+	func ' + this.options["name"] + '(' + params + ') (' + returnType + ') {\n\
 		var _buffer bytes.Buffer\n';
 
 
@@ -1281,7 +1306,13 @@ VCP.addHelperHead = function(body){
 }
 
 VCP.addFoot = function(body){
-	var foot = 'return _buffer.String()\n}\n';
+	var foot = 'return _buffer.String()'
+
+	for (var i = 0; i < this.sections.length; i ++) {
+		foot += ", " + this.sections[i] + "()";
+	}
+
+	foot += '\n}\n';
 
 	return body + foot;
 }
