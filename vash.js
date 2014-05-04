@@ -324,13 +324,13 @@ vQuery.fn.push = function(nodes){
 		if(nodes.vquery){
 			nodes.forEach(function(node){ node.parent = this; }, this);
 		}
-		
+
 		Array.prototype.push.apply(this, nodes);
 	} else {
 		if(nodes.vquery){
 			nodes.parent = this;
 		}
-		
+
 		Array.prototype.push.call(this, nodes);
 	}
 
@@ -396,21 +396,21 @@ vQuery.fn.maxCheck = function(last){
 
 vQuery.maxSize = 100000;
 
-// takes a full nested set of vqueries (e.g. an AST), and flattens them 
+// takes a full nested set of vqueries (e.g. an AST), and flattens them
 // into a plain array. Useful for performing queries, or manipulation,
 // without having to handle a lot of parsing state.
 vQuery.fn.flatten = function(){
 	var reduced;
 	return this.reduce(function flatten(all, tok, i, orig){
 
-		if( tok.vquery ){ 
+		if( tok.vquery ){
 			all.push( { type: 'META', val: 'START' + tok.mode, tagName: tok.tagName } );
 			reduced = tok.reduce(flatten, all);
 			reduced.push( { type: 'META', val: 'END' + tok.mode, tagName: tok.tagName } );
 			return reduced;
 		}
-		
-		// grab the mode from the original vquery container 
+
+		// grab the mode from the original vquery container
 		tok.mode = orig.mode;
 		all.push( tok );
 
@@ -418,8 +418,8 @@ vQuery.fn.flatten = function(){
 	}, []);
 }
 
-// take a flat array created via vQuery.fn.flatten, and recreate the 
-// original AST. 
+// take a flat array created via vQuery.fn.flatten, and recreate the
+// original AST.
 vQuery.reconstitute = function(arr){
 	return arr.reduce(function recon(ast, tok, i, orig){
 
@@ -1082,7 +1082,7 @@ VCP.visitExpressionTok = function(tok, parentNode, index, isHomogenous){
 	if (tok.val == "raw") {
 		this.buffer.push( start + end);
 	} else {
-		this.buffer.push( start + tok.val + end );	
+		this.buffer.push( start + tok.val + end );
 	}
 }
 
@@ -1196,7 +1196,7 @@ VCP.addHead = function(firstCodeBlock, body){
 		if(l.indexOf("section ") == 0 && l[l.length -1] == "{") {
 			sectionName = l.substr(8, l.length - 9).trim();
 			this.sections.push(sectionName);
-			lines[i] = sectionName + " := func() string {" + 
+			lines[i] = sectionName + " := func() string {" +
 				"\nvar _buffer bytes.Buffer";
 			inSection = true;
 			continue;
@@ -1205,7 +1205,7 @@ VCP.addHead = function(firstCodeBlock, body){
 		if(l.indexOf("section ") == 0 && l.indexOf("{") > 0 && l[l.length -1] == "}") {
 			sectionName = l.substr(8, l.indexOf("{") - 8).trim();
 			this.sections.push(sectionName);
-			lines[i] = sectionName + " := func() string {" + 
+			lines[i] = sectionName + " := func() string {" +
 				"\nreturn ``\n}";
 			continue;
 		}
@@ -1287,6 +1287,7 @@ VCP.generate = function(){
 
 	this.visitNode(this.ast);
 
+
 	// coalesce markup
 	var joined = this.buffer
 		.join("")
@@ -1295,10 +1296,10 @@ VCP.generate = function(){
 		.split("MKP(").join( '\n_buffer.WriteString("')
 		.split(")MKP").join('")\n');
 
-	var data = this.getFirstCodeBlock(joined);
+    var data = this.getFirstCodeBlock(joined);
 	var firstCodeBlock = data[0];
 	var body = data[1];
-	
+
 	//support @switch ...{ syntax
 	var i = body.indexOf("BLK({");
 	while(i > -1) {
@@ -1329,7 +1330,8 @@ VCompiler.findNonExp = function(node){
 	}
 }
 
-exports["compile"] = function compile(markup, options){
+    exports["compile"] = function compile(markup, options){
+	console.log("now begin: %s\n", markup)
 	var  l
 		,tok
 		,tokens = []
@@ -1340,7 +1342,9 @@ exports["compile"] = function compile(markup, options){
 
 	l = new VLexer(markup);
 	while(tok = l.advance()) { tokens.push(tok); }
-	tokens.reverse(); // parser needs in reverse order for faster popping vs shift
+
+        console.log(tokens.toString())
+    tokens.reverse(); // parser needs in reverse order for faster popping vs shift
 
 	p = new VParser(tokens, options);
 	p.parse();
@@ -1348,6 +1352,7 @@ exports["compile"] = function compile(markup, options){
 	c = new VCompiler(p.ast, markup, options);
 
 	cmp = c.generate();
+	console.log("now end: %s", cmp)
 	return cmp;
 };
 
