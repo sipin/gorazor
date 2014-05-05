@@ -48,6 +48,7 @@ type TokenMatch struct {
 	Regex string
 }
 
+// The order is important
 var Tests = []TokenMatch{
 	TokenMatch{EMAIL, `([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\\b`},
 	TokenMatch{AT_STAR_OPEN, `@\*`},
@@ -66,8 +67,8 @@ var Tests = []TokenMatch{
 	TokenMatch{HTML_TAG_VOID_CLOSE, `(\/\s*>)`},
         TokenMatch{PERIOD, `(\.)`},
         TokenMatch{WHITESPACE, `(\s)`},
-        TokenMatch{FUNCTION, `(function)([\d\w])`},
-        TokenMatch{KEYWORD, `(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)([\d\w])`},
+        TokenMatch{FUNCTION, `(function)([\D\W])`},
+        TokenMatch{KEYWORD, `(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)([\D\W])`},
         TokenMatch{IDENTIFIER, `([_$a-zA-Z\\xA0-\\uFFFF][_$a-zA-Z0-9\\xA0-\\uFFFF]*)`},
         TokenMatch{FORWARD_SLASH, `(\/)`},
         TokenMatch{OPERATOR, `(===|!==|==|!==|>>>|<<|>>|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`},
@@ -120,7 +121,9 @@ func Lex(lexer *Lexer, text string) ([]Token, error) {
 			if found != nil {
 				match = true
 				length = found[1] - found[0]
-				line, pos := LineAndPos(text, found[0])
+				fmt.Printf("length: %d found[0]: %d found[1]: %d\n",
+					length, found[0], found[1])
+				line, pos := LineAndPos(text, pos)
 				tok := Token{left[found[0]:found[1]], id, line, pos}
 				toks = append(toks, tok)
 				break
@@ -135,6 +138,14 @@ func Lex(lexer *Lexer, text string) ([]Token, error) {
 		}
 	}
 	return toks, nil
+}
+
+
+func test() {
+	buffer := "casex case"
+	lex := &Lexer{ buffer }
+	res, _ := Lex(lex, buffer)
+	fmt.Println(res)
 }
 
 func main() {
@@ -158,4 +169,6 @@ func main() {
 	for _, elem := range res {
 		fmt.Println(elem)
 	}
+
+	test()
 }
