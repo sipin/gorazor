@@ -3,7 +3,7 @@
 GoRazor is the Go port of the razor view engine originated from [asp.net in 2011](http://weblogs.asp.net/scottgu/archive/2010/07/02/introducing-razor.aspx). In summay, GoRazor's:
 
 * Consice syntax, no delineators like `<?`, `<%`, or `{{`.
-  * Original [Razor Syntax](http://www.asp.net/web-pages/tutorials/basics/2-introduction-to-asp-net-web-programming-using-the-razor-syntax) for asp.net.
+  * Original [Razor Syntax](http://www.asp.net/web-pages/tutorials/basics/2-introduction-to-asp-net-web-programming-using-the-razor-syntax) & [quick reference](http://haacked.com/archive/2011/01/06/razor-syntax-quick-reference.aspx/) for asp.net.
 * Able to mix go code in view template
   * Insert code block to import & call arbitrary go modules & functions
 * Code generation approach
