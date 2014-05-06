@@ -72,7 +72,7 @@ var Tests = []TokenMatch{
         TokenMatch{WHITESPACE, `(\s)`},
         TokenMatch{FUNCTION, `(function)([\D\W])`},
         TokenMatch{KEYWORD, `(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)([\D\W])`},
-        TokenMatch{IDENTIFIER, `([_$a-zA-Z\\xA0-\\uFFFF][_$a-zA-Z0-9\\xA0-\\uFFFF]*)`},
+        TokenMatch{IDENTIFIER, `([_$a-zA-Z][_$a-zA-Z0-9]*)`}, //need verify
         TokenMatch{FORWARD_SLASH, `(\/)`},
         TokenMatch{OPERATOR, `(===|!==|==|!==|>>>|<<|>>|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`},
 	TokenMatch{ASSIGN_OPERATOR, `(\|=|\^=|&=|>>>=|>>=|<<=|-=|\+=|%=|\/=|\*=|=)`},
@@ -213,38 +213,94 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 	return toks, nil
 }
 
+const (
+	PRG = iota
+	MKP
+	BLK
+	EXP
+)
+
 type Ast struct {
-	Parent *Ast
+	Parent     *Ast
 	Children []*Ast
-	Value    string
+	Mode       int
+	TagName    string
 }
 
 func (ast *Ast) AddChild(child *Ast) {
 	ast.Children = append(ast.Children, child)
 }
 
-type Parser struct {
-	root       Ast
-	tokens     []Token
-	preTokens  []Token
-	inComment  bool
-        curr       Token
+func (ast *Ast) Root() (*Ast) {
+	p := ast
+	pp := ast.Parent
+	for {
+		if p == pp || pp == nil {
+			return p
+		}
+		b := pp
+		pp = p.Parent
+		p = b
+	}
+	return nil
 }
 
-func (parser *Parser)Run() (err error) {
+func(ast *Ast)  Beget(mode int, tag string) (*Ast) {
+	child := &Ast{ast, []*Ast{}, mode, tag}
+	ast.AddChild(child)
+	return child
+}
+
+type Parser struct {
+	ast        *Ast
+	tokens     []Token
+	preTokens  []Token
+        curr       Token
+        inComment  bool
+}
+
+func (parser *Parser) handleMKP(token Token) {
+}
+
+func (parser *Parser) handleBLK(token Token) {
+}
+
+func (parser *Parser) handleEXP(token Token) {
+}
+
+func (parser *Parser) nextToken() (Token) {
+	t := parser.tokens[0]
+	parser.tokens = parser.tokens[1:]
+	return t
+}
+
+func (parser *Parser) Run() (err error) {
 	if(parser == nil) {
 		return
 	}
+	parser.ast.Mode = PRG
 	parser.curr = Token{"UNDEF", UNDEF, 0, 0}
 	for {
 		parser.preTokens = append(parser.preTokens, parser.curr)
 		if (len(parser.tokens) == 0) {
 			break
 		}
-		parser.curr = parser.tokens[0]
-		parser.tokens = parser.tokens[1:]
-		fmt.Println("now: ", parser.curr)
+		parser.curr = parser.nextToken()
+		if(parser.ast.Mode == PRG) {
+			parser.ast = parser.ast.Beget(MKP, "")
+		}
+
+		switch parser.ast.Mode {
+		case MKP:
+			parser.handleMKP(parser.curr)
+		case BLK:
+			parser.handleBLK(parser.curr)
+		case EXP:
+			parser.handleEXP(parser.curr)
+		}
 	}
+
+	parser.ast = parser.ast.Root()
 	return nil
 }
 
@@ -257,7 +313,7 @@ func (parser *Parser)Run() (err error) {
 
 func main() {
 	buf := ""
-	file, _ := os.Open("./now/demo.gohtml")
+	file, _ := os.Open("./tpl/home.gohtml")
 	reader := bufio.NewReader(file)
 	for {
 		byte, err := reader.ReadString('\n')
@@ -277,5 +333,16 @@ func main() {
 		elem.P()
 		//fmt.Println(elem)
 	}
+
+	//parser := &Parser{&Ast{}, res, []Token{}, Token{}, false}
+	ast := &Ast{}
+	fmt.Println("ast.Mode: ", ast.Mode)
+	fmt.Println("ast: ", ast)
+	if ast.Parent == nil {
+		fmt.Println("yes")
+	} else {
+		fmt.Println("no")
+	}
+	//err = parser.Run()
 
 }

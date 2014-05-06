@@ -490,7 +490,7 @@
 
 	this.options = options || {};
 	this.tokens = tokens;
-	console.log("tokens: ", tokens)
+	//console.log("tokens: ", tokens)
 	this.ast = vQuery(PRG);
 	this.prevTokens = [];
 
@@ -507,8 +507,10 @@
 	    while( this.prevTokens.push( curr ), (curr = this.tokens.pop()) ){
 
 		if(this.ast.mode === PRG || this.ast.mode === null){
-
-		    this.ast = this.ast.beget( this.options.initialMode || MKP );
+                    //console.log("fuck: ", this.ast.mode)
+		    //console.log("options: ", this.options.initialMode|| MKP)
+		    //console.log("initialMode: ", this.initialMode)
+        	    this.ast = this.ast.beget( this.options.initialMode || MKP );
 
 		    if(this.options.initialMode === EXP){
 			this.ast = this.ast.beget( EXP ); // EXP needs to know it's within to continue
@@ -1286,7 +1288,7 @@ var _buffer bytes.Buffer\n';
 	// clear whatever's in the current buffer
 	this.buffer.length = 0;
 
-	console.log("ast: ", this.ast)
+	//console.log("ast: ", this.ast)
 	this.visitNode(this.ast);
 
 	// coalesce markup
@@ -1343,7 +1345,7 @@ var _buffer bytes.Buffer\n';
 	l = new VLexer(markup);
 	while(tok = l.advance()) { tokens.push(tok); }
 	tokens.reverse(); // parser needs in reverse order for faster popping vs shift
-
+	console.log("tokens: ", tokens)
 	p = new VParser(tokens, options);
 	p.parse();
 
