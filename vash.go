@@ -149,7 +149,7 @@ func LineAndPos(src string, pos int) (int, int) {
 	return lines, p
 }
 
-func (lexer *Lexer) TagOpen(text string) (string) {
+func TagOpen(text string) (string) {
         regs := []string {
 		`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,4})\b`,
 		`(@)`,
@@ -195,7 +195,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 				tokenVal := left[found[0]:found[1]]
 				toType := lexer.Types[idx]
 				if toType == HTML_TAG_OPEN {
-					tokenVal = lexer.TagOpen(tokenVal)
+					tokenVal = TagOpen(tokenVal)
 				}
 				tok := Token{tokenVal, toType, line, pos}
 				toks = append(toks, tok)
