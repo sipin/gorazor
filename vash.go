@@ -611,7 +611,7 @@ func (parser *Parser) handleEXP(token Token) {
 			parser.ast = parser.ast.Parent
 			break
 		}
-		//TODO subParse
+		parser.subParse(token, false)
 		if (prev != nil && prev.Type == AT) || (next != nil && next.Type == IDENTIFIER) {
 			parser.ast = parser.ast.Parent
 		}
