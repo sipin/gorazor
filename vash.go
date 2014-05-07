@@ -46,101 +46,74 @@ const (
 
 type TokenMatch struct {
 	Type  int
-	Regex string
+	Text  string
+	Regex *regexp.Regexp
+}
+
+func ReC(reg string) (*regexp.Regexp) {
+	res, err := regexp.Compile("^" + reg)
+	if err != nil {
+		panic(err)
+	}
+	return res
 }
 
 // The order is important
 var Tests = []TokenMatch{
-	TokenMatch{EMAIL, `([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\\b`},
-	TokenMatch{AT_STAR_OPEN, `@\*`},
-	TokenMatch{AT_STAR_CLOSE, `(\*@)`},
-	TokenMatch{AT_COLON, `(@\:)`},
-	TokenMatch{AT, `(@)`},
-	TokenMatch{PAREN_OPEN, `(\()`},
-	TokenMatch{PAREN_CLOSE, `(\))`},
-	TokenMatch{HARD_PAREN_OPEN, `(\[)`},
-	TokenMatch{HARD_PAREN_CLOSE, `(\])`},
-	TokenMatch{BRACE_OPEN, `(\{)`},
-	TokenMatch{BRACE_CLOSE, `(\})`},
-	TokenMatch{TEXT_TAG_OPEN, `(<text>)`},
-	TokenMatch{TEXT_TAG_CLOSE, `(<\/text>)`},
-	TokenMatch{HTML_TAG_OPEN, `(<[a-zA-Z@]+?[^>]*?["a-zA-Z]*>)`},
-	TokenMatch{HTML_TAG_CLOSE, `(<\/[^>@\\b]+?>)`},
-	TokenMatch{HTML_TAG_VOID_CLOSE, `(\/\s*>)`},
-	TokenMatch{PERIOD, `(\.)`},
-	TokenMatch{NEWLINE, `(\n)`},
-	TokenMatch{WHITESPACE, `(\s)`},
-	TokenMatch{FUNCTION, `(function)([\D\W])`},
-	TokenMatch{KEYWORD, `(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)([\D\W])`},
-	TokenMatch{IDENTIFIER, `([_$a-zA-Z][_$a-zA-Z0-9]*)`}, //need verify
-	TokenMatch{FORWARD_SLASH, `(\/)`},
-	TokenMatch{OPERATOR, `(===|!==|==|!==|>>>|<<|>>|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`},
-	TokenMatch{ASSIGN_OPERATOR, `(\|=|\^=|&=|>>>=|>>=|<<=|-=|\+=|%=|\/=|\*=|=)`},
-	TokenMatch{LOGICAL, `(&&|\|\||&|\||\^)`},
-	TokenMatch{ESCAPED_QUOTE, `(\\+['\"])`},
-	TokenMatch{BACKSLASH, `(\\)`},
-	TokenMatch{DOUBLE_QUOTE, `(\\")`},
-	TokenMatch{SINGLE_QUOTE, `(\')`},
-	TokenMatch{NUMERIC_CONTENT, `([0-9]+)`},
-	TokenMatch{CONTENT, `([^\s})@.]+?)`},
+	TokenMatch{EMAIL, "EMAIL", ReC(`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\\b`)},
+        TokenMatch{AT_STAR_OPEN, "AT_STAR_OPEN", ReC(`@\*`)},
+        TokenMatch{AT_STAR_CLOSE, "AT_STAR_CLOSE", ReC(`(\*@)`)},
+        TokenMatch{AT_COLON, "AT_COLON", ReC(`(@\:)`)},
+        TokenMatch{AT, "AT", ReC(`(@)`)},
+        TokenMatch{PAREN_OPEN, "PAREN_OPEN", ReC(`(\()`)},
+        TokenMatch{PAREN_CLOSE, "PAREN_CLOSE", ReC(`(\))`)},
+        TokenMatch{HARD_PAREN_OPEN, "HARD_PAREN_OPEN", ReC(`(\[)`)},
+        TokenMatch{HARD_PAREN_CLOSE, "HARD_PAREN_CLOSE", ReC(`(\])`)},
+        TokenMatch{BRACE_OPEN, "BRACE_OPEN", ReC(`(\{)`)},
+        TokenMatch{BRACE_CLOSE, "BRACE_CLOSE", ReC(`(\})`)},
+        TokenMatch{TEXT_TAG_OPEN, "TEXT_TAG_OPEN", ReC(`(<text>)`)},
+        TokenMatch{TEXT_TAG_CLOSE, "TEXT_TAG_CLOSE", ReC(`(<\/text>)`)},
+        TokenMatch{HTML_TAG_OPEN, "HTML_TAG_OPEN", ReC(`(<[a-zA-Z@]+?[^>]*?["a-zA-Z]*>)`)},
+        TokenMatch{HTML_TAG_CLOSE, "HTML_TAG_CLOSE", ReC(`(<\/[^>@\\b]+?>)`)},
+        TokenMatch{HTML_TAG_VOID_CLOSE, "HTML_TAG_VOID_CLOSE", ReC(`(\/\s*>)`)},
+        TokenMatch{PERIOD, "PERIOD", ReC(`(\.)`)},
+        TokenMatch{NEWLINE, "NEWLINE", ReC(`(\n)`)},
+        TokenMatch{WHITESPACE, "WHITESPACE", ReC(`(\s)`)},
+        TokenMatch{FUNCTION, "FUNCTION", ReC(`(function)([\D\W])`)},
+        TokenMatch{KEYWORD, "KEYWORD", ReC(`(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)([\D\W])`)},
+        TokenMatch{IDENTIFIER, "IDENTIFIER", ReC(`([_$a-zA-Z][_$a-zA-Z0-9]*)`)}, //need veri)fy
+        TokenMatch{FORWARD_SLASH, "FORWARD_SLASH", ReC(`(\/)`)},
+        TokenMatch{OPERATOR, "OPERATOR", ReC(`(===|!==|==|!==|>>>|<<|>>|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
+        TokenMatch{ASSIGN_OPERATOR, "ASSIGN_OPERATOR", ReC(`(\|=|\^=|&=|>>>=|>>=|<<=|-=|\+=|%=|\/=|\*=|=)`)},
+        TokenMatch{LOGICAL, "LOGICAL", ReC(`(&&|\|\||&|\||\^)`)},
+        TokenMatch{ESCAPED_QUOTE, "ESCAPED_QUOTE", ReC(`(\\+['\"])`)},
+        TokenMatch{BACKSLASH, "BACKSLASH", ReC(`(\\)`)},
+        TokenMatch{DOUBLE_QUOTE, "DOUBLE_QUOTE", ReC(`(\\")`)},
+        TokenMatch{SINGLE_QUOTE, "SINGLE_QUOTE", ReC(`(\')`)},
+        TokenMatch{NUMERIC_CONTENT, "NUMERIC_CONTENT", ReC(`([0-9]+)`)},
+        TokenMatch{CONTENT, "CONTENT", ReC(`([^\s})@.]+?)`)},
 }
-
-var TokenStr = []string{
-	"UNDEF",
-	"AT",
-	"ASSIGN_OPERATOR",
-	"AT_COLON",
-	"AT_STAR_CLOSE",
-	"AT_STAR_OPEN",
-	"BACKSLASH",
-	"BRACE_CLOSE",
-	"BRACE_OPEN",
-	"CONTENT",
-	"EMAIL",
-	"ESCAPED_QUOTE",
-	"FORWARD_SLASH",
-	"FUNCTION",
-	"HARD_PAREN_CLOSE",
-	"HARD_PAREN_OPEN",
-	"HTML_TAG_CLOSE",
-	"THML_TAG_OPEN",
-	"HTML_TAG_VOID_CLOSE",
-	"IDENTIFIER",
-	"KEYWORD",
-	"LOGICAL",
-	"NEWLINE",
-	"NUMERIC_CONTENT",
-	"OPERATOR",
-	"PAREN_CLOSE",
-	"PAREN_OPEN",
-	"PERIOD",
-	"SINGLE_QUOTE",
-	"DOUBLE_QUOTE",
-	"TEXT_TAG_CLOSE",
-	"TEXT_TAG_OPEN",
-	"WHITESPACE"}
 
 type Token struct {
 	Text string
+	TypeStr string
 	Type int
 	Line int
 	Pos  int
 }
 
 func (token Token) P() {
-	typeStr := TokenStr[token.Type]
 	textStr := token.Text
 	if textStr == "\n" {
 		textStr = "\\n"
 	}
 	fmt.Printf("Token: %-20s Location:(%-2d %-2d) Value: %s\n",
-		typeStr, token.Line, token.Pos, textStr)
+		token.TypeStr, token.Line, token.Pos, textStr)
 }
 
 type Lexer struct {
 	Text  string
-	Cache [](*regexp.Regexp)
-	Types []int
+	Matches []TokenMatch
 }
 
 func LineAndPos(src string, pos int) (int, int) {
@@ -171,32 +144,22 @@ func TagOpen(text string) string {
 func (lexer *Lexer) Scan() ([]Token, error) {
 	pos := 0
 	toks := []Token{}
-	for _, test := range Tests {
-		reg, err := regexp.Compile("^" + test.Regex)
-		if err != nil {
-			panic(err)
-		}
-		lexer.Cache = append(lexer.Cache, reg)
-		lexer.Types = append(lexer.Types, test.Type)
-	}
-
 	text := strings.Replace(lexer.Text, "\r\n", "\n", -1)
 	text = strings.Replace(lexer.Text, "\r", "\n", -1)
 	for pos < len(text) {
 		left := text[pos:]
 		match := false
 		length := 0
-		for idx, regexp := range lexer.Cache {
-			found := regexp.FindIndex([]byte(left))
+		for _, m := range lexer.Matches {
+			found := m.Regex.FindIndex([]byte(left))
 			if found != nil {
 				match = true
 				line, pos := LineAndPos(text, pos)
 				tokenVal := left[found[0]:found[1]]
-				toType := lexer.Types[idx]
-				if toType == HTML_TAG_OPEN {
+				if m.Type == HTML_TAG_OPEN {
 					tokenVal = TagOpen(tokenVal)
 				}
-				tok := Token{tokenVal, toType, line, pos}
+				tok := Token{tokenVal, m.Text, m.Type, line, pos}
 				toks = append(toks, tok)
 				length = len(tokenVal)
 				break
@@ -648,7 +611,7 @@ func (parser *Parser) handleEXP(token Token) {
 
 func (parser *Parser) Run() (err error) {
 	parser.ast.Mode = PRG
-	parser.curr = Token{"UNDEF", UNDEF, 0, 0}
+	parser.curr = Token{"UNDEF", "UNDEF", UNDEF, 0, 0}
 	for {
 		parser.preTokens = append(parser.preTokens, parser.curr)
 		if len(parser.tokens) == 0 {
@@ -693,13 +656,14 @@ func main() {
 		}
 		buf += byte
 	}
-	lex := &Lexer{buf, []*regexp.Regexp{}, []int{}}
+	lex := &Lexer{buf, Tests}
 	res, err := lex.Scan()
 	fmt.Println("buf:", buf)
 	if err != nil {
 		fmt.Println("error:", err)
 		return
 	}
+
 	//for _, elem := range res {
 	//elem.P()
 	//fmt.Println(elem)
