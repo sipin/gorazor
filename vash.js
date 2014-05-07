@@ -716,6 +716,8 @@
 	    case HTML_TAG_OPEN:
 		tagName = curr.val.match(/^<([^\/ >]+)/i);
 
+		console.log("fuck1: ", curr.val)
+		console.log("fuck2: ", tagName)
 		if(tagName === null && next && next.type === AT && ahead){
 		    tagName = ahead.val.match(/(.*)/); // HACK for <@exp>
 		}

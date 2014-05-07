@@ -162,7 +162,7 @@ func TagOpen(text string) (string) {
 		}
 		found := regc.FindIndex([]byte(text))
 		if found != nil {
-			res = res[found[1]:]
+			res = res[found[1]:] //BUG?
 		}
 	}
 	return res
@@ -213,6 +213,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 	return toks, nil
 }
 
+//------------------------------ Parser ------------------------------//
 const (
 	PRG = iota
 	MKP
@@ -222,16 +223,24 @@ const (
 
 type Ast struct {
 	Parent     *Ast
-	Children []*Ast
+	Children   []interface{}
 	Mode       int
 	TagName    string
 }
 
-func (ast *Ast) AddChild(child *Ast) {
+func (ast *Ast) addChild(child interface{}) {
 	ast.Children = append(ast.Children, child)
 }
 
-func (ast *Ast) Root() (*Ast) {
+func (ast *Ast) popChild() {
+	l := len(ast.Children)
+	if l == 0 {
+		return
+	}
+	ast.Children = ast.Children[:l-1]
+}
+
+func (ast *Ast) root() (*Ast) {
 	p := ast
 	pp := ast.Parent
 	for {
@@ -245,10 +254,22 @@ func (ast *Ast) Root() (*Ast) {
 	return nil
 }
 
-func(ast *Ast)  Beget(mode int, tag string) (*Ast) {
-	child := &Ast{ast, []*Ast{}, mode, tag}
-	ast.AddChild(child)
+func(ast *Ast)  beget(mode int, tag string) (*Ast) {
+	child := &Ast{ast, []interface{}{}, mode, tag}
+	ast.addChild(child)
 	return child
+}
+
+func (ast *Ast) closest(mode int, tag string) (*Ast) {
+	p := ast
+	for {
+		if p.TagName != tag && p.Parent != nil {
+			p = p.Parent
+		} else {
+			break
+		}
+	}
+	return p
 }
 
 type Parser struct {
@@ -257,21 +278,274 @@ type Parser struct {
 	preTokens  []Token
         curr       Token
         inComment  bool
+	saveTextTag bool
 }
 
-func (parser *Parser) handleMKP(token Token) {
+func (parser *Parser) prevToken(idx int) (*Token) {
+	l := len(parser.preTokens)
+	if l < idx + 1 {
+		return nil
+	}
+	return &(parser.preTokens[l - 1 - idx])
 }
 
-func (parser *Parser) handleBLK(token Token) {
+func (parser *Parser) deferToken(token Token) {
+	parser.tokens = append(parser.tokens, token)
 }
 
-func (parser *Parser) handleEXP(token Token) {
+func (parser *Parser) peekToken(idx int) (*Token) {
+        if len(parser.tokens) <= idx  {
+		return nil
+        }
+        return &(parser.tokens[idx])
 }
 
 func (parser *Parser) nextToken() (Token) {
-	t := parser.tokens[0]
+        t := parser.peekToken(0)
+        if t != nil {
+                parser.tokens = parser.tokens[1:]
+        }
+        return *t
+}
+
+func (parser *Parser) skipToken() {
 	parser.tokens = parser.tokens[1:]
-	return t
+}
+
+func regMatch(reg string, text string) (string, error) {
+        regc, err := regexp.Compile(reg)
+        if err != nil {
+                return "", err
+        }
+        found := regc.FindIndex([]byte(text))
+        if found != nil {
+                return text[found[0]:found[1]], nil
+        }
+        return "", nil
+}
+
+func (parser *Parser) handleMKP(token Token) {
+	next  := parser.peekToken(0)
+	//nnext := parser.peekToken(1)
+	switch token.Type {
+	case AT_STAR_OPEN:
+		break
+	case AT:
+		if next != nil {
+			switch next.Type {
+			case PAREN_OPEN:
+			case IDENTIFIER:
+				if len(parser.ast.Children) == 0 {
+					parser.ast = parser.ast.Parent //BUG
+					parser.ast.popChild() //remove empty MKP block
+				}
+				parser.ast = parser.ast.beget(EXP, "")
+				break
+			case KEYWORD:
+			case FUNCTION:
+                        case BRACE_OPEN:      //BLK
+				if len(parser.ast.Children) == 0 {
+					parser.ast = parser.ast.Parent
+					parser.ast.popChild()
+				}
+				parser.ast = parser.ast.beget(BLK, "")
+				break
+			case AT:
+			case AT_COLON:
+				//we want to keep the token, but remove it's special meanning
+				next.Type = CONTENT //BUG, modify from a pointer, work?
+				parser.ast.addChild(parser.nextToken())
+				break
+			default:
+				parser.ast.addChild(parser.nextToken())
+				break
+			}
+		}
+		break
+	case TEXT_TAG_OPEN:
+	case HTML_TAG_OPEN:
+                tagName, _ := regMatch(`/^<([^\/ >]+)/`, token.Text)
+		tagName = strings.Replace(tagName, "<", "", -1)
+		//TODO
+		if parser.ast.TagName != "" {
+			parser.ast = parser.ast.beget(MKP, tagName)
+		} else {
+			parser.ast.TagName = tagName
+		}
+		if token.Type == HTML_TAG_OPEN || parser.saveTextTag {
+			parser.ast.addChild(token)
+		}
+		break
+	case TEXT_TAG_CLOSE:
+	case HTML_TAG_CLOSE:
+                tagName, _ := regMatch(`(?i)^<\/([^>]+)`, token.Text)
+		tagName = strings.Replace(tagName, "</", "", -1)
+		//TODO
+		opener := parser.ast.closest(MKP, tagName)
+		if opener.TagName != tagName { //unmatched
+		} else {
+			parser.ast = opener
+		}
+		if token.Type == HTML_TAG_CLOSE || parser.saveTextTag {
+			parser.ast.addChild(token)
+		}
+		if parser.ast.Parent != nil && parser.ast.Parent.Mode == BLK {
+			parser.ast = parser.ast.Parent
+		}
+		break
+	case HTML_TAG_VOID_CLOSE:
+		parser.ast.addChild(token)
+		parser.ast = parser.ast.Parent
+		break
+	case BACKSLASH:
+		token.Text += "\\"
+		parser.ast.addChild(token)
+		break
+	default:
+		parser.ast.addChild(token)
+		break
+	}
+}
+
+func (parser *Parser) handleBLK(token Token) {
+	next := parser.peekToken(0)
+	switch token.Type {
+	case AT:
+		if next.Type != AT && (parser.inComment) {
+			parser.deferToken(token)
+			parser.ast = parser.ast.beget(MKP, "")
+		} else {
+			next.Type = CONTENT
+			parser.ast.addChild(next)
+			parser.skipToken()
+		}
+		break
+
+	case AT_STAR_OPEN:
+		//TODO
+		break
+	case AT_COLON:
+		//TODO subparsre
+		break
+	case TEXT_TAG_OPEN:
+	case TEXT_TAG_CLOSE:
+	case HTML_TAG_OPEN:
+	case HTML_TAG_CLOSE:
+		parser.ast = parser.ast.beget(MKP, "")
+		parser.deferToken(token)
+		break
+
+	case FORWARD_SLASH:
+	case SINGLE_QUOTE:
+	case DOUBLE_QUOTE:
+		if token.Type == FORWARD_SLASH && next != nil && next.Type == FORWARD_SLASH {
+			parser.inComment = true
+		}
+		if !parser.inComment {
+			//TODO
+		} else {
+			parser.ast.addChild(token)
+		}
+		break
+	case NEWLINE:
+		if parser.inComment {
+			parser.inComment = false
+		}
+		parser.ast.addChild(token)
+		break
+
+	case BRACE_OPEN:
+	case PAREN_OPEN:
+		//TODO
+	default:
+		parser.ast.addChild(token)
+		break
+	}
+}
+
+
+func (parser *Parser) handleEXP(token Token) {
+	switch token.Type {
+	case KEYWORD:
+	case FUNCTION:
+		parser.ast = parser.ast.beget(BLK, "")
+		parser.deferToken(token)
+		break
+	case WHITESPACE:
+	case LOGICAL:
+	case ASSIGN_OPERATOR:
+	case OPERATOR:
+	case NUMERIC_CONTENT:
+		if parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP {
+			parser.ast.addChild(token)
+		} else {
+			parser.ast = parser.ast.Parent
+			parser.deferToken(token)
+		}
+		break;
+	case IDENTIFIER:
+		parser.ast.addChild(token)
+		break
+	case SINGLE_QUOTE:
+	case DOUBLE_QUOTE:
+		//TODO
+		break
+	case HARD_PAREN_OPEN:
+	case PAREN_OPEN:
+		prev := parser.prevToken(0)
+		next := parser.peekToken(0) //BUG?
+		if token.Type == HARD_PAREN_OPEN && next.Type == HARD_PAREN_CLOSE {
+                        // likely just [], which is not likely valid outside of EXP
+			parser.deferToken(token)
+			parser.ast = parser.ast.Parent
+			break
+		}
+		//TODO subParse
+		if (prev != nil && prev.Type == AT) || ( next != nil && next.Type == IDENTIFIER) {
+			parser.ast = parser.ast.Parent
+		}
+		break
+
+	case BRACE_OPEN:
+		parser.deferToken(token)
+		parser.ast = parser.ast.beget(BLK, "")
+		break
+
+	case PERIOD:
+		next := parser.peekToken(0)
+		if next != nil && ( next.Type == IDENTIFIER ||
+			next.Type == KEYWORD ||
+			next.Type == FUNCTION ||
+			next.Type == PERIOD ||
+			(parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP)) {
+			parser.ast.addChild(token)
+		} else {
+			parser.ast = parser.ast.Parent
+			parser.deferToken(token)
+		}
+		break
+	default:
+		if parser.ast.Parent != nil && parser.ast.Parent.Mode != EXP {
+			parser.ast = parser.ast.Parent
+			parser.deferToken(token)
+		} else {
+			parser.ast.addChild(token)
+		}
+		break
+	}
+}
+
+func (parser *Parser) advanceUntilNot(tokenType int) ([]Token) {
+	res := []Token{}
+	for idx, token := range parser.tokens {
+		if token.Type == tokenType {
+			res = append(res, token)
+		} else {
+			break;
+			parser.tokens = parser.tokens[idx:] //BUG?
+		}
+	}
+	return res
 }
 
 func (parser *Parser) Run() (err error) {
@@ -287,9 +561,9 @@ func (parser *Parser) Run() (err error) {
 		}
 		parser.curr = parser.nextToken()
 		if(parser.ast.Mode == PRG) {
-			parser.ast = parser.ast.Beget(MKP, "")
+			parser.ast = parser.ast.beget(MKP, "")
 		}
-
+		parser.curr.P()
 		switch parser.ast.Mode {
 		case MKP:
 			parser.handleMKP(parser.curr)
@@ -300,9 +574,11 @@ func (parser *Parser) Run() (err error) {
 		}
 	}
 
-	parser.ast = parser.ast.Root()
+	parser.ast = parser.ast.root()
 	return nil
 }
+
+//------------------------------ Compiler ------------------------------ //
 
 // func test() {
 // 	buffer := "casex case"
@@ -334,15 +610,7 @@ func main() {
 		//fmt.Println(elem)
 	}
 
-	//parser := &Parser{&Ast{}, res, []Token{}, Token{}, false}
-	ast := &Ast{}
-	fmt.Println("ast.Mode: ", ast.Mode)
-	fmt.Println("ast: ", ast)
-	if ast.Parent == nil {
-		fmt.Println("yes")
-	} else {
-		fmt.Println("no")
-	}
-	//err = parser.Run()
+	parser := &Parser{&Ast{}, res, []Token{}, Token{}, false, false}
+	err = parser.Run()
 
 }
