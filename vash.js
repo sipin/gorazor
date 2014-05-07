@@ -507,9 +507,6 @@
 	    while( this.prevTokens.push( curr ), (curr = this.tokens.pop()) ){
 
 		if(this.ast.mode === PRG || this.ast.mode === null){
-                    //console.log("fuck: ", this.ast.mode)
-		    //console.log("options: ", this.options.initialMode|| MKP)
-		    //console.log("initialMode: ", this.initialMode)
         	    this.ast = this.ast.beget( this.options.initialMode || MKP );
 
 		    if(this.options.initialMode === EXP){
@@ -628,11 +625,15 @@
 		,null
 		,AT );
 
+            console.log("first in subParse:", subTokens)
 	    subTokens.pop();
+            console.log("second in subParse:", subTokens)
 
-	    closer = subTokens.shift();
+            closer = subTokens.shift();
+            console.log("closer:", closer)
+            console.log("third in subParse:", subTokens)
 
-	    if( !includeDelimsInSub ){
+            if( !includeDelimsInSub ){
 		this.ast.push(curr);
 	    }
 
@@ -715,9 +716,6 @@
 	    case TEXT_TAG_OPEN:
 	    case HTML_TAG_OPEN:
 		tagName = curr.val.match(/^<([^\/ >]+)/i);
-
-		console.log("fuck1: ", curr.val)
-		console.log("fuck2: ", tagName)
 		if(tagName === null && next && next.type === AT && ahead){
 		    tagName = ahead.val.match(/(.*)/); // HACK for <@exp>
 		}
@@ -851,6 +849,7 @@
 			    if(tok.type === AT) tok.type = CONTENT;
 			    return tok;
 			});
+		    console.log("haha: ", subTokens.reverse())
 		    this.ast.pushFlatten(subTokens.reverse());
 		} else {
 		    this.ast.push(curr);
@@ -1347,10 +1346,11 @@ var _buffer bytes.Buffer\n';
 	l = new VLexer(markup);
 	while(tok = l.advance()) { tokens.push(tok); }
 	tokens.reverse(); // parser needs in reverse order for faster popping vs shift
-	console.log("tokens: ", tokens)
+	//console.log("tokens: ", tokens)
 	p = new VParser(tokens, options);
 	p.parse();
 
+	console.log(p.ast)
 	c = new VCompiler(p.ast, markup, options);
 
 	cmp = c.generate();
