@@ -877,7 +877,6 @@
 			&& curr.type !== PAREN_OPEN
 		){
 		    // defer whitespace
-		    console.log("this is good:", subTokens)
 		    this.tokens.push.apply(this.tokens, subTokens.reverse());
 		    this.ast = this.ast.parent;
 		} else {
@@ -1340,12 +1339,16 @@ var _buffer bytes.Buffer\n';
 
 	l = new VLexer(markup);
 	while(tok = l.advance()) { tokens.push(tok); }
+
+        //console.log("tokens:", tokens)
 	tokens.reverse(); // parser needs in reverse order for faster popping vs shift
+
 	p = new VParser(tokens, options);
 	p.parse();
 
-	console.log(p.ast[0])
 	c = new VCompiler(p.ast, markup, options);
+
+	console.log(p.ast)
 
 	cmp = c.generate();
 	return cmp;

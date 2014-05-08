@@ -134,7 +134,7 @@ func TagOpen(text string) string {
 		}
 		found := regc.FindIndex([]byte(text))
 		if found != nil {
-			res = res[found[1]:] //BUG?
+			res = res[:found[0]] //BUG?
 		}
 	}
 	return res
@@ -147,7 +147,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 	text = strings.Replace(lexer.Text, "\r", "\n", -1)
 	for pos < len(text) {
 		left := text[pos:]
-		match := false
+        	match := false
 		length := 0
 		for _, m := range lexer.Matches {
 			found := m.Regex.FindIndex([]byte(left))
@@ -155,6 +155,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 				match = true
 				line, pos := LineAndPos(text, pos)
 				tokenVal := left[found[0]:found[1]]
+				fmt.Printf("got: %s -> %s\n", tokenVal, m.Text)
 				if m.Type == HTML_TAG_OPEN {
 					tokenVal = TagOpen(tokenVal)
 				}
@@ -169,6 +170,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 			return toks, fmt.Errorf("%d:%d: Illegal character: %s",
 				err_line, err_pos, string(text[pos]))
 		}
+		fmt.Printf("length: %d\n", length)
 		pos += length
 	}
 	return toks, nil
@@ -689,17 +691,20 @@ func (parser *Parser) Run() (err error) {
 
 //------------------------------ Compiler ------------------------------ //
 func main() {
+
 	buf := bytes.NewBuffer(nil)
-	f , err := os.Open("./now/var.gohtml")
+	f , err := os.Open("./now/base.gohtml")
 	if err != nil {
 		panic(err)
 	}
 	io.Copy(buf, f)
 	f.Close()
-	text := string(buf.Bytes())
+
+        text := string(buf.Bytes())
 	lex := &Lexer{text, Tests}
+        fmt.Println("buf:", text)
 	res, err := lex.Scan()
-	fmt.Println("buf:", text)
+
 	if err != nil {
 		fmt.Println("error:", err)
 		return
@@ -712,5 +717,5 @@ func main() {
 	parser := &Parser{&Ast{}, res, []Token{}, false, false, UNK}
 	err = parser.Run()
 
-	parser.ast.debug(0, 4)
+	parser.ast.debug(0, 3)
 }
