@@ -2,9 +2,10 @@ package main
 
 import (
 	"os"
+	"io"
 	"fmt"
 	"regexp"
-	"bufio"
+	"bytes"
 	"strings"
 )
 
@@ -25,7 +26,7 @@ const (
 	FUNCTION
 	HARD_PAREN_CLOSE
 	HARD_PAREN_OPEN
-        HTML_TAG_OPEN
+	HTML_TAG_OPEN
 	HTML_TAG_CLOSE
 	HTML_TAG_VOID_CLOSE
 	IDENTIFIER
@@ -46,101 +47,74 @@ const (
 
 type TokenMatch struct {
 	Type  int
-	Regex string
+	Text  string
+	Regex *regexp.Regexp
+}
+
+func rec(reg string) (*regexp.Regexp) {
+	res, err := regexp.Compile("^" + reg)
+	if err != nil {
+		panic(err)
+	}
+	return res
 }
 
 // The order is important
 var Tests = []TokenMatch{
-	TokenMatch{EMAIL, `([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\\b`},
-	TokenMatch{AT_STAR_OPEN, `@\*`},
-	TokenMatch{AT_STAR_CLOSE, `(\*@)`},
-        TokenMatch{AT_COLON, `(@\:)`},
-	TokenMatch{AT, `(@)`},
-        TokenMatch{PAREN_OPEN, `(\()`},
-        TokenMatch{PAREN_CLOSE, `(\))`},
-        TokenMatch{HARD_PAREN_OPEN, `(\[)`},
-        TokenMatch{HARD_PAREN_CLOSE, `(\])`},
-        TokenMatch{BRACE_OPEN, `(\{)`},
-        TokenMatch{BRACE_CLOSE, `(\})`},
-        TokenMatch{TEXT_TAG_OPEN, `(<text>)`},
-	TokenMatch{TEXT_TAG_CLOSE, `(<\/text>)`},
-        TokenMatch{HTML_TAG_OPEN, `(<[a-zA-Z@]+?[^>]*?["a-zA-Z]*>)`},
-	TokenMatch{HTML_TAG_CLOSE, `(<\/[^>@\\b]+?>)`},
-	TokenMatch{HTML_TAG_VOID_CLOSE, `(\/\s*>)`},
-        TokenMatch{PERIOD, `(\.)`},
-	TokenMatch{NEWLINE, `(\n)`},
-        TokenMatch{WHITESPACE, `(\s)`},
-        TokenMatch{FUNCTION, `(function)([\D\W])`},
-        TokenMatch{KEYWORD, `(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)([\D\W])`},
-        TokenMatch{IDENTIFIER, `([_$a-zA-Z][_$a-zA-Z0-9]*)`}, //need verify
-        TokenMatch{FORWARD_SLASH, `(\/)`},
-        TokenMatch{OPERATOR, `(===|!==|==|!==|>>>|<<|>>|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`},
-	TokenMatch{ASSIGN_OPERATOR, `(\|=|\^=|&=|>>>=|>>=|<<=|-=|\+=|%=|\/=|\*=|=)`},
-        TokenMatch{LOGICAL, `(&&|\|\||&|\||\^)`},
-        TokenMatch{ESCAPED_QUOTE, `(\\+['\"])`},
-	TokenMatch{BACKSLASH, `(\\)`},
-        TokenMatch{DOUBLE_QUOTE, `(\\")`},
-	TokenMatch{SINGLE_QUOTE, `(\')`},
-	TokenMatch{NUMERIC_CONTENT, `([0-9]+)`},
-        TokenMatch{CONTENT, `([^\s})@.]+?)`},
+	TokenMatch{EMAIL, "EMAIL", rec(`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\\b`)},
+        TokenMatch{AT_STAR_OPEN, "AT_STAR_OPEN", rec(`@\*`)},
+        TokenMatch{AT_STAR_CLOSE, "AT_STAR_CLOSE", rec(`(\*@)`)},
+        TokenMatch{AT_COLON, "AT_COLON", rec(`(@\:)`)},
+        TokenMatch{AT, "AT", rec(`(@)`)},
+        TokenMatch{PAREN_OPEN, "PAREN_OPEN", rec(`(\()`)},
+        TokenMatch{PAREN_CLOSE, "PAREN_CLOSE", rec(`(\))`)},
+        TokenMatch{HARD_PAREN_OPEN, "HARD_PAREN_OPEN", rec(`(\[)`)},
+        TokenMatch{HARD_PAREN_CLOSE, "HARD_PAREN_CLOSE", rec(`(\])`)},
+        TokenMatch{BRACE_OPEN, "BRACE_OPEN", rec(`(\{)`)},
+        TokenMatch{BRACE_CLOSE, "BRACE_CLOSE", rec(`(\})`)},
+        TokenMatch{TEXT_TAG_OPEN, "TEXT_TAG_OPEN", rec(`(<text>)`)},
+        TokenMatch{TEXT_TAG_CLOSE, "TEXT_TAG_CLOSE", rec(`(<\/text>)`)},
+        TokenMatch{HTML_TAG_OPEN, "HTML_TAG_OPEN", rec(`(<[a-zA-Z@]+?[^>]*?["a-zA-Z]*>)`)},
+        TokenMatch{HTML_TAG_CLOSE, "HTML_TAG_CLOSE", rec(`(<\/[^>@\\b]+?>)`)},
+        TokenMatch{HTML_TAG_VOID_CLOSE, "HTML_TAG_VOID_CLOSE", rec(`(\/\s*>)`)},
+        TokenMatch{PERIOD, "PERIOD", rec(`(\.)`)},
+        TokenMatch{NEWLINE, "NEWLINE", rec(`(\n)`)},
+        TokenMatch{WHITESPACE, "WHITESPACE", rec(`(\s)`)},
+        TokenMatch{FUNCTION, "FUNCTION", rec(`(function)([\D\W])`)},
+        TokenMatch{KEYWORD, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)([\D\W])`)},
+        TokenMatch{IDENTIFIER, "IDENTIFIER", rec(`([_$a-zA-Z][_$a-zA-Z0-9]*)`)}, //need verify
+        TokenMatch{FORWARD_SLASH, "FORWARD_SLASH", rec(`(\/)`)},
+        TokenMatch{OPERATOR, "OPERATOR", rec(`(===|!==|==|!==|>>>|<<|>>|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
+        TokenMatch{ASSIGN_OPERATOR, "ASSIGN_OPERATOR", rec(`(\|=|\^=|&=|>>>=|>>=|<<=|-=|\+=|%=|\/=|\*=|=)`)},
+        TokenMatch{LOGICAL, "LOGICAL", rec(`(&&|\|\||&|\||\^)`)},
+        TokenMatch{ESCAPED_QUOTE, "ESCAPED_QUOTE", rec(`(\\+['\"])`)},
+        TokenMatch{BACKSLASH, "BACKSLASH", rec(`(\\)`)},
+        TokenMatch{DOUBLE_QUOTE, "DOUBLE_QUOTE", rec(`(\\")`)},
+        TokenMatch{SINGLE_QUOTE, "SINGLE_QUOTE", rec(`(\')`)},
+        TokenMatch{NUMERIC_CONTENT, "NUMERIC_CONTENT", rec(`([0-9]+)`)},
+        TokenMatch{CONTENT, "CONTENT", rec(`([^\s})@.]+?)`)},
 }
-
-var TokenStr = []string{
-	"UNDEF",
-        "AT",
-        "ASSIGN_OPERATOR",
-        "AT_COLON",
-        "AT_STAR_CLOSE",
-        "AT_STAR_OPEN",
-        "BACKSLASH",
-        "BRACE_CLOSE",
-        "BRACE_OPEN",
-        "CONTENT",
-        "EMAIL",
-        "ESCAPED_QUOTE",
-        "FORWARD_SLASH",
-        "FUNCTION",
-        "HARD_PAREN_CLOSE",
-        "HARD_PAREN_OPEN",
-        "HTML_TAG_CLOSE",
-        "THML_TAG_OPEN",
-        "HTML_TAG_VOID_CLOSE",
-        "IDENTIFIER",
-        "KEYWORD",
-        "LOGICAL",
-        "NEWLINE",
-        "NUMERIC_CONTENT",
-        "OPERATOR",
-        "PAREN_CLOSE",
-        "PAREN_OPEN",
-        "PERIOD",
-        "SINGLE_QUOTE",
-        "DOUBLE_QUOTE",
-        "TEXT_TAG_CLOSE",
-        "TEXT_TAG_OPEN",
-        "WHITESPACE"}
 
 type Token struct {
-	Text  string
-	Type  int
-	Line  int
-	Pos   int
+	Text string
+	TypeStr string
+	Type int
+	Line int
+	Pos  int
 }
 
-func (token Token)P() {
-	typeStr := TokenStr[token.Type]
+func (token Token) P() {
 	textStr := token.Text
 	if textStr == "\n" {
 		textStr = "\\n"
 	}
 	fmt.Printf("Token: %-20s Location:(%-2d %-2d) Value: %s\n",
-		    typeStr, token.Line, token.Pos, textStr)
+		token.TypeStr, token.Line, token.Pos, textStr)
 }
 
 type Lexer struct {
-	Text    string
-        Cache   [](*regexp.Regexp)
-	Types   []int
+	Text  string
+	Matches []TokenMatch
 }
 
 func LineAndPos(src string, pos int) (int, int) {
@@ -149,11 +123,11 @@ func LineAndPos(src string, pos int) (int, int) {
 	return lines, p
 }
 
-func TagOpen(text string) (string) {
-        regs := []string {
+func TagOpen(text string) string {
+	regs := []string{
 		`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,4})\b`,
 		`(@)`,
-                `(\/\s*>)`}
+		`(\/\s*>)`}
 	res := text
 	for _, reg := range regs {
 		regc, err := regexp.Compile(reg)
@@ -168,36 +142,25 @@ func TagOpen(text string) (string) {
 	return res
 }
 
-
 func (lexer *Lexer) Scan() ([]Token, error) {
 	pos := 0
 	toks := []Token{}
-	for _, test := range Tests {
-		reg, err := regexp.Compile("^" + test.Regex)
-		if err != nil {
-			panic(err)
-		}
-		lexer.Cache = append(lexer.Cache, reg)
-		lexer.Types = append(lexer.Types, test.Type)
-	}
-
-        text := strings.Replace(lexer.Text, "\r\n", "\n", -1)
+	text := strings.Replace(lexer.Text, "\r\n", "\n", -1)
 	text = strings.Replace(lexer.Text, "\r", "\n", -1)
-        for pos < len(text) {
+	for pos < len(text) {
 		left := text[pos:]
 		match := false
 		length := 0
-		for idx, regexp := range lexer.Cache {
-			found := regexp.FindIndex([]byte(left))
+		for _, m := range lexer.Matches {
+			found := m.Regex.FindIndex([]byte(left))
 			if found != nil {
 				match = true
 				line, pos := LineAndPos(text, pos)
 				tokenVal := left[found[0]:found[1]]
-				toType := lexer.Types[idx]
-				if toType == HTML_TAG_OPEN {
+				if m.Type == HTML_TAG_OPEN {
 					tokenVal = TagOpen(tokenVal)
 				}
-				tok := Token{tokenVal, toType, line, pos}
+				tok := Token{tokenVal, m.Text, m.Type, line, pos}
 				toks = append(toks, tok)
 				length = len(tokenVal)
 				break
@@ -206,7 +169,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 		if !match {
 			err_line, err_pos := LineAndPos(text, pos)
 			return toks, fmt.Errorf("%d:%d: Illegal character: %s",
-				     err_line, err_pos, string(text[pos]))
+				err_line, err_pos, string(text[pos]))
 		}
 		pos += length
 	}
@@ -221,15 +184,45 @@ const (
 	EXP
 )
 
+var PAIRS = map[int]int{
+	AT_STAR_OPEN:    AT_STAR_CLOSE,
+	BRACE_OPEN:      BRACE_CLOSE,
+	DOUBLE_QUOTE:    DOUBLE_QUOTE,
+	HARD_PAREN_OPEN: HARD_PAREN_CLOSE,
+	PAREN_OPEN:      PAREN_CLOSE,
+	SINGLE_QUOTE:    SINGLE_QUOTE,
+	AT_COLON:        NEWLINE,
+	FORWARD_SLASH:   FORWARD_SLASH,
+}
+
+
 type Ast struct {
-	Parent     *Ast
-	Children   []interface{}
-	Mode       int
-	TagName    string
+	Parent   *Ast
+	Children []interface{}
+	Mode     int
+	TagName  string
+}
+
+func (ast *Ast) ModeStr() string{
+	switch ast.Mode {
+	case PRG: return "PROGRAM"
+	case MKP: return "MARKUP"
+	case BLK: return "BLOCK"
+	case EXP: return "EXP"
+	default: return "UNDEF"
+	}
+	return "UNDEF"
 }
 
 func (ast *Ast) addChild(child interface{}) {
 	ast.Children = append(ast.Children, child)
+	ast.check()
+}
+
+func (ast *Ast) addChildren(children []Token) { //BUG?
+	for _, c := range children {
+		ast.addChild(c)
+	}
 }
 
 func (ast *Ast) popChild() {
@@ -240,7 +233,7 @@ func (ast *Ast) popChild() {
 	ast.Children = ast.Children[:l-1]
 }
 
-func (ast *Ast) root() (*Ast) {
+func (ast *Ast) root() *Ast {
 	p := ast
 	pp := ast.Parent
 	for {
@@ -254,13 +247,19 @@ func (ast *Ast) root() (*Ast) {
 	return nil
 }
 
-func(ast *Ast)  beget(mode int, tag string) (*Ast) {
+func (ast *Ast) check() {
+	if len(ast.Children) >= 100000 {
+		panic("Maximum number of elements exceeded.")
+	}
+}
+
+func (ast *Ast) beget(mode int, tag string) *Ast {
 	child := &Ast{ast, []interface{}{}, mode, tag}
 	ast.addChild(child)
 	return child
 }
 
-func (ast *Ast) closest(mode int, tag string) (*Ast) {
+func (ast *Ast) closest(mode int, tag string) *Ast {
 	p := ast
 	for {
 		if p.TagName != tag && p.Parent != nil {
@@ -271,13 +270,36 @@ func (ast *Ast) closest(mode int, tag string) (*Ast) {
 	}
 	return p
 }
+func (ast *Ast) debug(depth int) {
+	for i := 0; i < depth; i++ {
+		fmt.Printf("%c", '-')
+	}
+	fmt.Printf("{")
+	fmt.Printf("TagName: %s Mode: %s Children: %d\n", ast.TagName, ast.ModeStr(), len(ast.Children))
+	for _, a := range ast.Children {
+		if _, ok := a.(*Ast); ok {
+			b := (*Ast)(a.(*Ast))
+			b.debug(depth+1)
+		} else {
+			aa := (Token)(a.(Token))
+                        for i := 0; i < depth+1; i++ {
+                                fmt.Printf("%c", '-')
+			}
+			aa.P()
+		}
+	}
+        for i := 0; i < depth; i++ {
+                fmt.Printf("%c", '-')
+        }
+	fmt.Println("}")
+}
 
 type Parser struct {
-	ast        *Ast
-	tokens     []Token
-	preTokens  []Token
-        curr       Token
-        inComment  bool
+	ast         *Ast
+	tokens      []Token
+	preTokens   []Token
+	curr        Token
+	inComment   bool
 	saveTextTag bool
 }
 
@@ -313,28 +335,76 @@ func (parser *Parser) skipToken() {
 }
 
 func regMatch(reg string, text string) (string, error) {
-        regc, err := regexp.Compile(reg)
-        if err != nil {
-                return "", err
-        }
-        found := regc.FindIndex([]byte(text))
-        if found != nil {
-                return text[found[0]:found[1]], nil
-        }
-        return "", nil
+	regc, err := regexp.Compile(reg)
+	if err != nil {
+		panic(err)
+		return "", err
+	}
+	found := regc.FindIndex([]byte(text))
+	if found != nil {
+		return text[found[0]:found[1]], nil
+	}
+	return "", nil
 }
 
-func (parser *Parser) advanceUntilNot(tokenType int) ([]Token) {
-        res := []Token{}
-        for idx, token := range parser.tokens {
-                if token.Type == tokenType {
-                        res = append(res, token)
-                } else {
-                        break;
-                        parser.tokens = parser.tokens[idx:] //BUG?
-                }
-        }
-        return res
+func (parser *Parser) advanceUntilNot(tokenType int) []Token {
+	res := []Token{}
+	for {
+		t := parser.peekToken(0)
+		if t != nil && t.Type == tokenType {
+			res = append(res, parser.nextToken())
+		} else {
+			break
+		}
+	}
+	return res
+}
+
+func (parser *Parser) advanceUntil(token Token, start, end, startEsc, endEsc int) []Token {
+	var prev *Token = nil
+	next := &token
+	res := []Token{}
+	nstart := 0
+	nend := 0
+	for {
+		if next.Type == start {
+			if (prev != nil && prev.Type != startEsc && start != end) || prev == nil {
+				nstart++
+			} else if start == end && prev.Type != startEsc {
+				nend++
+			}
+		} else if next.Type == end {
+			nend++
+			if prev != nil && prev.Type == endEsc {
+				nend--
+			}
+		}
+		res = append(res, *next)
+		if nstart == nend {
+			break
+		}
+		prev = next
+		next = parser.peekToken(0)
+		if next == nil {
+			panic("UNMATCHED")
+		}
+		parser.nextToken()
+	}
+	return res
+}
+
+func (parser *Parser) subParse(token Token, includeDelim bool) {
+	subTokens := parser.advanceUntil(token, token.Type, PAIRS[token.Type], -1, AT)
+	subTokens = subTokens[1:]
+	closer := subTokens[len(subTokens)-1]
+	subTokens = subTokens[:len(subTokens)-1]
+	if !includeDelim {
+		parser.ast.addChild(token)
+	}
+	parser.ast.addChildren(subTokens)
+	if !includeDelim {
+		parser.ast.addChild(closer)
+	}
 }
 
 func (parser *Parser) handleMKP(token Token) {
@@ -342,42 +412,36 @@ func (parser *Parser) handleMKP(token Token) {
 	//nnext := parser.peekToken(1)
 	switch token.Type {
 	case AT_STAR_OPEN:
-		break
+		parser.advanceUntil(token, AT_STAR_OPEN, AT_STAR_CLOSE, AT, AT)
+
 	case AT:
 		if next != nil {
 			switch next.Type {
-			case PAREN_OPEN:
-			case IDENTIFIER:
+			case PAREN_OPEN, IDENTIFIER:
 				if len(parser.ast.Children) == 0 {
 					parser.ast = parser.ast.Parent //BUG
 					parser.ast.popChild() //remove empty MKP block
 				}
 				parser.ast = parser.ast.beget(EXP, "")
-				break
-			case KEYWORD:
-			case FUNCTION:
-                        case BRACE_OPEN:      //BLK
+
+			case KEYWORD, FUNCTION, BRACE_OPEN: //BLK
 				if len(parser.ast.Children) == 0 {
 					parser.ast = parser.ast.Parent
 					parser.ast.popChild()
 				}
 				parser.ast = parser.ast.beget(BLK, "")
-				break
-			case AT:
-			case AT_COLON:
+
+			case AT, AT_COLON:
 				//we want to keep the token, but remove it's special meanning
 				next.Type = CONTENT //BUG, modify from a pointer, work?
 				parser.ast.addChild(parser.nextToken())
-				break
 			default:
 				parser.ast.addChild(parser.nextToken())
-				break
 			}
 		}
-		break
-	case TEXT_TAG_OPEN:
-	case HTML_TAG_OPEN:
-                tagName, _ := regMatch(`/^<([^\/ >]+)/`, token.Text)
+
+	case TEXT_TAG_OPEN, HTML_TAG_OPEN:
+		tagName, _ := regMatch(`(?i)(^<([^\/ >]+))`, token.Text)
 		tagName = strings.Replace(tagName, "<", "", -1)
 		//TODO
 		if parser.ast.TagName != "" {
@@ -388,10 +452,9 @@ func (parser *Parser) handleMKP(token Token) {
 		if token.Type == HTML_TAG_OPEN || parser.saveTextTag {
 			parser.ast.addChild(token)
 		}
-		break
-	case TEXT_TAG_CLOSE:
-	case HTML_TAG_CLOSE:
-                tagName, _ := regMatch(`(?i)^<\/([^>]+)`, token.Text)
+
+	case TEXT_TAG_CLOSE, HTML_TAG_CLOSE:
+		tagName, _ := regMatch(`(?i)^<\/([^>]+)`, token.Text)
 		tagName = strings.Replace(tagName, "</", "", -1)
 		//TODO
 		opener := parser.ast.closest(MKP, tagName)
@@ -405,24 +468,23 @@ func (parser *Parser) handleMKP(token Token) {
 		if parser.ast.Parent != nil && parser.ast.Parent.Mode == BLK {
 			parser.ast = parser.ast.Parent
 		}
-		break
+
 	case HTML_TAG_VOID_CLOSE:
 		parser.ast.addChild(token)
 		parser.ast = parser.ast.Parent
-		break
+
 	case BACKSLASH:
 		token.Text += "\\"
 		parser.ast.addChild(token)
-		break
 	default:
 		parser.ast.addChild(token)
-		break
 	}
 }
 
 func (parser *Parser) handleBLK(token Token) {
 	next := parser.peekToken(0)
-	switch token.Type {
+	ty   := token.Type
+	switch ty {
 	case AT:
 		if next.Type != AT && (parser.inComment) {
 			parser.deferToken(token)
@@ -432,101 +494,110 @@ func (parser *Parser) handleBLK(token Token) {
 			parser.ast.addChild(next)
 			parser.skipToken()
 		}
-		break
 
 	case AT_STAR_OPEN:
-		//TODO
-		break
-	case AT_COLON:
-		//TODO subparsre
-		break
-	case TEXT_TAG_OPEN:
-	case TEXT_TAG_CLOSE:
-	case HTML_TAG_OPEN:
-	case HTML_TAG_CLOSE:
-		parser.ast = parser.ast.beget(MKP, "")
-		parser.deferToken(token)
-		break
+        	parser.advanceUntil(token, AT_STAR_OPEN, AT_STAR_CLOSE, AT, AT)
 
-	case FORWARD_SLASH:
-	case SINGLE_QUOTE:
-	case DOUBLE_QUOTE:
-		if token.Type == FORWARD_SLASH && next != nil && next.Type == FORWARD_SLASH {
+	case AT_COLON:
+                //TODO subparsre
+                parser.subParse(token, true)
+
+	case TEXT_TAG_OPEN, TEXT_TAG_CLOSE, HTML_TAG_OPEN, HTML_TAG_CLOSE:
+                parser.ast = parser.ast.beget(MKP, "")
+		parser.deferToken(token)
+
+	case FORWARD_SLASH, SINGLE_QUOTE, DOUBLE_QUOTE:
+                if token.Type == FORWARD_SLASH && next != nil && next.Type == FORWARD_SLASH {
 			parser.inComment = true
 		}
 		if !parser.inComment {
-			//TODO
+			subTokens := parser.advanceUntil(token, token.Type,
+				PAIRS[token.Type],
+				BACKSLASH,
+				BACKSLASH)
+			for idx, _ := range subTokens {
+				if subTokens[idx].Type == AT {
+					subTokens[idx].Type = CONTENT
+				}
+			}
+			parser.ast.addChildren(subTokens)
 		} else {
 			parser.ast.addChild(token)
 		}
-		break
+
 	case NEWLINE:
-		if parser.inComment {
+                if parser.inComment {
 			parser.inComment = false
 		}
 		parser.ast.addChild(token)
-		break
 
-	case BRACE_OPEN:
-	case PAREN_OPEN:
-		//TODO
+	case BRACE_OPEN, PAREN_OPEN:
+                //TODO
+		parser.subParse(token, false)
+		subTokens := parser.advanceUntilNot(WHITESPACE)
+		next := parser.peekToken(0)
+		if next != nil && next.Type != KEYWORD &&
+			next.Type != FUNCTION && next.Type != BRACE_OPEN &&
+			next.Type != PAREN_OPEN {
+			parser.tokens = append(parser.tokens, subTokens...)
+			parser.ast = parser.ast.Parent //BUG?
+		} else {
+			parser.ast.addChildren(subTokens)
+		}
 	default:
 		parser.ast.addChild(token)
-		break
 	}
 }
 
 
 func (parser *Parser) handleEXP(token Token) {
 	switch token.Type {
-	case KEYWORD:
-	case FUNCTION:
+	case KEYWORD, FUNCTION:
 		parser.ast = parser.ast.beget(BLK, "")
 		parser.deferToken(token)
-		break
-	case WHITESPACE:
-	case LOGICAL:
-	case ASSIGN_OPERATOR:
-	case OPERATOR:
-	case NUMERIC_CONTENT:
+
+	case WHITESPACE, LOGICAL, ASSIGN_OPERATOR, OPERATOR, NUMERIC_CONTENT:
 		if parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP {
 			parser.ast.addChild(token)
 		} else {
 			parser.ast = parser.ast.Parent
 			parser.deferToken(token)
 		}
-		break;
 	case IDENTIFIER:
 		parser.ast.addChild(token)
-		break
-	case SINGLE_QUOTE:
-	case DOUBLE_QUOTE:
+
+	case SINGLE_QUOTE, DOUBLE_QUOTE:
 		//TODO
-		break
-	case HARD_PAREN_OPEN:
-	case PAREN_OPEN:
+		if parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP {
+			subTokens := parser.advanceUntil(token, token.Type,
+				                         PAIRS[token.Type], BACKSLASH, BACKSLASH)
+			parser.ast.addChildren(subTokens)
+		} else {
+			parser.ast = parser.ast.Parent
+			parser.deferToken(token)
+		}
+
+	case HARD_PAREN_OPEN, PAREN_OPEN:
 		prev := parser.prevToken(0)
 		next := parser.peekToken(0) //BUG?
 		if token.Type == HARD_PAREN_OPEN && next.Type == HARD_PAREN_CLOSE {
-                        // likely just [], which is not likely valid outside of EXP
+			// likely just [], which is not likely valid outside of EXP
 			parser.deferToken(token)
 			parser.ast = parser.ast.Parent
-			break
+			break //BUG?
 		}
-		//TODO subParse
-		if (prev != nil && prev.Type == AT) || ( next != nil && next.Type == IDENTIFIER) {
+		parser.subParse(token, false)
+		if (prev != nil && prev.Type == AT) || (next != nil && next.Type == IDENTIFIER) {
 			parser.ast = parser.ast.Parent
 		}
-		break
 
 	case BRACE_OPEN:
 		parser.deferToken(token)
 		parser.ast = parser.ast.beget(BLK, "")
-		break
 
 	case PERIOD:
 		next := parser.peekToken(0)
-		if next != nil && ( next.Type == IDENTIFIER ||
+		if next != nil && (next.Type == IDENTIFIER ||
 			next.Type == KEYWORD ||
 			next.Type == FUNCTION ||
 			next.Type == PERIOD ||
@@ -536,7 +607,6 @@ func (parser *Parser) handleEXP(token Token) {
 			parser.ast = parser.ast.Parent
 			parser.deferToken(token)
 		}
-		break
 	default:
 		if parser.ast.Parent != nil && parser.ast.Parent.Mode != EXP {
 			parser.ast = parser.ast.Parent
@@ -544,24 +614,27 @@ func (parser *Parser) handleEXP(token Token) {
 		} else {
 			parser.ast.addChild(token)
 		}
-		break
 	}
 }
 
-
 func (parser *Parser) Run() (err error) {
+	for _, t := range parser.tokens {
+		t.P()
+	}
+        fmt.Println("-----------------------------------------")
 	parser.ast.Mode = PRG
-	parser.curr = Token{"UNDEF", UNDEF, 0, 0}
+	parser.curr = Token{"UNDEF", "UNDEF", UNDEF, 0, 0}
 	for {
 		parser.preTokens = append(parser.preTokens, parser.curr)
-		if parser.peekToken(0) == nil {
+		if len(parser.tokens) == 0 {
 			break
 		}
 		parser.curr = parser.nextToken()
-		if(parser.ast.Mode == PRG) {
+		if parser.ast.Mode == PRG {
 			parser.ast = parser.ast.beget(MKP, "")
 		}
 		parser.curr.P()
+		fmt.Printf("Mode: %s\n", parser.ast.ModeStr())
 		switch parser.ast.Mode {
 		case MKP:
 			parser.handleMKP(parser.curr)
@@ -573,6 +646,9 @@ func (parser *Parser) Run() (err error) {
 	}
 
 	parser.ast = parser.ast.root()
+	fmt.Println("-----------------------------------------")
+
+	parser.ast.debug(0)
 	return nil
 }
 
@@ -586,27 +662,26 @@ func (parser *Parser) Run() (err error) {
 // }
 
 func main() {
-	buf := ""
-	file, _ := os.Open("./tpl/home.gohtml")
-	reader := bufio.NewReader(file)
-	for {
-		byte, err := reader.ReadString('\n')
-		if err != nil {
-			break
-		}
-		buf += byte
+	buf := bytes.NewBuffer(nil)
+	f , err := os.Open("./now/codeblock.gohtml")
+	if err != nil {
+		panic(err)
 	}
-	lex := &Lexer{buf, []*regexp.Regexp{}, []int{}}
+	io.Copy(buf, f)
+	f.Close()
+	text := string(buf.Bytes())
+	lex := &Lexer{text, Tests}
 	res, err := lex.Scan()
-	fmt.Println("buf:", buf)
+	fmt.Println("buf:", text)
 	if err != nil {
 		fmt.Println("error:", err)
 		return
 	}
-	for _, elem := range res {
-		elem.P()
-		//fmt.Println(elem)
-	}
+
+	//for _, elem := range res {
+	//elem.P()
+	//fmt.Println(elem)
+	//}
 
 	parser := &Parser{&Ast{}, res, []Token{}, Token{}, false, false}
 	err = parser.Run()

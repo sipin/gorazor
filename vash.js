@@ -507,9 +507,6 @@
 	    while( this.prevTokens.push( curr ), (curr = this.tokens.pop()) ){
 
 		if(this.ast.mode === PRG || this.ast.mode === null){
-                    //console.log("fuck: ", this.ast.mode)
-		    //console.log("options: ", this.options.initialMode|| MKP)
-		    //console.log("initialMode: ", this.initialMode)
         	    this.ast = this.ast.beget( this.options.initialMode || MKP );
 
 		    if(this.options.initialMode === EXP){
@@ -517,6 +514,7 @@
 		    }
 		}
 
+		console.log("first now: ", this.ast.mode, curr)
 		if(this.ast.mode === MKP){
 		    this.handleMKP(curr);
 		    continue;
@@ -628,18 +626,22 @@
 		,null
 		,AT );
 
-	    subTokens.pop();
+            console.log("fuck now xxxx: ", subTokens)
+            subTokens.pop();
 
-	    closer = subTokens.shift();
+	    console.log("fuck now haha: ", subTokens.length)
+            closer = subTokens.shift();
+            console.log("fuck now haha2: ", subTokens.length)
 
-	    if( !includeDelimsInSub ){
+            if( !includeDelimsInSub ){
 		this.ast.push(curr);
 	    }
 
 	    miniParse = new VParser( subTokens, parseOpts );
 	    miniParse.parse();
 
-	    if( includeDelimsInSub ){
+            console.log("mini ast: ", miniParse.ast[0])
+            if( includeDelimsInSub ){
 		// attach delimiters to [0] (first child), because ast is PROGRAM
 		miniParse.ast[0].unshift( curr );
 		miniParse.ast[0].push( closer );
@@ -658,6 +660,7 @@
 	    ,tagName = null
 	    ,opener;
 
+	    console.log("Fuck:", curr.type)
 	    switch(curr.type){
 
 	    case AT_STAR_OPEN:
@@ -667,8 +670,10 @@
 	    case AT:
 		if(next) {
 
-		    if(this.options.saveAT) this.ast.push( curr );
-
+		    if(this.options.saveAT)  {
+			this.ast.push( curr );
+			console.log("next.Type:", next)
+		    }
 		    switch(next.type){
 
 		    case PAREN_OPEN:
@@ -715,9 +720,7 @@
 	    case TEXT_TAG_OPEN:
 	    case HTML_TAG_OPEN:
 		tagName = curr.val.match(/^<([^\/ >]+)/i);
-
-		console.log("fuck1: ", curr.val)
-		console.log("fuck2: ", tagName)
+		console.log("tagName:", tagName[1])
 		if(tagName === null && next && next.type === AT && ahead){
 		    tagName = ahead.val.match(/(.*)/); // HACK for <@exp>
 		}
@@ -875,7 +878,7 @@
 
 		subTokens = this.advanceUntilNot(WHITESPACE);
 		next = this.tokens[ this.tokens.length - 1 ];
-
+		console.log("subTokens:", subTokens)
 		if(
 		    next
 			&& next.type !== KEYWORD
@@ -1347,10 +1350,11 @@ var _buffer bytes.Buffer\n';
 	l = new VLexer(markup);
 	while(tok = l.advance()) { tokens.push(tok); }
 	tokens.reverse(); // parser needs in reverse order for faster popping vs shift
-	console.log("tokens: ", tokens)
+	//console.log("tokens: ", tokens)
 	p = new VParser(tokens, options);
 	p.parse();
 
+	console.log(p.ast)
 	c = new VCompiler(p.ast, markup, options);
 
 	cmp = c.generate();
