@@ -81,7 +81,7 @@ var Tests = []TokenMatch{
         TokenMatch{NEWLINE, "NEWLINE", rec(`(\n)`)},
         TokenMatch{WHITESPACE, "WHITESPACE", rec(`(\s)`)},
         TokenMatch{FUNCTION, "FUNCTION", rec(`(function)([\D\W])`)},
-        TokenMatch{KEYWORD, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)([\D\W])`)},
+        TokenMatch{KEYWORD, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)([\D\W\S]$)`)},
         TokenMatch{IDENTIFIER, "IDENTIFIER", rec(`([_$a-zA-Z][_$a-zA-Z0-9]*)`)}, //need verify
         TokenMatch{FORWARD_SLASH, "FORWARD_SLASH", rec(`(\/)`)},
         TokenMatch{OPERATOR, "OPERATOR", rec(`(===|!==|==|!==|>>>|<<|>>|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
@@ -104,10 +104,8 @@ type Token struct {
 }
 
 func (token Token) P() {
-	textStr := token.Text
-	if textStr == "\n" {
-		textStr = "\\n"
-	}
+	textStr := strings.Replace(token.Text, "\n", "\\n", -1)
+	textStr = strings.Replace(textStr, "\t", "\\t", -1)
 	fmt.Printf("Token: %-20s Location:(%-2d %-2d) Value: %s\n",
 		token.TypeStr, token.Line, token.Pos, textStr)
 }
@@ -120,7 +118,7 @@ type Lexer struct {
 func LineAndPos(src string, pos int) (int, int) {
 	lines := strings.Count(src[:pos], "\n")
 	p := pos - strings.LastIndex(src[:pos], "\n")
-	return lines, p
+	return lines+1, p
 }
 
 func TagOpen(text string) string {
@@ -227,14 +225,22 @@ func (ast *Ast) addChildren(children []Token) { //BUG?
 }
 
 func (ast *Ast) addAst(_ast *Ast) {
-	fmt.Println("add ast:", ast.Mode, PRG)
-	if ast.Mode != PRG {
-		fmt.Println("hxxxxxxxxxxxxxxx")
-		_ast.debug(0)
-		ast.addChild(_ast)
+	c := _ast
+	for {
+		if len(c.Children) != 1 {
+			break
+		}
+		first := c.Children[0]
+		if _, ok := first.(*Ast); !ok {
+			break
+		}
+		c = first.(*Ast)
+	}
+	if c.Mode != PRG {
+		ast.addChild(c)
 	} else {
-		for _, c := range _ast.Children {
-			ast.addChild(c)
+		for _, x := range c.Children {
+			ast.addChild(x)
 		}
 	}
 }
@@ -284,35 +290,40 @@ func (ast *Ast) closest(mode int, tag string) *Ast {
 	}
 	return p
 }
-func (ast *Ast) debug(depth int) {
+func (ast *Ast) debug(depth int, max int) {
+	if depth >= max {
+		return
+	}
 	for i := 0; i < depth; i++ {
 		fmt.Printf("%c", '-')
 	}
-	fmt.Printf("{")
-	fmt.Printf("TagName: %s Mode: %s Children: %d\n", ast.TagName, ast.ModeStr(), len(ast.Children))
-	for _, a := range ast.Children {
+        fmt.Printf("TagName: %s Mode: %s Children: %d [[ \n", ast.TagName, ast.ModeStr(), len(ast.Children))
+	for idx, a := range ast.Children {
+		fmt.Printf("(%d)", idx)
 		if _, ok := a.(*Ast); ok {
 			b := (*Ast)(a.(*Ast))
-			b.debug(depth+1)
+			b.debug(depth+1, max)
 		} else {
-			aa := (Token)(a.(Token))
-                        for i := 0; i < depth+1; i++ {
-                                fmt.Printf("%c", '-')
+			if depth + 1 < max {
+				aa := (Token)(a.(Token))
+				for i := 0; i < depth+1; i++ {
+					fmt.Printf("%c", '-')
+				}
+				aa.P()
 			}
-			aa.P()
 		}
 	}
         for i := 0; i < depth; i++ {
                 fmt.Printf("%c", '-')
         }
-	fmt.Println("}")
+
+	fmt.Println("]]")
 }
 
 type Parser struct {
 	ast         *Ast
 	tokens      []Token
 	preTokens   []Token
-	curr        Token
 	inComment   bool
 	saveTextTag bool
 	initMode    int
@@ -417,14 +428,13 @@ func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) {
 		parser.ast.addChild(token)
 
 	}
-	fmt.Println("fuck now: ", modeOpen)
-        _parser := &Parser{&Ast{}, subTokens, []Token{}, Token{}, false, false, modeOpen}
+        _parser := &Parser{&Ast{}, subTokens, []Token{}, false, false, modeOpen}
 	_parser.Run()
 	if includeDelim {
 		_parser.ast.Children = append([]interface{}{token}, _parser.ast.Children...)
 		_parser.ast.addChild(closer)
 	}
-	_parser.ast.debug(0)
+	//_parser.ast.debug(0)
 	parser.ast.addAst(_parser.ast)
 	if !includeDelim {
 		parser.ast.addChild(closer)
@@ -507,15 +517,14 @@ func (parser *Parser) handleMKP(token Token) {
 
 func (parser *Parser) handleBLK(token Token) {
 	next := parser.peekToken(0)
-	ty   := token.Type
-	switch ty {
+	switch token.Type {
 	case AT:
 		if next.Type != AT && (parser.inComment) {
 			parser.deferToken(token)
 			parser.ast = parser.ast.beget(MKP, "")
 		} else {
 			next.Type = CONTENT
-			parser.ast.addChild(next)
+			parser.ast.addChild(*next)
 			parser.skipToken()
 		}
 
@@ -523,7 +532,6 @@ func (parser *Parser) handleBLK(token Token) {
         	parser.advanceUntil(token, AT_STAR_OPEN, AT_STAR_CLOSE, AT, AT)
 
 	case AT_COLON:
-                //TODO subparsre
                 parser.subParse(token, MKP, true)
 
 	case TEXT_TAG_OPEN, TEXT_TAG_CLOSE, HTML_TAG_OPEN, HTML_TAG_CLOSE:
@@ -565,7 +573,7 @@ func (parser *Parser) handleBLK(token Token) {
 		next := parser.peekToken(0)
 		if next != nil && next.Type != KEYWORD &&
 			next.Type != FUNCTION && next.Type != BRACE_OPEN &&
-			next.Type != PAREN_OPEN {
+			token.Type != PAREN_OPEN {
 			parser.tokens = append(parser.tokens, subTokens...)
 			parser.ast = parser.ast.Parent //BUG?
 		} else {
@@ -611,7 +619,7 @@ func (parser *Parser) handleEXP(token Token) {
 			// likely just [], which is not likely valid outside of EXP
 			parser.deferToken(token)
 			parser.ast = parser.ast.Parent
-			break //BUG?
+			break
 		}
 		parser.subParse(token, EXP, false)
 		if (prev != nil && prev.Type == AT) || (next != nil && next.Type == IDENTIFIER) {
@@ -645,19 +653,15 @@ func (parser *Parser) handleEXP(token Token) {
 }
 
 func (parser *Parser) Run() (err error) {
-	for _, t := range parser.tokens {
-		t.P()
-	}
-        fmt.Println("-----------------------------------------")
-	parser.curr = Token{"UNDEF", "UNDEF", UNDEF, 0, 0}
-	fmt.Println("ast now: ", parser.ast)
+        //fmt.Println("---------------BEGIN------------------------")
+	curr := Token{"UNDEF", "UNDEF", UNDEF, 0, 0}
 	parser.ast.Mode = PRG
 	for {
-		parser.preTokens = append(parser.preTokens, parser.curr)
 		if len(parser.tokens) == 0 {
 			break
 		}
-		parser.curr = parser.nextToken()
+                parser.preTokens = append(parser.preTokens, curr)
+        	curr = parser.nextToken()
 		if parser.ast.Mode == PRG {
 			init := parser.initMode
 			if init == UNK {
@@ -670,18 +674,18 @@ func (parser *Parser) Run() (err error) {
 		}
 		switch parser.ast.Mode {
 		case MKP:
-			parser.handleMKP(parser.curr)
+			parser.handleMKP(curr)
 		case BLK:
-			parser.handleBLK(parser.curr)
+			parser.handleBLK(curr)
 		case EXP:
-			parser.handleEXP(parser.curr)
+			parser.handleEXP(curr)
 		}
 	}
 
 	parser.ast = parser.ast.root()
-	fmt.Println("-----------------------------------------")
+	//fmt.Println("---------------END---------------------")
 
-	parser.ast.debug(0)
+	//parser.ast.debug(0)
 	return nil
 }
 
@@ -696,8 +700,7 @@ func (parser *Parser) Run() (err error) {
 
 func main() {
 	buf := bytes.NewBuffer(nil)
-	f , err := os.Open("./now/codeblock.gohtml")
-	//f, err := os.Open("./tpl/home.gohtml")
+	f , err := os.Open("./now/var.gohtml")
 	if err != nil {
 		panic(err)
 	}
@@ -712,12 +715,12 @@ func main() {
 		return
 	}
 
-	//for _, elem := range res {
-	//elem.P()
-	//fmt.Println(elem)
-	//}
+	for _, elem := range res {
+		elem.P()
+	}
 
-	parser := &Parser{&Ast{}, res, []Token{}, Token{}, false, false, UNK}
+	parser := &Parser{&Ast{}, res, []Token{}, false, false, UNK}
 	err = parser.Run()
 
+	parser.ast.debug(0, 4)
 }

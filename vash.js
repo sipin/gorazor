@@ -300,14 +300,11 @@
     vQuery.fn.pushFlatten = function(node){
 	var n = node, i, children;
 
-	console.log("mmmmmmmmmm", node)
 	while( n.length === 1 && n[0].vquery ){
 	    n = n[0];
 	}
 
-	console.log("flatten:", n.mode)
 	if(n.mode !== PRG){
-	    console.log("hahahhah:", n)
 	    this.push(n);
 	} else {
 
@@ -509,10 +506,8 @@
 
 	    while( this.prevTokens.push( curr ), (curr = this.tokens.pop()) ){
 
-		console.log("ast.mode: ", this.ast.mode)
 		if(this.ast.mode === PRG || this.ast.mode === null){
         	    this.ast = this.ast.beget( this.options.initialMode || MKP );
-		    console.log("new ast mode:", this.ast.mode)
 		    if(this.options.initialMode === EXP){
 			this.ast = this.ast.beget( EXP ); // EXP needs to know it's within to continue
 		    }
@@ -638,10 +633,8 @@
 	    }
 
 	    miniParse = new VParser( subTokens, parseOpts );
-            console.log("fuck xxxx: ", modeToOpen)
             miniParse.parse();
 
-            console.log("mini astxxxxxx: ", miniParse.ast)
             if( includeDelimsInSub ){
 		// attach delimiters to [0] (first child), because ast is PROGRAM
 		miniParse.ast[0].unshift( curr );
@@ -661,7 +654,6 @@
 	    ,tagName = null
 	    ,opener;
 
-	    console.log("Fuck:", curr.type)
 	    switch(curr.type){
 
 	    case AT_STAR_OPEN:
@@ -673,7 +665,6 @@
 
 		    if(this.options.saveAT)  {
 			this.ast.push( curr );
-			console.log("next.Type:", next)
 		    }
 		    switch(next.type){
 
@@ -721,7 +712,6 @@
 	    case TEXT_TAG_OPEN:
 	    case HTML_TAG_OPEN:
 		tagName = curr.val.match(/^<([^\/ >]+)/i);
-		console.log("tagName:", tagName[1])
 		if(tagName === null && next && next.type === AT && ahead){
 		    tagName = ahead.val.match(/(.*)/); // HACK for <@exp>
 		}
@@ -879,7 +869,6 @@
 
 		subTokens = this.advanceUntilNot(WHITESPACE);
 		next = this.tokens[ this.tokens.length - 1 ];
-		console.log("subTokens:", subTokens)
 		if(
 		    next
 			&& next.type !== KEYWORD
@@ -888,6 +877,7 @@
 			&& curr.type !== PAREN_OPEN
 		){
 		    // defer whitespace
+		    console.log("this is good:", subTokens)
 		    this.tokens.push.apply(this.tokens, subTokens.reverse());
 		    this.ast = this.ast.parent;
 		} else {
@@ -1351,11 +1341,10 @@ var _buffer bytes.Buffer\n';
 	l = new VLexer(markup);
 	while(tok = l.advance()) { tokens.push(tok); }
 	tokens.reverse(); // parser needs in reverse order for faster popping vs shift
-	console.log("options: ", options)
 	p = new VParser(tokens, options);
 	p.parse();
 
-	console.log(p.ast)
+	console.log(p.ast[0])
 	c = new VCompiler(p.ast, markup, options);
 
 	cmp = c.generate();
