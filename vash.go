@@ -453,7 +453,7 @@ func (parser *Parser) handleMKP(token Token) {
 			switch next.Type {
 			case PAREN_OPEN, IDENTIFIER:
 				if len(parser.ast.Children) == 0 {
-					parser.ast = parser.ast.Parent //BUG
+					parser.ast = parser.ast.Parent
 					parser.ast.popChild() //remove empty MKP block
 				}
 				parser.ast = parser.ast.beget(EXP, "")
@@ -632,10 +632,8 @@ func (parser *Parser) handleEXP(token Token) {
 
 	case PERIOD:
 		next := parser.peekToken(0)
-		if next != nil && (next.Type == IDENTIFIER ||
-			next.Type == KEYWORD ||
-			next.Type == FUNCTION ||
-			next.Type == PERIOD ||
+		if next != nil && (next.Type == IDENTIFIER || next.Type == KEYWORD ||
+			next.Type == FUNCTION || next.Type == PERIOD ||
 			(parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP)) {
 			parser.ast.addChild(token)
 		} else {
@@ -690,14 +688,6 @@ func (parser *Parser) Run() (err error) {
 }
 
 //------------------------------ Compiler ------------------------------ //
-
-// func test() {
-// 	buffer := "casex case"
-// 	lex := &Lexer{ buffer }
-// 	res, _ := Lex(lex, buffer)
-// 	fmt.Println(res)
-// }
-
 func main() {
 	buf := bytes.NewBuffer(nil)
 	f , err := os.Open("./now/var.gohtml")
