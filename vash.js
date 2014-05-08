@@ -513,6 +513,7 @@
 		    }
 		}
 
+		console.log("curr", curr, this.ast.mode)
 		if(this.ast.mode === MKP){
 		    this.handleMKP(curr);
 		    continue;

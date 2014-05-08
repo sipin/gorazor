@@ -155,7 +155,6 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 				match = true
 				line, pos := LineAndPos(text, pos)
 				tokenVal := left[found[0]:found[1]]
-				fmt.Printf("got: %s -> %s\n", tokenVal, m.Text)
 				if m.Type == HTML_TAG_OPEN {
 					tokenVal = TagOpen(tokenVal)
 				}
@@ -170,7 +169,6 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 			return toks, fmt.Errorf("%d:%d: Illegal character: %s",
 				err_line, err_pos, string(text[pos]))
 		}
-		fmt.Printf("length: %d\n", length)
 		pos += length
 	}
 	return toks, nil
@@ -218,6 +216,9 @@ func (ast *Ast) ModeStr() string{
 func (ast *Ast) addChild(child interface{}) {
 	ast.Children = append(ast.Children, child)
 	ast.check()
+	if _a, ok := child.(*Ast); ok {
+		_a.Parent = ast
+	}
 }
 
 func (ast *Ast) addChildren(children []Token) { //BUG?
@@ -300,8 +301,8 @@ func (ast *Ast) debug(depth int, max int) {
 		fmt.Printf("%c", '-')
 	}
         fmt.Printf("TagName: %s Mode: %s Children: %d [[ \n", ast.TagName, ast.ModeStr(), len(ast.Children))
-	for idx, a := range ast.Children {
-		fmt.Printf("(%d)", idx)
+	for _, a := range ast.Children {
+		//fmt.Printf("(%d)", idx)
 		if _, ok := a.(*Ast); ok {
 			b := (*Ast)(a.(*Ast))
 			b.debug(depth+1, max)
@@ -340,7 +341,8 @@ func (parser *Parser) prevToken(idx int) (*Token) {
 }
 
 func (parser *Parser) deferToken(token Token) {
-	parser.tokens = append(parser.tokens, token)
+	parser.tokens = append([]Token{token}, parser.tokens...)
+	parser.preTokens = parser.preTokens[:len(parser.preTokens)-1]
 }
 
 func (parser *Parser) peekToken(idx int) (*Token) {
@@ -672,6 +674,9 @@ func (parser *Parser) Run() (err error) {
 				parser.ast = parser.ast.beget(EXP, "")
 			}
 		}
+//		fmt.Println("curr: ")
+//		curr.P()
+//		fmt.Printf(" mode: %s\n", parser.ast.ModeStr())
 		switch parser.ast.Mode {
 		case MKP:
 			parser.handleMKP(curr)
@@ -717,5 +722,5 @@ func main() {
 	parser := &Parser{&Ast{}, res, []Token{}, false, false, UNK}
 	err = parser.Run()
 
-	parser.ast.debug(0, 3)
+	parser.ast.debug(0, 10)
 }
