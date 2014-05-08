@@ -300,11 +300,14 @@
     vQuery.fn.pushFlatten = function(node){
 	var n = node, i, children;
 
+	console.log("mmmmmmmmmm", node)
 	while( n.length === 1 && n[0].vquery ){
 	    n = n[0];
 	}
 
+	console.log("flatten:", n.mode)
 	if(n.mode !== PRG){
+	    console.log("hahahhah:", n)
 	    this.push(n);
 	} else {
 
@@ -506,15 +509,15 @@
 
 	    while( this.prevTokens.push( curr ), (curr = this.tokens.pop()) ){
 
+		console.log("ast.mode: ", this.ast.mode)
 		if(this.ast.mode === PRG || this.ast.mode === null){
         	    this.ast = this.ast.beget( this.options.initialMode || MKP );
-
+		    console.log("new ast mode:", this.ast.mode)
 		    if(this.options.initialMode === EXP){
 			this.ast = this.ast.beget( EXP ); // EXP needs to know it's within to continue
 		    }
 		}
 
-		console.log("first now: ", this.ast.mode, curr)
 		if(this.ast.mode === MKP){
 		    this.handleMKP(curr);
 		    continue;
@@ -626,21 +629,19 @@
 		,null
 		,AT );
 
-            console.log("fuck now xxxx: ", subTokens)
             subTokens.pop();
 
-	    console.log("fuck now haha: ", subTokens.length)
             closer = subTokens.shift();
-            console.log("fuck now haha2: ", subTokens.length)
 
             if( !includeDelimsInSub ){
 		this.ast.push(curr);
 	    }
 
 	    miniParse = new VParser( subTokens, parseOpts );
-	    miniParse.parse();
+            console.log("fuck xxxx: ", modeToOpen)
+            miniParse.parse();
 
-            console.log("mini ast: ", miniParse.ast[0])
+            console.log("mini astxxxxxx: ", miniParse.ast)
             if( includeDelimsInSub ){
 		// attach delimiters to [0] (first child), because ast is PROGRAM
 		miniParse.ast[0].unshift( curr );
@@ -1350,7 +1351,7 @@ var _buffer bytes.Buffer\n';
 	l = new VLexer(markup);
 	while(tok = l.advance()) { tokens.push(tok); }
 	tokens.reverse(); // parser needs in reverse order for faster popping vs shift
-	//console.log("tokens: ", tokens)
+	console.log("options: ", options)
 	p = new VParser(tokens, options);
 	p.parse();
 

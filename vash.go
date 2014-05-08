@@ -178,7 +178,8 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 
 //------------------------------ Parser ------------------------------//
 const (
-	PRG = iota
+	UNK = iota
+	PRG
 	MKP
 	BLK
 	EXP
@@ -222,6 +223,19 @@ func (ast *Ast) addChild(child interface{}) {
 func (ast *Ast) addChildren(children []Token) { //BUG?
 	for _, c := range children {
 		ast.addChild(c)
+	}
+}
+
+func (ast *Ast) addAst(_ast *Ast) {
+	fmt.Println("add ast:", ast.Mode, PRG)
+	if ast.Mode != PRG {
+		fmt.Println("hxxxxxxxxxxxxxxx")
+		_ast.debug(0)
+		ast.addChild(_ast)
+	} else {
+		for _, c := range _ast.Children {
+			ast.addChild(c)
+		}
 	}
 }
 
@@ -301,6 +315,7 @@ type Parser struct {
 	curr        Token
 	inComment   bool
 	saveTextTag bool
+	initMode    int
 }
 
 func (parser *Parser) prevToken(idx int) (*Token) {
@@ -393,15 +408,24 @@ func (parser *Parser) advanceUntil(token Token, start, end, startEsc, endEsc int
 	return res
 }
 
-func (parser *Parser) subParse(token Token, includeDelim bool) {
+func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) {
 	subTokens := parser.advanceUntil(token, token.Type, PAIRS[token.Type], -1, AT)
 	subTokens = subTokens[1:]
 	closer := subTokens[len(subTokens)-1]
 	subTokens = subTokens[:len(subTokens)-1]
 	if !includeDelim {
 		parser.ast.addChild(token)
+
 	}
-	parser.ast.addChildren(subTokens)
+	fmt.Println("fuck now: ", modeOpen)
+        _parser := &Parser{&Ast{}, subTokens, []Token{}, Token{}, false, false, modeOpen}
+	_parser.Run()
+	if includeDelim {
+		_parser.ast.Children = append([]interface{}{token}, _parser.ast.Children...)
+		_parser.ast.addChild(closer)
+	}
+	_parser.ast.debug(0)
+	parser.ast.addAst(_parser.ast)
 	if !includeDelim {
 		parser.ast.addChild(closer)
 	}
@@ -500,7 +524,7 @@ func (parser *Parser) handleBLK(token Token) {
 
 	case AT_COLON:
                 //TODO subparsre
-                parser.subParse(token, true)
+                parser.subParse(token, MKP, true)
 
 	case TEXT_TAG_OPEN, TEXT_TAG_CLOSE, HTML_TAG_OPEN, HTML_TAG_CLOSE:
                 parser.ast = parser.ast.beget(MKP, "")
@@ -532,8 +556,11 @@ func (parser *Parser) handleBLK(token Token) {
 		parser.ast.addChild(token)
 
 	case BRACE_OPEN, PAREN_OPEN:
-                //TODO
-		parser.subParse(token, false)
+		subMode := BLK
+		if false && token.Type == BRACE_OPEN {  //TODO
+			subMode = MKP
+		}
+		parser.subParse(token, subMode, false)
 		subTokens := parser.advanceUntilNot(WHITESPACE)
 		next := parser.peekToken(0)
 		if next != nil && next.Type != KEYWORD &&
@@ -586,7 +613,7 @@ func (parser *Parser) handleEXP(token Token) {
 			parser.ast = parser.ast.Parent
 			break //BUG?
 		}
-		parser.subParse(token, false)
+		parser.subParse(token, EXP, false)
 		if (prev != nil && prev.Type == AT) || (next != nil && next.Type == IDENTIFIER) {
 			parser.ast = parser.ast.Parent
 		}
@@ -622,8 +649,9 @@ func (parser *Parser) Run() (err error) {
 		t.P()
 	}
         fmt.Println("-----------------------------------------")
-	parser.ast.Mode = PRG
 	parser.curr = Token{"UNDEF", "UNDEF", UNDEF, 0, 0}
+	fmt.Println("ast now: ", parser.ast)
+	parser.ast.Mode = PRG
 	for {
 		parser.preTokens = append(parser.preTokens, parser.curr)
 		if len(parser.tokens) == 0 {
@@ -631,10 +659,15 @@ func (parser *Parser) Run() (err error) {
 		}
 		parser.curr = parser.nextToken()
 		if parser.ast.Mode == PRG {
-			parser.ast = parser.ast.beget(MKP, "")
+			init := parser.initMode
+			if init == UNK {
+				init = MKP
+			}
+			parser.ast = parser.ast.beget(init, "")
+			if parser.initMode == EXP {
+				parser.ast = parser.ast.beget(EXP, "")
+			}
 		}
-		parser.curr.P()
-		fmt.Printf("Mode: %s\n", parser.ast.ModeStr())
 		switch parser.ast.Mode {
 		case MKP:
 			parser.handleMKP(parser.curr)
@@ -664,6 +697,7 @@ func (parser *Parser) Run() (err error) {
 func main() {
 	buf := bytes.NewBuffer(nil)
 	f , err := os.Open("./now/codeblock.gohtml")
+	//f, err := os.Open("./tpl/home.gohtml")
 	if err != nil {
 		panic(err)
 	}
@@ -683,7 +717,7 @@ func main() {
 	//fmt.Println(elem)
 	//}
 
-	parser := &Parser{&Ast{}, res, []Token{}, Token{}, false, false}
+	parser := &Parser{&Ast{}, res, []Token{}, Token{}, false, false, UNK}
 	err = parser.Run()
 
 }
