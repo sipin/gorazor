@@ -324,6 +324,19 @@ func regMatch(reg string, text string) (string, error) {
         return "", nil
 }
 
+func (parser *Parser) advanceUntilNot(tokenType int) ([]Token) {
+        res := []Token{}
+        for idx, token := range parser.tokens {
+                if token.Type == tokenType {
+                        res = append(res, token)
+                } else {
+                        break;
+                        parser.tokens = parser.tokens[idx:] //BUG?
+                }
+        }
+        return res
+}
+
 func (parser *Parser) handleMKP(token Token) {
 	next  := parser.peekToken(0)
 	//nnext := parser.peekToken(1)
@@ -535,28 +548,13 @@ func (parser *Parser) handleEXP(token Token) {
 	}
 }
 
-func (parser *Parser) advanceUntilNot(tokenType int) ([]Token) {
-	res := []Token{}
-	for idx, token := range parser.tokens {
-		if token.Type == tokenType {
-			res = append(res, token)
-		} else {
-			break;
-			parser.tokens = parser.tokens[idx:] //BUG?
-		}
-	}
-	return res
-}
 
 func (parser *Parser) Run() (err error) {
-	if(parser == nil) {
-		return
-	}
 	parser.ast.Mode = PRG
 	parser.curr = Token{"UNDEF", UNDEF, 0, 0}
 	for {
 		parser.preTokens = append(parser.preTokens, parser.curr)
-		if (len(parser.tokens) == 0) {
+		if parser.peekToken(0) == nil {
 			break
 		}
 		parser.curr = parser.nextToken()
