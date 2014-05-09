@@ -1298,6 +1298,8 @@ var _buffer bytes.Buffer\n';
 	    .split("MKP(").join( '\n_buffer.WriteString("')
 	    .split(")MKP").join('")\n');
 
+	console.log("after:", joined)
+
 	var data = this.getFirstCodeBlock(joined);
 	var firstCodeBlock = data[0];
 	var body = data[1];
@@ -1316,7 +1318,6 @@ var _buffer bytes.Buffer\n';
 	joined = this.addHead( firstCodeBlock, body );
 	joined = this.addFoot( joined );
 
-	console.log("finish:", joined)
 	return joined;
     }
 

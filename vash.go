@@ -80,8 +80,8 @@ var Tests = []TokenMatch{
         TokenMatch{PERIOD, "PERIOD", rec(`(\.)`)},
         TokenMatch{NEWLINE, "NEWLINE", rec(`(\n)`)},
         TokenMatch{WHITESPACE, "WHITESPACE", rec(`(\s)`)},
-        TokenMatch{FUNCTION, "FUNCTION", rec(`(function)([\D\W])`)},
-        TokenMatch{KEYWORD, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)([\D\W\S]$)`)},
+        TokenMatch{FUNCTION, "FUNCTION", rec(`(function)([^\d\w])`)},
+        TokenMatch{KEYWORD, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)([^\d\w])`)},
         TokenMatch{IDENTIFIER, "IDENTIFIER", rec(`([_$a-zA-Z][_$a-zA-Z0-9]*)`)}, //need verify
         TokenMatch{FORWARD_SLASH, "FORWARD_SLASH", rec(`(\/)`)},
         TokenMatch{OPERATOR, "OPERATOR", rec(`(===|!==|==|!==|>>>|<<|>>|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
@@ -115,7 +115,7 @@ type Lexer struct {
 	Matches []TokenMatch
 }
 
-func LineAndPos(src string, pos int) (int, int) {
+func lineAndPos(src string, pos int) (int, int) {
 	lines := strings.Count(src[:pos], "\n")
 	p := pos - strings.LastIndex(src[:pos], "\n")
 	return lines+1, p
@@ -153,7 +153,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 			found := m.Regex.FindIndex([]byte(left))
 			if found != nil {
 				match = true
-				line, pos := LineAndPos(text, pos)
+				line, pos := lineAndPos(text, pos)
 				tokenVal := left[found[0]:found[1]]
 				if m.Type == HTML_TAG_OPEN {
 					tokenVal = TagOpen(tokenVal)
@@ -165,7 +165,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 			}
 		}
 		if !match {
-			err_line, err_pos := LineAndPos(text, pos)
+			err_line, err_pos := lineAndPos(text, pos)
 			return toks, fmt.Errorf("%d:%d: Illegal character: %s",
 				err_line, err_pos, string(text[pos]))
 		}
@@ -294,6 +294,24 @@ func (ast *Ast) closest(mode int, tag string) *Ast {
 	}
 	return p
 }
+
+func (ast *Ast) hasNonExp() bool {
+	if ast.Mode != EXP {
+		return true
+	} else {
+		for _, c := range ast.Children {
+			if v, ok := c.(*Ast); ok {
+				if v.hasNonExp() {
+					return true
+				}
+			}
+			return false
+		}
+	}
+	return false
+}
+
+
 func (ast *Ast) debug(depth int, max int) {
 	if depth >= max {
 		return
@@ -426,12 +444,6 @@ func (parser *Parser) advanceUntil(token Token, start, end, startEsc, endEsc int
 
 func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) {
 	subTokens := parser.advanceUntil(token, token.Type, PAIRS[token.Type], -1, AT)
-	//fmt.Printf("-----------\n")
-	//for _, t := range subTokens {
-	//t.P()
-	//}
-	//fmt.Printf("++++++++++\n")
-
 	subTokens = subTokens[1:]
 	closer := subTokens[len(subTokens)-1]
 	subTokens = subTokens[:len(subTokens)-1]
@@ -685,9 +697,6 @@ func (parser *Parser) Run() (err error) {
 				parser.ast = parser.ast.beget(EXP, "")
 			}
 		}
-		//fmt.Println("curr: ")
-		//curr.P()
-		//fmt.Printf(" mode: %s\n", parser.ast.ModeStr())
 		switch parser.ast.Mode {
 		case MKP:
 			parser.handleMKP(curr)
@@ -703,119 +712,116 @@ func (parser *Parser) Run() (err error) {
 	return nil
 }
 
+//------------------------------ Compiler ------------------------------ //
 type Complier struct {
 	ast *Ast
 	buf  string
 }
 
-func (cp *Complier) visitBlock(token Token) {
-	cp.buf += "BLK(" + token.Text + ")BLK"
+func getValStr(e interface{}) string {
+        switch v := e.(type) {
+        case *Ast:
+                return v.TagName
+        case Token:
+                return v.Text
+        default:
+                panic(e)
+        }
 }
 
-// func (cp *Compiler) visitExp(token Token,  parent Token, index int, isHomo bool) {
-// 	start := ""
-// 	end   := ""
-// 	//parentIsNotExp = true
-// 	//TODO
-
-// 	if cp.options[htmlEsc] {
-// 		if parentIsNotExp && index == 0 && isHomo {
-// 			if token.Text == "helper" || token.Text == "raw" ||
-// 				cp.options['package'] = "layout" {
-// 				start += "("
-// 			} else {
-// 				start += "gorazor.HTMLEscape("
-// 			}
-// 		}
-// 		if parentIsNotExp && index == token.parent - 1 && isHomo {
-// 			end += ")"
-// 		}
-// 	}
-
-// 	if parentIsNotExp && index == 0 {
-// 		start  = "_buffer.WriteString(" + start
-// 	}
-// 	if parentIsNotExp && index == token.parent - 1 {
-// 		end += ")\n"
-// 	}
-// 	if token.Text == "raw" {
-// 		cp.buf += start + end
-// 	} else {
-// 		cp.buf += start + token.Text + end
-// 	}
-// }
-
-// func (cp *Complier) visitMKP(parent *Ast, ast *Ast, idx int) {
-// 	start := ""
-// 	end   := ""
-
-// 	if index == 0 {
-// 		start = "_buffer.WriteString(" + start
-// 	}
-// 	if index == len(parent.Children) - 1 {
-// 		end += ")\n"
-// 	}
-// 	if
-
-// }
-
 func (cp *Complier) visitMKP(child interface{}, ast *Ast) {
-	switch v := child.(type) {
-	case *Ast:
-		cp.buf += "MKP(" + v.TagName + ")MKP"
-	case Token:
-		cp.buf += "MKP(" + v.Text + ")MKP"
-	}
+	cp.buf += "MKP(" + getValStr(child) + ")MKP"
 }
 
 func (cp *Complier) visitBLK(child interface{}, ast *Ast) {
-	switch v := child.(type) {
-	case *Ast:
-		cp.buf += "BLK(" + v.TagName + ")BLK"
-	case Token:
-		cp.buf += "BLK(" + v.Text + ")BLK"
+	cp.buf += "BLK(" + getValStr(child) + ")BLK"
+}
+
+func (cp *Complier) visitExp(child interface{}, parent *Ast, idx int, isHomo bool) {
+	start := ""
+	end := ""
+	ppNotExp := true
+	ppChildCnt := len(parent.Children)
+	if parent.Parent != nil && parent.Parent.Mode == EXP {
+		ppNotExp = false
+	}
+        val := getValStr(child)
+        if false { //TODO
+		if ppNotExp && idx == 0 && isHomo {
+
+			if val == "helper" || val == "raw" { //TODO
+				start += "("
+			} else {
+				start += "gorazor.HTMLEscape("
+			}
+		}
+		if ppNotExp && idx == ppChildCnt - 1 && isHomo {
+			end += ")"
+		}
+	}
+
+	if ppNotExp && idx == 0 {
+		start = "_buffer.WriteString(" + start
+	}
+	if ppNotExp && idx == ppChildCnt - 1 {
+		end += ")\n"
+	}
+
+	if val == "raw" {
+		cp.buf += start + end
+	} else {
+		cp.buf += start + val + end
 	}
 }
 
 func (cp *Complier) visitAst(ast *Ast) {
 	switch ast.Mode {
 	case MKP:
-		cp.buf += "MKP(" + ast.TagName + ")MKP"
 		for _, c := range ast.Children {
-			cp.visitMKP(c, ast)
+			if _, ok := c.(Token); ok {
+				cp.visitMKP(c, ast)
+			} else {
+				cp.visitAst(c.(*Ast))
+			}
 		}
 	case PRG:
-		cp.buf += "PRG(" + ast.TagName + ")PRG"
                 for _, c := range ast.Children {
 			cp.visitNode(c)
 		}
 	case BLK:
-		cp.buf += "BLK(" + ast.TagName + ")BLK"
                 for _, c := range ast.Children {
-                        cp.visitBLK(c, ast)
+                        if _, ok := c.(Token); ok {
+                                cp.visitBLK(c, ast)
+                        } else {
+                                cp.visitAst(c.(*Ast))
+                        }
                 }
+	case EXP:
+		nonExp := ast.hasNonExp()
+		for i, c := range ast.Children {
+                        if _, ok := c.(Token); ok {
+                                cp.visitExp(c, ast, i, nonExp)
+                        } else {
+                                cp.visitAst(c.(*Ast))
+                        }
+		}
         }
-
-        //for _, c := range ast.Children {
-	//cp.visitNode(c)
-//}
 }
 
- func (cp *Complier) visitToken(token Token) {
-// 	cp.buf += token.Text
-// 	switch token.Type {
-// 		case
- }
-
 func (cp *Complier) visit() {
-
 	cp.visitNode(cp.ast)
+	fmt.Println("now:")
 	fmt.Println(cp.buf)
-        cp.buf = strings.Replace(cp.buf, "\n", "\\n", -1)
-        cp.buf = strings.Replace(cp.buf, "\t", "\\t", -1)
+        cp.buf = strings.Replace(cp.buf, ")BLKBLK(", "", -1)
         cp.buf = strings.Replace(cp.buf, ")MKPMKP(", "", -1)
+	fmt.Println("after:")
+	fmt.Println(cp.buf)
 	cp.buf = strings.Replace(cp.buf, "MKP(", "\n_buffer.WriteString(\"", -1)
 	cp.buf = strings.Replace(cp.buf, ")MKP", "\")\n", -1)
+	cp.buf = strings.Replace(cp.buf, "BLK(", "", -1)
+        cp.buf = strings.Replace(cp.buf, ")BLK", "", -1)
+
+
         cp.buf = "var _buffer bytes.Buffer\n" + cp.buf
         cp.buf += "\nreturn _buffer.String()"
 }
@@ -824,17 +830,52 @@ func (cp *Complier) visitNode(node interface{}) {
 	switch v := node.(type) {
 	case *Ast:
 		cp.visitAst(v)
-		//fmt.Println("visitAST:", v)
 	case Token:
-		//fmt.Println("visitToken:", v)
-		cp.visitToken(v)
+		panic("visitNode called no Token")
 	}
 }
 
-//------------------------------ Compiler ------------------------------ //
+func GorazorParse(filepath string) (string, errors) {
+        buf := bytes.NewBuffer(nil)
+        f , err := os.Open("./now/var.gohtml")
+        if err != nil {
+                panic(err)
+        }
+        io.Copy(buf, f)
+        f.Close()
+
+        text := string(buf.Bytes())
+        lex := &Lexer{text, Tests}
+
+        res, err := lex.Scan()
+        if err != nil {
+                panic(err)
+        }
+
+	//DEBUG
+        for _, elem := range res {
+                elem.P()
+        }
+
+        parser := &Parser{&Ast{}, res, []Token{}, false, false, UNK}
+        err = parser.Run()
+
+	//DEBUG
+	parser.ast.debug(0, 3)
+        if parser.ast.Mode != PRG {
+                panic("TYPE")
+        }
+
+        cp := &Complier{parser.ast, ""}
+        cp.visit()
+
+        //fmt.Println(cp.buf)
+	return cp.buf
+}
+
 func main() {
 	buf := bytes.NewBuffer(nil)
-	f , err := os.Open("./now/bug.gohtml")
+	f , err := os.Open("./now/var.gohtml")
 	if err != nil {
 		panic(err)
 	}
@@ -843,7 +884,7 @@ func main() {
 
         text := string(buf.Bytes())
 	lex := &Lexer{text, Tests}
-        fmt.Println("buf:", text)
+        //fmt.Println("buf:", text)
 	res, err := lex.Scan()
 
 	if err != nil {
