@@ -234,8 +234,6 @@ func (ast *Ast) addChildren(children []Token) { //BUG?
 }
 
 func (ast *Ast) addAst(_ast *Ast) {
-	//fmt.Println("addAst:++++++++++")
-	//_ast.debug(0, 10)
 	c := _ast
 	for {
 		if len(c.Children) != 1 {
@@ -254,7 +252,6 @@ func (ast *Ast) addAst(_ast *Ast) {
 			ast.addChild(x)
 		}
 	}
-	//fmt.Println("end addAst: ----------")
 }
 
 func (ast *Ast) popChild() {
@@ -432,7 +429,7 @@ func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) {
 	//fmt.Printf("-----------\n")
 	//for _, t := range subTokens {
 	//t.P()
-//}
+	//}
 	//fmt.Printf("++++++++++\n")
 
 	subTokens = subTokens[1:]
@@ -515,7 +512,8 @@ func (parser *Parser) handleMKP(token Token) {
 			parser.ast.addChild(token)
 		}
 
-		//vash.js have bug here, we should skip current MKP
+		// vash.js have bug here, we should skip current MKP,
+		// so that we can keep in a right hierarchy
 		if parser.ast.Parent != nil && parser.ast.Parent.Mode == MKP {
 			parser.ast = parser.ast.Parent
 		}
@@ -722,8 +720,7 @@ func main() {
 	res, err := lex.Scan()
 
 	if err != nil {
-		fmt.Println("error:", err)
-		return
+		panic(err)
 	}
 
 	for _, elem := range res {
