@@ -703,11 +703,138 @@ func (parser *Parser) Run() (err error) {
 	return nil
 }
 
+type Complier struct {
+	ast *Ast
+	buf  string
+}
+
+func (cp *Complier) visitBlock(token Token) {
+	cp.buf += "BLK(" + token.Text + ")BLK"
+}
+
+// func (cp *Compiler) visitExp(token Token,  parent Token, index int, isHomo bool) {
+// 	start := ""
+// 	end   := ""
+// 	//parentIsNotExp = true
+// 	//TODO
+
+// 	if cp.options[htmlEsc] {
+// 		if parentIsNotExp && index == 0 && isHomo {
+// 			if token.Text == "helper" || token.Text == "raw" ||
+// 				cp.options['package'] = "layout" {
+// 				start += "("
+// 			} else {
+// 				start += "gorazor.HTMLEscape("
+// 			}
+// 		}
+// 		if parentIsNotExp && index == token.parent - 1 && isHomo {
+// 			end += ")"
+// 		}
+// 	}
+
+// 	if parentIsNotExp && index == 0 {
+// 		start  = "_buffer.WriteString(" + start
+// 	}
+// 	if parentIsNotExp && index == token.parent - 1 {
+// 		end += ")\n"
+// 	}
+// 	if token.Text == "raw" {
+// 		cp.buf += start + end
+// 	} else {
+// 		cp.buf += start + token.Text + end
+// 	}
+// }
+
+// func (cp *Complier) visitMKP(parent *Ast, ast *Ast, idx int) {
+// 	start := ""
+// 	end   := ""
+
+// 	if index == 0 {
+// 		start = "_buffer.WriteString(" + start
+// 	}
+// 	if index == len(parent.Children) - 1 {
+// 		end += ")\n"
+// 	}
+// 	if
+
+// }
+
+func (cp *Complier) visitMKP(child interface{}, ast *Ast) {
+	switch v := child.(type) {
+	case *Ast:
+		cp.buf += "MKP(" + v.TagName + ")MKP"
+	case Token:
+		cp.buf += "MKP(" + v.Text + ")MKP"
+	}
+}
+
+func (cp *Complier) visitBLK(child interface{}, ast *Ast) {
+	switch v := child.(type) {
+	case *Ast:
+		cp.buf += "BLK(" + v.TagName + ")BLK"
+	case Token:
+		cp.buf += "BLK(" + v.Text + ")BLK"
+	}
+}
+
+func (cp *Complier) visitAst(ast *Ast) {
+	switch ast.Mode {
+	case MKP:
+		cp.buf += "MKP(" + ast.TagName + ")MKP"
+		for _, c := range ast.Children {
+			cp.visitMKP(c, ast)
+		}
+	case PRG:
+		cp.buf += "PRG(" + ast.TagName + ")PRG"
+                for _, c := range ast.Children {
+			cp.visitNode(c)
+		}
+	case BLK:
+		cp.buf += "BLK(" + ast.TagName + ")BLK"
+                for _, c := range ast.Children {
+                        cp.visitBLK(c, ast)
+                }
+        }
+
+        //for _, c := range ast.Children {
+	//cp.visitNode(c)
+//}
+}
+
+ func (cp *Complier) visitToken(token Token) {
+// 	cp.buf += token.Text
+// 	switch token.Type {
+// 		case
+ }
+
+func (cp *Complier) visit() {
+
+	cp.visitNode(cp.ast)
+	fmt.Println(cp.buf)
+        cp.buf = strings.Replace(cp.buf, "\n", "\\n", -1)
+        cp.buf = strings.Replace(cp.buf, "\t", "\\t", -1)
+        cp.buf = strings.Replace(cp.buf, ")MKPMKP(", "", -1)
+	cp.buf = strings.Replace(cp.buf, "MKP(", "\n_buffer.WriteString(\"", -1)
+	cp.buf = strings.Replace(cp.buf, ")MKP", "\")\n", -1)
+        cp.buf = "var _buffer bytes.Buffer\n" + cp.buf
+        cp.buf += "\nreturn _buffer.String()"
+}
+
+func (cp *Complier) visitNode(node interface{}) {
+	switch v := node.(type) {
+	case *Ast:
+		cp.visitAst(v)
+		//fmt.Println("visitAST:", v)
+	case Token:
+		//fmt.Println("visitToken:", v)
+		cp.visitToken(v)
+	}
+}
+
 //------------------------------ Compiler ------------------------------ //
 func main() {
-
 	buf := bytes.NewBuffer(nil)
-	f , err := os.Open("./now/quote.gohtml")
+	f , err := os.Open("./now/bug.gohtml")
 	if err != nil {
 		panic(err)
 	}
@@ -735,4 +862,9 @@ func main() {
 		panic("TYPE")
 	}
 
+	cp := &Complier{parser.ast, ""}
+	cp.visit()
+
+	fmt.Println("---------------------------------------")
+	fmt.Println(cp.buf)
 }

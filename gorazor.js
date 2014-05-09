@@ -53,7 +53,7 @@ function process_folder(tpl_path, output_path) {
     tpl_path = normalize_sep(tpl_path);
     output_path = normalize_sep(output_path);
 
-    //fs.existsSync = require("path").existsSync
+    fs.existsSync = require("path").existsSync
     if(!fs.existsSync(output_path)) {
 	fs.mkdirSync(output_path);
     }

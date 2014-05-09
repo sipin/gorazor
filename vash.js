@@ -1290,6 +1290,7 @@ var _buffer bytes.Buffer\n';
 	this.visitNode(this.ast);
 
 	// coalesce markup
+	console.log("buf now:", this.buffer.join(""))
 	var joined = this.buffer
 	    .join("")
 	    .split(")BLKBLK(").join('')
@@ -1315,6 +1316,7 @@ var _buffer bytes.Buffer\n';
 	joined = this.addHead( firstCodeBlock, body );
 	joined = this.addFoot( joined );
 
+	console.log("finish:", joined)
 	return joined;
     }
 
