@@ -821,9 +821,10 @@ func (cp *Complier) visit() {
 	cp.buf = strings.Replace(cp.buf, "BLK(", "", -1)
         cp.buf = strings.Replace(cp.buf, ")BLK", "", -1)
 
-
-        cp.buf = "var _buffer bytes.Buffer\n" + cp.buf
+        head := "package tpl\n func demo() string {"
+        cp.buf =  head + "var _buffer bytes.Buffer\n" + cp.buf
         cp.buf += "\nreturn _buffer.String()"
+	cp.buf += "}\n"
 }
 
 func (cp *Complier) visitNode(node interface{}) {
@@ -835,11 +836,11 @@ func (cp *Complier) visitNode(node interface{}) {
 	}
 }
 
-func GorazorParse(filepath string) (string, error) {
+func Generate(path string, Options map[string]interface{}) (string, error) {
         buf := bytes.NewBuffer(nil)
-        f , err := os.Open("./now/var.gohtml")
+        f , err := os.Open(path)
         if err != nil {
-                panic(err)
+		return "", err
         }
         io.Copy(buf, f)
         f.Close()
@@ -849,63 +850,32 @@ func GorazorParse(filepath string) (string, error) {
 
         res, err := lex.Scan()
         if err != nil {
-                panic(err)
+		return "", err
         }
 
 	//DEBUG
-        for _, elem := range res {
-                elem.P()
-        }
+	if Options["debug"] != nil {
+		for _, elem := range res {
+			elem.P()
+		}
+	}
 
         parser := &Parser{&Ast{}, res, []Token{}, false, false, UNK}
         err = parser.Run()
 
 	//DEBUG
-	parser.ast.debug(0, 3)
-        if parser.ast.Mode != PRG {
-                panic("TYPE")
-        }
+	if Options["debug"] != nil {
+		parser.ast.debug(0, 3)
+		if parser.ast.Mode != PRG {
+			panic("TYPE")
+		}
+	}
 
         cp := &Complier{parser.ast, ""}
         cp.visit()
 
-        //fmt.Println(cp.buf)
+	if Options["debug"] != nil {
+		fmt.Println(cp.buf)
+	}
 	return cp.buf, nil
-}
-
-func main() {
-	buf := bytes.NewBuffer(nil)
-	f , err := os.Open("./now/var.gohtml")
-	if err != nil {
-		panic(err)
-	}
-	io.Copy(buf, f)
-	f.Close()
-
-        text := string(buf.Bytes())
-	lex := &Lexer{text, Tests}
-        //fmt.Println("buf:", text)
-	res, err := lex.Scan()
-
-	if err != nil {
-		panic(err)
-	}
-
-	for _, elem := range res {
-		elem.P()
-	}
-
-	parser := &Parser{&Ast{}, res, []Token{}, false, false, UNK}
-	err = parser.Run()
-
-        parser.ast.debug(0, 3)
-	if parser.ast.Mode != PRG {
-		panic("TYPE")
-	}
-
-	cp := &Complier{parser.ast, ""}
-	cp.visit()
-
-	fmt.Println("---------------------------------------")
-	fmt.Println(cp.buf)
 }
