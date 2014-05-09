@@ -759,7 +759,7 @@
 		// flip over to MKP
 		// Yukang: vash.js BUG here, should flip current MKP
 		// so that we keep a right hierarchy
-		if( this.ast.parent && this.ast.parent.mode === MKP ){
+		if( this.ast.parent && this.ast.parent.mode === BLK ){
 		    this.ast = this.ast.parent;
 		}
 
@@ -1343,7 +1343,7 @@ var _buffer bytes.Buffer\n';
 	l = new VLexer(markup);
 	while(tok = l.advance()) { tokens.push(tok); }
 
-        console.log("tokens:", tokens)
+        //console.log("tokens:", tokens)
 	tokens.reverse(); // parser needs in reverse order for faster popping vs shift
 
 	p = new VParser(tokens, options);

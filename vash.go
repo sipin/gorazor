@@ -592,7 +592,7 @@ func (parser *Parser) handleBLK(token Token) {
 			next.Type != FUNCTION && next.Type != BRACE_OPEN &&
 			token.Type != PAREN_OPEN {
 			parser.tokens = append(parser.tokens, subTokens...)
-			parser.ast = parser.ast.Parent //BUG?
+			parser.ast = parser.ast.Parent
 		} else {
 			parser.ast.addChildren(subTokens)
 		}
@@ -631,7 +631,7 @@ func (parser *Parser) handleEXP(token Token) {
 
 	case HARD_PAREN_OPEN, PAREN_OPEN:
 		prev := parser.prevToken(0)
-		next := parser.peekToken(0) //BUG?
+		next := parser.peekToken(0)
 		if token.Type == HARD_PAREN_OPEN && next.Type == HARD_PAREN_CLOSE {
 			// likely just [], which is not likely valid outside of EXP
 			parser.deferToken(token)
@@ -702,8 +702,6 @@ func (parser *Parser) Run() (err error) {
 
 	parser.ast = parser.ast.root()
 	//fmt.Println("---------------END---------------------")
-
-	//parser.ast.debug(0)
 	return nil
 }
 
@@ -711,7 +709,7 @@ func (parser *Parser) Run() (err error) {
 func main() {
 
 	buf := bytes.NewBuffer(nil)
-	f , err := os.Open("./now/bug.gohtml")
+	f , err := os.Open("./now/quote.gohtml")
 	if err != nil {
 		panic(err)
 	}
