@@ -75,7 +75,7 @@ var Tests = []TokenMatch{
         TokenMatch{TEXT_TAG_OPEN, "TEXT_TAG_OPEN", rec(`(<text>)`)},
         TokenMatch{TEXT_TAG_CLOSE, "TEXT_TAG_CLOSE", rec(`(<\/text>)`)},
         TokenMatch{HTML_TAG_OPEN, "HTML_TAG_OPEN", rec(`(<[a-zA-Z@]+?[^>]*?["a-zA-Z]*>)`)},
-        TokenMatch{HTML_TAG_CLOSE, "HTML_TAG_CLOSE", rec(`(<\/[^>@\\b]+?>)`)},
+        TokenMatch{HTML_TAG_CLOSE, "HTML_TAG_CLOSE", rec(`(</[^>@]+?>)`)},
         TokenMatch{HTML_TAG_VOID_CLOSE, "HTML_TAG_VOID_CLOSE", rec(`(\/\s*>)`)},
         TokenMatch{PERIOD, "PERIOD", rec(`(\.)`)},
         TokenMatch{NEWLINE, "NEWLINE", rec(`(\n)`)},
@@ -89,8 +89,8 @@ var Tests = []TokenMatch{
         TokenMatch{LOGICAL, "LOGICAL", rec(`(&&|\|\||&|\||\^)`)},
         TokenMatch{ESCAPED_QUOTE, "ESCAPED_QUOTE", rec(`(\\+['\"])`)},
         TokenMatch{BACKSLASH, "BACKSLASH", rec(`(\\)`)},
-        TokenMatch{DOUBLE_QUOTE, "DOUBLE_QUOTE", rec(`(\\")`)},
-        TokenMatch{SINGLE_QUOTE, "SINGLE_QUOTE", rec(`(\')`)},
+        TokenMatch{DOUBLE_QUOTE, "DOUBLE_QUOTE", rec(`(")`)},
+        TokenMatch{SINGLE_QUOTE, "SINGLE_QUOTE", rec(`(')`)},
         TokenMatch{NUMERIC_CONTENT, "NUMERIC_CONTENT", rec(`([0-9]+)`)},
         TokenMatch{CONTENT, "CONTENT", rec(`([^\s})@.]+?)`)},
 }
@@ -213,6 +213,12 @@ func (ast *Ast) ModeStr() string{
 	return "UNDEF"
 }
 
+func (ast *Ast) check() {
+        if len(ast.Children) >= 100000 {
+                panic("Maximum number of elements exceeded.")
+        }
+}
+
 func (ast *Ast) addChild(child interface{}) {
 	ast.Children = append(ast.Children, child)
 	ast.check()
@@ -228,6 +234,8 @@ func (ast *Ast) addChildren(children []Token) { //BUG?
 }
 
 func (ast *Ast) addAst(_ast *Ast) {
+	//fmt.Println("addAst:++++++++++")
+	//_ast.debug(0, 10)
 	c := _ast
 	for {
 		if len(c.Children) != 1 {
@@ -246,6 +254,7 @@ func (ast *Ast) addAst(_ast *Ast) {
 			ast.addChild(x)
 		}
 	}
+	//fmt.Println("end addAst: ----------")
 }
 
 func (ast *Ast) popChild() {
@@ -270,11 +279,6 @@ func (ast *Ast) root() *Ast {
 	return nil
 }
 
-func (ast *Ast) check() {
-	if len(ast.Children) >= 100000 {
-		panic("Maximum number of elements exceeded.")
-	}
-}
 
 func (ast *Ast) beget(mode int, tag string) *Ast {
 	child := &Ast{ast, []interface{}{}, mode, tag}
@@ -425,6 +429,12 @@ func (parser *Parser) advanceUntil(token Token, start, end, startEsc, endEsc int
 
 func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) {
 	subTokens := parser.advanceUntil(token, token.Type, PAIRS[token.Type], -1, AT)
+	//fmt.Printf("-----------\n")
+	//for _, t := range subTokens {
+	//t.P()
+//}
+	//fmt.Printf("++++++++++\n")
+
 	subTokens = subTokens[1:]
 	closer := subTokens[len(subTokens)-1]
 	subTokens = subTokens[:len(subTokens)-1]
@@ -497,13 +507,16 @@ func (parser *Parser) handleMKP(token Token) {
 		//TODO
 		opener := parser.ast.closest(MKP, tagName)
 		if opener.TagName != tagName { //unmatched
+			panic("UNMATCHED!")
 		} else {
 			parser.ast = opener
 		}
 		if token.Type == HTML_TAG_CLOSE || parser.saveTextTag {
 			parser.ast.addChild(token)
 		}
-		if parser.ast.Parent != nil && parser.ast.Parent.Mode == BLK {
+
+		//vash.js have bug here, we should skip current MKP
+		if parser.ast.Parent != nil && parser.ast.Parent.Mode == MKP {
 			parser.ast = parser.ast.Parent
 		}
 
@@ -523,7 +536,7 @@ func (parser *Parser) handleBLK(token Token) {
 	next := parser.peekToken(0)
 	switch token.Type {
 	case AT:
-		if next.Type != AT && (parser.inComment) {
+		if (next.Type != AT) && (!parser.inComment) {
 			parser.deferToken(token)
 			parser.ast = parser.ast.beget(MKP, "")
 		} else {
@@ -674,9 +687,9 @@ func (parser *Parser) Run() (err error) {
 				parser.ast = parser.ast.beget(EXP, "")
 			}
 		}
-//		fmt.Println("curr: ")
-//		curr.P()
-//		fmt.Printf(" mode: %s\n", parser.ast.ModeStr())
+		//fmt.Println("curr: ")
+		//curr.P()
+		//fmt.Printf(" mode: %s\n", parser.ast.ModeStr())
 		switch parser.ast.Mode {
 		case MKP:
 			parser.handleMKP(curr)
@@ -698,7 +711,7 @@ func (parser *Parser) Run() (err error) {
 func main() {
 
 	buf := bytes.NewBuffer(nil)
-	f , err := os.Open("./now/base.gohtml")
+	f , err := os.Open("./now/bug.gohtml")
 	if err != nil {
 		panic(err)
 	}
@@ -722,5 +735,9 @@ func main() {
 	parser := &Parser{&Ast{}, res, []Token{}, false, false, UNK}
 	err = parser.Run()
 
-	parser.ast.debug(0, 10)
+        parser.ast.debug(0, 3)
+	if parser.ast.Mode != PRG {
+		panic("TYPE")
+	}
+
 }

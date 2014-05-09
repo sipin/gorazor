@@ -513,7 +513,7 @@
 		    }
 		}
 
-		console.log("curr", curr, this.ast.mode)
+		//console.log("curr", curr, this.ast.mode)
 		if(this.ast.mode === MKP){
 		    this.handleMKP(curr);
 		    continue;
@@ -757,7 +757,9 @@
 
 		// close this ast if parent is BLK. if another tag follows, BLK will
 		// flip over to MKP
-		if( this.ast.parent && this.ast.parent.mode === BLK ){
+		// Yukang: vash.js BUG here, should flip current MKP
+		// so that we keep a right hierarchy
+		if( this.ast.parent && this.ast.parent.mode === MKP ){
 		    this.ast = this.ast.parent;
 		}
 
@@ -1341,7 +1343,7 @@ var _buffer bytes.Buffer\n';
 	l = new VLexer(markup);
 	while(tok = l.advance()) { tokens.push(tok); }
 
-        //console.log("tokens:", tokens)
+        console.log("tokens:", tokens)
 	tokens.reverse(); // parser needs in reverse order for faster popping vs shift
 
 	p = new VParser(tokens, options);
