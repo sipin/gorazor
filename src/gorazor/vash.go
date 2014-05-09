@@ -1,4 +1,4 @@
-package main
+package gorazor
 
 import (
 	"os"
@@ -835,7 +835,7 @@ func (cp *Complier) visitNode(node interface{}) {
 	}
 }
 
-func GorazorParse(filepath string) (string, errors) {
+func GorazorParse(filepath string) (string, error) {
         buf := bytes.NewBuffer(nil)
         f , err := os.Open("./now/var.gohtml")
         if err != nil {
@@ -870,7 +870,7 @@ func GorazorParse(filepath string) (string, errors) {
         cp.visit()
 
         //fmt.Println(cp.buf)
-	return cp.buf
+	return cp.buf, nil
 }
 
 func main() {

@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"os"
 	"flag"
+	_ "gorazor"
 	"errors"
 	"path/filepath"
 )
