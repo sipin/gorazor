@@ -52,11 +52,7 @@ type TokenMatch struct {
 }
 
 func rec(reg string) (*regexp.Regexp) {
-	res, err := regexp.Compile("^" + reg)
-	if err != nil {
-		panic(err)
-	}
-	return res
+	return regexp.MustCompile("^" + reg)
 }
 
 // The order is important
@@ -227,7 +223,7 @@ func (ast *Ast) addChild(child interface{}) {
 	}
 }
 
-func (ast *Ast) addChildren(children []Token) { //BUG?
+func (ast *Ast) addChildren(children []Token) {
 	for _, c := range children {
 		ast.addChild(c)
 	}
@@ -490,7 +486,7 @@ func (parser *Parser) handleMKP(token Token) {
 
 			case AT, AT_COLON:
 				//we want to keep the token, but remove it's special meanning
-				next.Type = CONTENT //BUG, modify from a pointer, work?
+				next.Type = CONTENT //Modify from a pointer, work?
 				parser.ast.addChild(parser.nextToken())
 			default:
 				parser.ast.addChild(parser.nextToken())
@@ -713,7 +709,7 @@ func (parser *Parser) Run() (err error) {
 }
 
 //------------------------------ Compiler ------------------------------ //
-type Complier struct {
+type Compiler struct {
 	ast *Ast
 	buf  string
 }
@@ -729,15 +725,15 @@ func getValStr(e interface{}) string {
         }
 }
 
-func (cp *Complier) visitMKP(child interface{}, ast *Ast) {
+func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
 	cp.buf += "MKP(" + getValStr(child) + ")MKP"
 }
 
-func (cp *Complier) visitBLK(child interface{}, ast *Ast) {
+func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
 	cp.buf += "BLK(" + getValStr(child) + ")BLK"
 }
 
-func (cp *Complier) visitExp(child interface{}, parent *Ast, idx int, isHomo bool) {
+func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo bool) {
 	start := ""
 	end := ""
 	ppNotExp := true
@@ -774,7 +770,7 @@ func (cp *Complier) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 	}
 }
 
-func (cp *Complier) visitAst(ast *Ast) {
+func (cp *Compiler) visitAst(ast *Ast) {
 	switch ast.Mode {
 	case MKP:
 		for _, c := range ast.Children {
@@ -808,7 +804,7 @@ func (cp *Complier) visitAst(ast *Ast) {
         }
 }
 
-func (cp *Complier) visit() {
+func (cp *Compiler) visit() {
 	cp.visitNode(cp.ast)
 	fmt.Println("now:")
 	fmt.Println(cp.buf)
@@ -827,7 +823,7 @@ func (cp *Complier) visit() {
 	cp.buf += "}\n"
 }
 
-func (cp *Complier) visitNode(node interface{}) {
+func (cp *Compiler) visitNode(node interface{}) {
 	switch v := node.(type) {
 	case *Ast:
 		cp.visitAst(v)
@@ -871,7 +867,7 @@ func Generate(path string, Options map[string]interface{}) (string, error) {
 		}
 	}
 
-        cp := &Complier{parser.ast, ""}
+        cp := &Compiler{parser.ast, ""}
         cp.visit()
 
 	if Options["debug"] != nil {
