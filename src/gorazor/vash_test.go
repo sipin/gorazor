@@ -54,8 +54,8 @@ func TestGenerate(t *testing.T) {
                         name := strings.Replace(filepath.Base(path), ".gohtml", ".go", 1)
                         cmp := filepath.Join(cmpsdir, name)
                         log := filepath.Join(cmpsdir, "_" + name)
-
-                	GenFile(path, log)
+			option := Option{}
+                	GenFile(path, log, option )
 			if !exists(cmp) || !exists(log) {
 				t.Error("No Log")
 			} else {

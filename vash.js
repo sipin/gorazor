@@ -1255,8 +1255,6 @@ import (\n' +
 func ' + this.options["name"] + '(' + params + ') (' + returnType + ') {\n\
 var _buffer bytes.Buffer\n';
 
-
-
 	return head + body;
     }
 
@@ -1301,6 +1299,7 @@ var _buffer bytes.Buffer\n';
 	console.log("after:", joined)
 
 	var data = this.getFirstCodeBlock(joined);
+	console.log("data:", data[0])
 	var firstCodeBlock = data[0];
 	var body = data[1];
 

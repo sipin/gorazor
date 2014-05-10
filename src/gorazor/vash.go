@@ -732,6 +732,9 @@ func (parser *Parser) Run() (err error) {
 type Compiler struct {
 	ast *Ast
 	buf  string
+	firstBLK int
+	params   []string
+	imports  map[string]bool
 	options Option
 }
 
@@ -750,6 +753,46 @@ func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
 	//TODO
 	v  := strings.Replace(getValStr(child), "\n", "\\n", -1)
 	cp.buf += "MKP(" + v + ")MKP"
+}
+
+func (cp *Compiler) visitFirstBLK(blk *Ast) {
+	pre := cp.buf
+	cp.buf = ""
+	first := ""
+	cp.visitAst(blk)
+	first, cp.buf = cp.buf, pre
+	first = cp.cleanUp(first)
+        isImport := false
+
+	lines := bytes.SplitN([]byte(first), []byte("\n"), -1)
+	for _, l := range lines {
+		l = bytes.TrimSpace(l)
+		if bytes.HasPrefix(l, []byte("import")) {
+			isImport = true
+			continue
+		}
+		if bytes.Compare(l, []byte(")")) == 0 {
+			isImport = false
+			continue
+		}
+		if isImport {
+			//TODO
+                        parts := bytes.SplitN([]byte(l), []byte("/"), -1)
+			if len(parts) >= 2 && bytes.Compare(parts[len(parts)-2], []byte("layout")) == 0  {
+				lay := string(parts[len(parts) - 1])
+				lay = lay[:len(lay) - 1]
+				dir := strings.Replace(string(l), lay, "", 1)
+				dir = dir[1:len(dir) - 1]
+				cp.imports[dir] = true
+			} else {
+				cp.imports[string(l)] = true
+			}
+		} else if bytes.HasPrefix(l, []byte("var")) {
+			vname := string(l)[4:]
+			cp.params = append(cp.params, string(l)[4:])
+		}
+	}
+	//fmt.Println("first BLOCK:", lines)
 }
 
 func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
@@ -804,13 +847,18 @@ func (cp *Compiler) visitAst(ast *Ast) {
 			}
 		}
 	case BLK:
-                for _, c := range ast.Children {
-                        if _, ok := c.(Token); ok {
-                                cp.visitBLK(c, ast)
-                        } else {
-                                cp.visitAst(c.(*Ast))
-                        }
-                }
+		if cp.firstBLK == 0 {
+			cp.firstBLK = 1
+			cp.visitFirstBLK(ast)
+		} else {
+			for _, c := range ast.Children {
+				if _, ok := c.(Token); ok {
+					cp.visitBLK(c, ast)
+				} else {
+					cp.visitAst(c.(*Ast))
+				}
+			}
+		}
 	case EXP:
 		nonExp := ast.hasNonExp()
 		for i, c := range ast.Children {
@@ -827,17 +875,23 @@ func (cp *Compiler) visitAst(ast *Ast) {
         }
 }
 
+func (cp *Compiler)cleanUp(buf string) string {
+        buf = strings.Replace(buf, ")BLKBLK(", "", -1)
+        buf = strings.Replace(buf, ")MKPMKP(", "", -1)
+        buf = strings.Replace(buf, "MKP(", "_buffer.WriteString(\"", -1)
+        buf = strings.Replace(buf, ")MKP", "\")\n", -1)
+        buf = strings.Replace(buf, "BLK(", "", -1)
+        buf = strings.Replace(buf, ")BLK", "", -1)
+	return buf
+}
+
 func (cp *Compiler) visit() {
 	cp.visitAst(cp.ast)
-	cp.buf = strings.Replace(cp.buf, ")BLKBLK(", "", -1)
-        cp.buf = strings.Replace(cp.buf, ")MKPMKP(", "", -1)
-	cp.buf = strings.Replace(cp.buf, "MKP(", "_buffer.WriteString(\"", -1)
-	cp.buf = strings.Replace(cp.buf, ")MKP", "\")\n", -1)
-	cp.buf = strings.Replace(cp.buf, "BLK(", "", -1)
-        cp.buf = strings.Replace(cp.buf, ")BLK", "", -1)
+	cp.buf = cp.cleanUp(cp.buf)
 
 	dir := cp.options["Dir"].(string)
 	fun := cp.options["File"].(string)
+
         head := "package " + dir + "\n import (\"bytes\"\n \"gorazor\" )\n func " + fun + "() string {"
         cp.buf =  head + "var _buffer bytes.Buffer\n" + cp.buf
         cp.buf += "return _buffer.String()"
@@ -862,7 +916,7 @@ func Generate(path string, Options Option) (string, error) {
         }
 
 	//DEBUG
-	if Options["debug"] != nil {
+	if Options["Debug"] != nil {
 		for _, elem := range res {
 			elem.P()
 		}
@@ -872,17 +926,19 @@ func Generate(path string, Options Option) (string, error) {
         err = parser.Run()
 
 	//DEBUG
-	if Options["debug"] != nil {
-		parser.ast.debug(0, 3)
+	if Options["Debug"] != nil {
+		parser.ast.debug(0, 5)
 		if parser.ast.Mode != PRG {
 			panic("TYPE")
 		}
 	}
 
-        cp := &Compiler{parser.ast, "", Options}
+        cp := &Compiler{ast: parser.ast, buf: "", firstBLK: 0,
+		params: []string{}, imports: map[string]bool{},
+		options: Options}
         cp.visit()
 
-	if Options["debug"] != nil {
+	if Options["Debug"] != nil {
 		fmt.Println(cp.buf)
 	}
 	return cp.buf, nil
@@ -904,15 +960,14 @@ func exists(path string) (bool) {
 
 // Generate from input to output file,
 // gofmt will trigger an error if it fails.
-func GenFile(input string, output string) error {
+func GenFile(input string, output string, options Option) error {
         //fmt.Printf("Processing: %s --> %s\n", input, output)
-	Options := Option{}
 
 	//Use to as package name
-	Options["Dir"] = filepath.Base(filepath.Dir(input))
-	Options["File"] = strings.Replace(filepath.Base(input), gz_extension, "", 1)
-	Options["File"] = Capitalize(Options["File"].(string))
-        res, err := Generate(input, Options)
+	options["Dir"] = filepath.Base(filepath.Dir(input))
+	options["File"] = strings.Replace(filepath.Base(input), gz_extension, "", 1)
+	options["File"] = Capitalize(options["File"].(string))
+        res, err := Generate(input, options)
         if err != nil {
                 panic(err)
         } else {
@@ -940,6 +995,7 @@ func GenFolder(indir string, outdir string) (err error) {
                 os.MkdirAll(outdir, 0777)
         }
 
+	options := Option{}
 	incdir_abs, _ := filepath.Abs(indir)
 	outdir_abs, _ := filepath.Abs(outdir)
 
@@ -950,7 +1006,7 @@ func GenFolder(indir string, outdir string) (err error) {
 			input, _ := filepath.Abs(path)
 			output := strings.Replace(input, incdir_abs, outdir_abs, 1)
 			output = strings.Replace(output, gz_extension, go_extension, -1)
-                        GenFile(path, output)
+                        GenFile(path, output, options)
                 }
                 return nil
         }
