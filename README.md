@@ -185,5 +185,6 @@ TBA
  * go build gorazor
 
 * Some trivial TODO
+* File change notify and re-generate
 * Need more testing
 * Code refactor
