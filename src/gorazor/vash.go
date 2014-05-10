@@ -907,10 +907,10 @@ func exists(path string) (bool) {
         return false
 }
 
-// Generate from input to output file
-// gofmt will trigger an error if it fails
+// Generate from input to output file,
+// gofmt will trigger an error if it fails.
 func GenFile(input string, output string) error {
-        fmt.Printf("processing: %s --> %s\n", input, output)
+        fmt.Printf("Processing: %s --> %s\n", input, output)
 	Options := map[string]interface{}{}
         res, err := Generate(input, Options)
         if err != nil {
@@ -926,8 +926,8 @@ func GenFile(input string, output string) error {
         return nil
 }
 
-// Generate from directory to directory
-// Find all the files with extension of .gohtml and generate it into target dir
+// Generate from directory to directory, Find all the files with extension
+// of .gohtml and generate it into target dir.
 func GenFolder(indir string, outdir string) (err error) {
         if !exists(indir) {
                 return errors.New("Input directory does not exsits")

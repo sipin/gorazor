@@ -7,11 +7,6 @@ import (
 	"os"
 	"flag"
 	"gorazor"
-	"errors"
-	"strings"
-	"os/exec"
-	"path/filepath"
-	"io/ioutil"
 )
 
 
@@ -24,57 +19,7 @@ func Usage() {
 	os.Exit(0)
 }
 
-
-// func ProcessFile(file string, indir string, outdir string) (err error) {
-// 	fmt.Printf("processing: %s %s %s\n", file, indir, outdir)
-// 	Options := map[string]interface{}{}
-// 	fabs, _ := filepath.Abs(file)
-// 	iabs, _ := filepath.Abs(indir)
-// 	oabs, _ := filepath.Abs(outdir)
-// 	abs := strings.Replace(fabs, iabs, oabs, 1)
-//         out := strings.Replace(abs, gz_extension, go_extension, -1)
-// 	dir := filepath.Dir(abs)
-
-// 	if ok, _ := exists(dir); !ok {
-// 		os.MkdirAll(dir, 0777)
-// 	}
-
-// 	res, err := gorazor.Generate(file, Options)
-// 	if err != nil {
-// 		panic(err)
-// 	} else {
-// 		err := ioutil.WriteFile(out, []byte(res), 0777)
-// 		if err != nil { panic(err) }
-// 		cmd := exec.Command("gofmt", "-w", out)
-// 		if err := cmd.Run(); err != nil {
-// 			//panic(err)
-// 		}
-// 	}
-// 	return nil
-// }
-
-// func ProcessFolder(indir string, outdir string) (err error) {
-// 	if ok, err := exists(indir); ok == false {
-// 		return errors.New("Input directory does not exsits")
-// 	} else {
-// 		if err != nil { return err}
-// 	}
-// 	if ok, _ := exists(outdir); !ok {
-//                 os.MkdirAll(outdir, 0777)
-// 	}
-
-// 	visit := func(path string, info os.FileInfo, err error) error {
-// 		if !info.IsDir() {
-// 			ProcessFile(path, indir, outdir)
-// 		}
-// 		return nil
-// 	}
-// 	err = filepath.Walk(indir, visit)
-// 	return nil
-// }
-
 func main() {
-	Options := map[string]interface{}{}
 
 	var InDir, OutDir, InFile, OutFile string
 	flag.StringVar(&InDir, "indir", "", "Template directory path")
@@ -92,6 +37,7 @@ func main() {
 		}
 	} else if InFile != "" && OutFile != ""  {
 		fmt.Printf("processing: %s %s\n", InFile, OutFile)
+	} else {
+		flag.Usage()
 	}
-	fmt.Println(Options["debug"])
 }
