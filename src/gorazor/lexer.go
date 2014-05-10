@@ -151,6 +151,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
         toks := []Token{}
         text := strings.Replace(lexer.Text, "\r\n", "\n", -1)
         text = strings.Replace(lexer.Text, "\r", "\n", -1)
+	text += "\n"
         for pos < len(text) {
                 left := text[pos:]
                 match := false

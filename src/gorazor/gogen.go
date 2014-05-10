@@ -35,7 +35,6 @@ func getValStr(e interface{}) string {
 }
 
 func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
-	//TODO
 	v  := strings.Replace(getValStr(child), "\n", "\\n", -1)
 	cp.buf += "MKP(" + v + ")MKP"
 }
@@ -62,14 +61,13 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 			isImport = false
 			continue
 		}
-		if isImport {
-			//TODO
+
+        	if isImport {
                         parts := bytes.SplitN([]byte(l), []byte("/"), -1)
 			if len(parts) >= 2 && bytes.Compare(parts[len(parts)-2], []byte("layout")) == 0  {
 				lay := string(parts[len(parts) - 1])
 				lay = lay[:len(lay) - 1]
 				dir := strings.Replace(string(l), lay, "", 1)
-				dir = dir[1:len(dir) - 1]
 				cp.imports[dir] = true
 			} else {
 				cp.imports[string(l)] = true
@@ -79,7 +77,6 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 			cp.params = append(cp.params, vname)
 		}
 	}
-	//fmt.Println("first BLOCK:", lines)
 }
 
 func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
@@ -95,9 +92,8 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 		ppNotExp = false
 	}
         val := getValStr(child)
-        if false { //TODO
+        if false { //TODO, options
 		if ppNotExp && idx == 0 && isHomo {
-
 			if val == "helper" || val == "raw" { //TODO
 				start += "("
 			} else {
@@ -168,8 +164,32 @@ func (cp *Compiler)cleanUp(buf string) string {
         buf = strings.Replace(buf, "MKP(", "_buffer.WriteString(\"", -1)
         buf = strings.Replace(buf, ")MKP", "\")\n", -1)
         buf = strings.Replace(buf, "BLK(", "", -1)
-        buf = strings.Replace(buf, ")BLK", "", -1)
-	return buf
+        buf = strings.Replace(buf, ")BLK", "\n", -1)
+        return buf
+}
+
+// TODO, this is dirty now
+func (cp *Compiler) layout() {
+        lines := bytes.SplitN([]byte(cp.buf), []byte("\n"), -1)
+	out := ""
+	insec := false
+	for _, l := range lines {
+		l = bytes.TrimSpace(l)
+		if bytes.HasPrefix(l, []byte("section")) &&
+			bytes.HasSuffix(l, []byte("{")) {
+			name := string(l)
+			name = name[7:len(name)-1]
+			out += "\n " + name + " := func() string {\n"
+                        out += "var _buffer bytes.Buffer\n"
+			insec = true
+		} else if insec && bytes.HasSuffix(l, []byte("}")) {
+			out += "return _buffer.String()\n}\n"
+			insec = false
+		} else {
+                        out += string(l) + "\n"
+		}
+        }
+	cp.buf = out
 }
 
 func (cp *Compiler) visit() {
@@ -179,10 +199,20 @@ func (cp *Compiler) visit() {
 	dir := cp.options["Dir"].(string)
 	fun := cp.options["File"].(string)
 
-        head := "package " + dir + "\n import (\"bytes\"\n \"gorazor\" )\n func " + fun + "() string {"
-        cp.buf =  head + "var _buffer bytes.Buffer\n" + cp.buf
-        cp.buf += "return _buffer.String()"
-	cp.buf += "}\n"
+	cp.imports[`"bytes"`] = true
+	cp.imports[`"gorazor"`] = true
+	head := "package " + dir + "\n import (\n"
+	for k, _ := range cp.imports {
+		head += k + "\n"
+	}
+	head += "\n)\n func " + fun + "("
+	for i, p := range cp.params {
+		head += p
+		if i != len(cp.params)-1 { head += ", " }
+	}
+	head += ") string {\n var _buffer bytes.Buffer\n"
+	cp.buf = head + cp.buf + "\nreturn _buffer.String()\n}\n"
+	cp.layout()
 }
 
 func Generate(path string, Options Option) (string, error) {
@@ -204,21 +234,27 @@ func Generate(path string, Options Option) (string, error) {
 
 	//DEBUG
 	if Options["Debug"] != nil {
+		fmt.Println("------------------- TOKEN START -----------------")
 		for _, elem := range res {
 			elem.P()
 		}
-	}
+                fmt.Println("--------------------- TOKEN END -----------------\n")
+        }
 
         parser := &Parser{&Ast{}, res, []Token{}, false, false, UNK}
         err = parser.Run()
 
 	//DEBUG
 	if Options["Debug"] != nil {
-		parser.ast.debug(0, 5)
-		if parser.ast.Mode != PRG {
-			panic("TYPE")
-		}
-	}
+                fmt.Println("--------------------- AST START -----------------")
+
+		parser.ast.debug(0, 7)
+                fmt.Println("--------------------- AST END -----------------\n")
+                if parser.ast.Mode != PRG {
+                        panic("TYPE")
+                }
+        }
+
 
         cp := &Compiler{ast: parser.ast, buf: "", firstBLK: 0,
 		params: []string{}, imports: map[string]bool{},
@@ -230,7 +266,6 @@ func Generate(path string, Options Option) (string, error) {
 	}
 	return cp.buf, nil
 }
-
 
 //------------------------------ API ------------------------------
 const (

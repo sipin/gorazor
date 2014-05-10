@@ -3,7 +3,6 @@ package test
 import (
 	"bytes"
 	"gorazor"
-	. "kp/models"
 	"tpl/helper"
 	"tpl/layout"
 )

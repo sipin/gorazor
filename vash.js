@@ -490,7 +490,6 @@
 
 	this.options = options || {};
 	this.tokens = tokens;
-	//console.log("tokens: ", tokens)
 	this.ast = vQuery(PRG);
 	this.prevTokens = [];
 
@@ -513,7 +512,6 @@
 		    }
 		}
 
-		//console.log("curr", curr, this.ast.mode)
 		if(this.ast.mode === MKP){
 		    this.handleMKP(curr);
 		    continue;
@@ -1284,11 +1282,9 @@ var _buffer bytes.Buffer\n';
 	// clear whatever's in the current buffer
 	this.buffer.length = 0;
 
-	//console.log("ast: ", this.ast)
 	this.visitNode(this.ast);
 
 	// coalesce markup
-	console.log("buf now:", this.buffer.join(""))
 	var joined = this.buffer
 	    .join("")
 	    .split(")BLKBLK(").join('')
@@ -1296,10 +1292,8 @@ var _buffer bytes.Buffer\n';
 	    .split("MKP(").join( '\n_buffer.WriteString("')
 	    .split(")MKP").join('")\n');
 
-	console.log("after:", joined)
 
 	var data = this.getFirstCodeBlock(joined);
-	console.log("data:", data[0])
 	var firstCodeBlock = data[0];
 	var body = data[1];
 
@@ -1345,7 +1339,6 @@ var _buffer bytes.Buffer\n';
 	l = new VLexer(markup);
 	while(tok = l.advance()) { tokens.push(tok); }
 
-        //console.log("tokens:", tokens)
 	tokens.reverse(); // parser needs in reverse order for faster popping vs shift
 
 	p = new VParser(tokens, options);

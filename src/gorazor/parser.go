@@ -359,7 +359,7 @@ func (parser *Parser) handleMKP(token Token) {
 
 		// vash.js have bug here, we should skip current MKP,
 		// so that we can keep in a right hierarchy
-		if parser.ast.Parent != nil && parser.ast.Parent.Mode == MKP {
+		if parser.ast.Parent != nil && parser.ast.Parent.Mode == BLK {
 			parser.ast = parser.ast.Parent
 		}
 
