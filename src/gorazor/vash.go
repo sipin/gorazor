@@ -6,7 +6,11 @@ import (
 	"fmt"
 	"regexp"
 	"bytes"
+	"errors"
 	"strings"
+	"os/exec"
+	"path/filepath"
+	"io/ioutil"
 )
 
 const (
@@ -76,8 +80,8 @@ var Tests = []TokenMatch{
         TokenMatch{PERIOD, "PERIOD", rec(`(\.)`)},
         TokenMatch{NEWLINE, "NEWLINE", rec(`(\n)`)},
         TokenMatch{WHITESPACE, "WHITESPACE", rec(`(\s)`)},
-        TokenMatch{FUNCTION, "FUNCTION", rec(`(function)([^\d\w])`)},
-        TokenMatch{KEYWORD, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|try|var|while|with)([^\d\w])`)},
+        //TokenMatch{FUNCTION, "FUNCTION", rec(`(function)([^\d\w])`)},
+        TokenMatch{KEYWORD, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|var|with)([^\d\w])`)},
         TokenMatch{IDENTIFIER, "IDENTIFIER", rec(`([_$a-zA-Z][_$a-zA-Z0-9]*)`)}, //need verify
         TokenMatch{FORWARD_SLASH, "FORWARD_SLASH", rec(`(\/)`)},
         TokenMatch{OPERATOR, "OPERATOR", rec(`(===|!==|==|!==|>>>|<<|>>|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
@@ -117,11 +121,9 @@ func lineAndPos(src string, pos int) (int, int) {
 	return lines+1, p
 }
 
-func TagOpen(text string) string {
-	regs := []string{
-		`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,4})\b`,
-		`(@)`,
-		`(\/\s*>)`}
+
+// Why we need this: Go's regexp DO NOT support lookahead assertion
+func regRemoveTail(text string, regs []string) string {
 	res := text
 	for _, reg := range regs {
 		regc, err := regexp.Compile(reg)
@@ -134,6 +136,19 @@ func TagOpen(text string) string {
 		}
 	}
 	return res
+}
+
+func tagClean(text string) string {
+	regs := []string{
+		`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,4})\b`,
+		`(@)`,
+		`(\/\s*>)`}
+	return regRemoveTail(text, regs)
+}
+
+func keyClean(text string) string {
+	regs := []string{`(\s|\W)`}
+	return regRemoveTail(text, regs)
 }
 
 func (lexer *Lexer) Scan() ([]Token, error) {
@@ -151,9 +166,13 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 				match = true
 				line, pos := lineAndPos(text, pos)
 				tokenVal := left[found[0]:found[1]]
+
 				if m.Type == HTML_TAG_OPEN {
-					tokenVal = TagOpen(tokenVal)
+					tokenVal = tagClean(tokenVal)
+				} else if m.Type == KEYWORD {
+					tokenVal = keyClean(tokenVal)
 				}
+
 				tok := Token{tokenVal, m.Text, m.Type, line, pos}
 				toks = append(toks, tok)
 				length = len(tokenVal)
@@ -674,7 +693,6 @@ func (parser *Parser) handleEXP(token Token) {
 }
 
 func (parser *Parser) Run() (err error) {
-        //fmt.Println("---------------BEGIN------------------------")
 	curr := Token{"UNDEF", "UNDEF", UNDEF, 0, 0}
 	parser.ast.Mode = PRG
 	for {
@@ -704,7 +722,6 @@ func (parser *Parser) Run() (err error) {
 	}
 
 	parser.ast = parser.ast.root()
-	//fmt.Println("---------------END---------------------")
 	return nil
 }
 
@@ -874,4 +891,75 @@ func Generate(path string, Options map[string]interface{}) (string, error) {
 		fmt.Println(cp.buf)
 	}
 	return cp.buf, nil
+}
+
+
+//------------------------------ API ------------------------------
+
+const (
+        go_extension = ".go"
+        gz_extension = ".gohtml"
+)
+
+
+func exists(path string) (bool) {
+        _, err := os.Stat(path)
+        if err == nil { return true }
+        if os.IsNotExist(err) { return false }
+        return false
+}
+
+// func GenFile(file string, indir string, outdir string) (err error) {
+//         fmt.Printf("processing: %s %s %s\n", file, indir, outdir)
+//         Options := map[string]interface{}{}
+//         fabs, _ := filepath.Abs(file)
+//         iabs, _ := filepath.Abs(indir)
+//         oabs, _ := filepath.Abs(outdir)
+//         abs := strings.Replace(fabs, iabs, oabs, 1)
+//         out := strings.Replace(abs, gz_extension, go_extension, -1)
+//         dir := filepath.
+//		Dir(abs)
+//}
+
+func GenFile(input string, output string) error {
+        fmt.Printf("processing: %s --> %s\n", input, output)
+	Options := map[string]interface{}{}
+        res, err := Generate(input, Options)
+        if err != nil {
+                panic(err)
+        } else {
+                err := ioutil.WriteFile(output, []byte(res), 0777)
+                if err != nil { panic(err) }
+                cmd := exec.Command("gofmt", "-w", output)
+                if err := cmd.Run(); err != nil {
+                        //panic(err)
+                }
+        }
+        return nil
+}
+
+func GenFolder(indir string, outdir string) (err error) {
+        if !exists(indir) {
+                return errors.New("Input directory does not exsits")
+        } else {
+                if err != nil { return err}
+        }
+        if !exists(outdir) {
+                os.MkdirAll(outdir, 0777)
+        }
+
+	incdir_abs, _ := filepath.Abs(indir)
+	outdir_abs, _ := filepath.Abs(outdir)
+
+        visit := func(path string, info os.FileInfo, err error) error {
+                if !info.IsDir() {
+			input, _ := filepath.Abs(path)
+			output := strings.Replace(input, incdir_abs, outdir_abs, 1)
+			output = strings.Replace(output, gz_extension, go_extension, -1)
+                        GenFile(path, output)
+                }
+                return nil
+        }
+        err = filepath.Walk(indir, visit)
+        return err
 }
