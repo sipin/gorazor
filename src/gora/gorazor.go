@@ -37,6 +37,7 @@ func main() {
 		}
 	} else if InFile != "" && OutFile != ""  {
 		fmt.Printf("processing: %s %s\n", InFile, OutFile)
+		gorazor.GenFile(InFile, OutFile)
 	} else {
 		flag.Usage()
 	}

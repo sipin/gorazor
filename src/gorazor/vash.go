@@ -8,6 +8,7 @@ import (
 	"bytes"
 	"errors"
 	"strings"
+	_ "strconv"
 	"os/exec"
 	"path/filepath"
 	"io/ioutil"
@@ -48,6 +49,8 @@ const (
 	TEXT_TAG_OPEN
 	WHITESPACE
 )
+
+type Option map[string]interface{}
 
 type TokenMatch struct {
 	Type  int
@@ -729,6 +732,7 @@ func (parser *Parser) Run() (err error) {
 type Compiler struct {
 	ast *Ast
 	buf  string
+	options Option
 }
 
 func getValStr(e interface{}) string {
@@ -743,7 +747,9 @@ func getValStr(e interface{}) string {
 }
 
 func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
-	cp.buf += "MKP(" + getValStr(child) + ")MKP"
+	//TODO
+	v  := strings.Replace(getValStr(child), "\n", "\\n", -1)
+	cp.buf += "MKP(" + v + ")MKP"
 }
 
 func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
@@ -797,10 +803,6 @@ func (cp *Compiler) visitAst(ast *Ast) {
 				cp.visitAst(c.(*Ast))
 			}
 		}
-	case PRG:
-                for _, c := range ast.Children {
-			cp.visitNode(c)
-		}
 	case BLK:
                 for _, c := range ast.Children {
                         if _, ok := c.(Token); ok {
@@ -818,37 +820,31 @@ func (cp *Compiler) visitAst(ast *Ast) {
                                 cp.visitAst(c.(*Ast))
                         }
 		}
+	case PRG:
+                for _, c := range ast.Children {
+			cp.visitAst(c.(*Ast))
+		}
         }
 }
 
 func (cp *Compiler) visit() {
-	cp.visitNode(cp.ast)
-
+	cp.visitAst(cp.ast)
 	cp.buf = strings.Replace(cp.buf, ")BLKBLK(", "", -1)
         cp.buf = strings.Replace(cp.buf, ")MKPMKP(", "", -1)
-	//fmt.Println("after:")
-	//fmt.Println(cp.buf)
-	cp.buf = strings.Replace(cp.buf, "MKP(", "\n_buffer.WriteString(\"", -1)
+	cp.buf = strings.Replace(cp.buf, "MKP(", "_buffer.WriteString(\"", -1)
 	cp.buf = strings.Replace(cp.buf, ")MKP", "\")\n", -1)
 	cp.buf = strings.Replace(cp.buf, "BLK(", "", -1)
         cp.buf = strings.Replace(cp.buf, ")BLK", "", -1)
 
-        head := "package tpl\n func demo() string {"
+	dir := cp.options["Dir"].(string)
+	fun := cp.options["File"].(string)
+        head := "package " + dir + "\n import (\"bytes\"\n \"gorazor\" )\n func " + fun + "() string {"
         cp.buf =  head + "var _buffer bytes.Buffer\n" + cp.buf
-        cp.buf += "\nreturn _buffer.String()"
+        cp.buf += "return _buffer.String()"
 	cp.buf += "}\n"
 }
 
-func (cp *Compiler) visitNode(node interface{}) {
-	switch v := node.(type) {
-	case *Ast:
-		cp.visitAst(v)
-	case Token:
-		panic("visitNode called no Token")
-	}
-}
-
-func Generate(path string, Options map[string]interface{}) (string, error) {
+func Generate(path string, Options Option) (string, error) {
         buf := bytes.NewBuffer(nil)
         f , err := os.Open(path)
         if err != nil {
@@ -883,7 +879,7 @@ func Generate(path string, Options map[string]interface{}) (string, error) {
 		}
 	}
 
-        cp := &Compiler{parser.ast, ""}
+        cp := &Compiler{parser.ast, "", Options}
         cp.visit()
 
 	if Options["debug"] != nil {
@@ -899,7 +895,6 @@ const (
         gz_extension = ".gohtml"
 )
 
-
 func exists(path string) (bool) {
         _, err := os.Stat(path)
         if err == nil { return true }
@@ -910,8 +905,13 @@ func exists(path string) (bool) {
 // Generate from input to output file,
 // gofmt will trigger an error if it fails.
 func GenFile(input string, output string) error {
-        fmt.Printf("Processing: %s --> %s\n", input, output)
-	Options := map[string]interface{}{}
+        //fmt.Printf("Processing: %s --> %s\n", input, output)
+	Options := Option{}
+
+	//Use to as package name
+	Options["Dir"] = filepath.Base(filepath.Dir(input))
+	Options["File"] = strings.Replace(filepath.Base(input), gz_extension, "", 1)
+	Options["File"] = Capitalize(Options["File"].(string))
         res, err := Generate(input, Options)
         if err != nil {
                 panic(err)

@@ -5,9 +5,18 @@ import (
 	"path/filepath"
 	"strings"
 	"os"
-	_ "syscall"
-	"fmt"
+	"io/ioutil"
+	_ "fmt"
 )
+
+func TestCap(t *testing.T) {
+	if Capitalize("hello") != "Hello" {
+		t.Error()
+	}
+	if Capitalize("0hello") != "0hello" {
+		t.Error()
+	}
+}
 
 func TestLexer(t *testing.T) {
 	text := "case do func var switch "
@@ -38,22 +47,28 @@ func TestLexer(t *testing.T) {
 
 func TestGenerate(t *testing.T) {
 	casedir, _ := filepath.Abs(filepath.Dir("./test/"))
-	fmt.Println("case:", casedir)
 	cmpsdir, _ := filepath.Abs(filepath.Dir("./cmps/"))
-	fmt.Println("cmps:", cmpsdir)
 
         visit := func(path string, info os.FileInfo, err error) error {
                 if !info.IsDir() {
-			output := filepath.Join(cmpsdir,
-				strings.Replace(filepath.Base(path), ".gohtml", ".log", 1))
-			cmp    := filepath.Join(cmpsdir,
-				strings.Replace(filepath.Base(path), ".gohtml", ".go", 1))
-			GenFile(path, output)
-			if !exists(cmp) || !exists(output) {
-				t.Error("MISMATCH")
+                        name := strings.Replace(filepath.Base(path), ".gohtml", ".go", 1)
+                        cmp := filepath.Join(cmpsdir, name)
+                        log := filepath.Join(cmpsdir, "_" + name)
+
+                	GenFile(path, log)
+			if !exists(cmp) || !exists(log) {
+				t.Error("No Log")
 			} else {
-				//TODO: compare
-				t.Log("PASS")
+				//compare the log file and cmp file
+				_cmp, _e1 := ioutil.ReadFile(cmp)
+				_log, _e2 := ioutil.ReadFile(log)
+				if _e1 != nil || _e2 != nil {
+					t.Error("Reading")
+				} else if string(_cmp) != string(_log) {
+					t.Error("MISMATCH:", cmp, log)
+				} else {
+					t.Log("PASS")
+				}
 			}
                 }
                 return nil
