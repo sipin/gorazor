@@ -823,12 +823,11 @@ func (cp *Compiler) visitAst(ast *Ast) {
 
 func (cp *Compiler) visit() {
 	cp.visitNode(cp.ast)
-	fmt.Println("now:")
-	fmt.Println(cp.buf)
-        cp.buf = strings.Replace(cp.buf, ")BLKBLK(", "", -1)
+
+	cp.buf = strings.Replace(cp.buf, ")BLKBLK(", "", -1)
         cp.buf = strings.Replace(cp.buf, ")MKPMKP(", "", -1)
-	fmt.Println("after:")
-	fmt.Println(cp.buf)
+	//fmt.Println("after:")
+	//fmt.Println(cp.buf)
 	cp.buf = strings.Replace(cp.buf, "MKP(", "\n_buffer.WriteString(\"", -1)
 	cp.buf = strings.Replace(cp.buf, ")MKP", "\")\n", -1)
 	cp.buf = strings.Replace(cp.buf, "BLK(", "", -1)
@@ -895,7 +894,6 @@ func Generate(path string, Options map[string]interface{}) (string, error) {
 
 
 //------------------------------ API ------------------------------
-
 const (
         go_extension = ".go"
         gz_extension = ".gohtml"
@@ -909,18 +907,8 @@ func exists(path string) (bool) {
         return false
 }
 
-// func GenFile(file string, indir string, outdir string) (err error) {
-//         fmt.Printf("processing: %s %s %s\n", file, indir, outdir)
-//         Options := map[string]interface{}{}
-//         fabs, _ := filepath.Abs(file)
-//         iabs, _ := filepath.Abs(indir)
-//         oabs, _ := filepath.Abs(outdir)
-//         abs := strings.Replace(fabs, iabs, oabs, 1)
-//         out := strings.Replace(abs, gz_extension, go_extension, -1)
-//         dir := filepath.
-//		Dir(abs)
-//}
-
+// Generate from input to output file
+// gofmt will trigger an error if it fails
 func GenFile(input string, output string) error {
         fmt.Printf("processing: %s --> %s\n", input, output)
 	Options := map[string]interface{}{}
@@ -932,18 +920,22 @@ func GenFile(input string, output string) error {
                 if err != nil { panic(err) }
                 cmd := exec.Command("gofmt", "-w", output)
                 if err := cmd.Run(); err != nil {
-                        //panic(err)
+			return err
                 }
         }
         return nil
 }
 
+// Generate from directory to directory
+// Find all the files with extension of .gohtml and generate it into target dir
 func GenFolder(indir string, outdir string) (err error) {
         if !exists(indir) {
                 return errors.New("Input directory does not exsits")
         } else {
                 if err != nil { return err}
         }
+
+	//Make it
         if !exists(outdir) {
                 os.MkdirAll(outdir, 0777)
         }
@@ -953,6 +945,8 @@ func GenFolder(indir string, outdir string) (err error) {
 
         visit := func(path string, info os.FileInfo, err error) error {
                 if !info.IsDir() {
+			//TODO, just do file with exstension .gohtml
+			//adjust with the abs path, so that we keep the same directory hierarchy
 			input, _ := filepath.Abs(path)
 			output := strings.Replace(input, incdir_abs, outdir_abs, 1)
 			output = strings.Replace(output, gz_extension, go_extension, -1)
