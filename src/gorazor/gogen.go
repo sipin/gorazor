@@ -307,6 +307,7 @@ func GenFile(input string, output string, options Option) error {
 		}
 		cmd := exec.Command("gofmt", "-w", output)
 		if err := cmd.Run(); err != nil {
+			fmt.Println("gofmt: ", err)
 			return err
 		}
 	}
