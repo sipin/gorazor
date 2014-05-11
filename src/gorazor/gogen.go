@@ -296,12 +296,12 @@ func GenFile(input string, output string, options Option) error {
 	if !exists(outdir) {
 		os.MkdirAll(outdir, 0775)
 	}
+
 	res, err := Generate(input, options)
 	if err != nil {
 		panic(err)
 	} else {
 		err := ioutil.WriteFile(output, []byte(res), 0644)
-		fmt.Println("error now:", err)
 		if err != nil {
 			panic(err)
 		}
