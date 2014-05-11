@@ -113,7 +113,7 @@ func (ast *Ast) root() *Ast {
 }
 
 func (ast *Ast) beget(mode int, tag string) *Ast {
-	child := &Ast{ast, []interface{}{}, mode, tag}
+	child := &Ast{nil, []interface{}{}, mode, tag}
 	ast.addChild(child)
 	return child
 }
@@ -178,6 +178,7 @@ func (ast *Ast) debug(depth int, max int) {
 
 type Parser struct {
 	ast         *Ast
+	root        *Ast
 	tokens      []Token
 	preTokens   []Token
 	inComment   bool
@@ -285,7 +286,7 @@ func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) {
 		parser.ast.addChild(token)
 
 	}
-	_parser := &Parser{&Ast{}, subTokens, []Token{}, false, false, modeOpen}
+	_parser := &Parser{&Ast{}, nil, subTokens, []Token{}, false, false, modeOpen}
 	_parser.Run()
 	if includeDelim {
 		_parser.ast.Children = append([]interface{}{token}, _parser.ast.Children...)
@@ -358,7 +359,6 @@ func (parser *Parser) handleMKP(token Token) {
 			parser.ast.addChild(token)
 		}
 
-		// vash.js have bug here, we should skip current MKP,
 		// so that we can keep in a right hierarchy
 		if parser.ast.Parent != nil && parser.ast.Parent.Mode == BLK {
 			parser.ast = parser.ast.Parent
@@ -512,6 +512,7 @@ func (parser *Parser) handleEXP(token Token) {
 
 func (parser *Parser) Run() (err error) {
 	curr := Token{"UNDEF", "UNDEF", UNDEF, 0, 0}
+	parser.root = parser.ast
 	parser.ast.Mode = PRG
 	for {
 		if len(parser.tokens) == 0 {
@@ -539,6 +540,6 @@ func (parser *Parser) Run() (err error) {
 		}
 	}
 
-	parser.ast = parser.ast.root()
+	parser.ast = parser.root
 	return nil
 }

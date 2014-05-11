@@ -758,6 +758,7 @@
                 // close this ast if parent is BLK. if another tag follows, BLK will
                 // flip over to MKP
                 if( this.ast.parent && this.ast.parent.mode === BLK ){
+		    console.log("for parent:", this.ast)
                     this.ast = this.ast.parent;
                 }
 
@@ -1345,6 +1346,7 @@ var _buffer bytes.Buffer\n';
 	p = new VParser(tokens, options);
 	p.parse();
 
+	console.log(p.ast)
 	c = new VCompiler(p.ast, markup, options);
 
 	cmp = c.generate();

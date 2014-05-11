@@ -246,7 +246,7 @@ func Generate(path string, Options Option) (string, error) {
 		fmt.Println("--------------------- TOKEN END -----------------\n")
 	}
 
-	parser := &Parser{&Ast{}, res, []Token{}, false, false, UNK}
+	parser := &Parser{&Ast{}, nil, res, []Token{}, false, false, UNK}
 	err = parser.Run()
 
 	//DEBUG
