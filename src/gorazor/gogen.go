@@ -49,30 +49,30 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 	first = cp.cleanUp(first)
 	isImport := false
 
-	lines := bytes.SplitN([]byte(first), []byte("\n"), -1)
+	lines := strings.SplitN(first, "\n", -1)
 	for _, l := range lines {
-		l = bytes.TrimSpace(l)
-		if bytes.HasPrefix(l, []byte("import")) {
+		l = strings.TrimSpace(l)
+		if strings.HasPrefix(l, "import") {
 			isImport = true
 			continue
 		}
-		if bytes.Compare(l, []byte(")")) == 0 {
+		if l == ")" {
 			isImport = false
 			continue
 		}
 
 		if isImport {
-			parts := bytes.SplitN([]byte(l), []byte("/"), -1)
-			if len(parts) >= 2 && bytes.Compare(parts[len(parts)-2], []byte("layout")) == 0 {
-				lay := string(parts[len(parts)-1])
+			parts := strings.SplitN(l, "/", -1)
+			if len(parts) >= 2 && parts[len(parts)-2] == "layout" {
+				lay := parts[len(parts)-1]
 				lay = lay[:len(lay)-1]
-				dir := strings.Replace(string(l), lay, "", 1)
+				dir := strings.Replace(l, lay, "", 1)
 				cp.imports[dir] = true
 			} else {
-				cp.imports[string(l)] = true
+				cp.imports[l] = true
 			}
-		} else if bytes.HasPrefix(l, []byte("var")) {
-			vname := string(l)[4:]
+		} else if strings.HasPrefix(l, "var") {
+			vname := l[4:]
 			cp.params = append(cp.params, vname)
 		}
 	}
@@ -169,23 +169,22 @@ func (cp *Compiler) cleanUp(buf string) string {
 
 // TODO, this is dirty now
 func (cp *Compiler) layout() {
-	lines := bytes.SplitN([]byte(cp.buf), []byte("\n"), -1)
+	lines := strings.SplitN(cp.buf, "\n", -1)
 	out := ""
 	insec := false
 	for _, l := range lines {
-		l = bytes.TrimSpace(l)
-		if bytes.HasPrefix(l, []byte("section")) &&
-			bytes.HasSuffix(l, []byte("{")) {
-			name := string(l)
+		l = strings.TrimSpace(l)
+		if strings.HasPrefix(l, "section") && strings.HasSuffix(l, "{") {
+			name := l
 			name = name[7 : len(name)-1]
 			out += "\n " + name + " := func() string {\n"
 			out += "var _buffer bytes.Buffer\n"
 			insec = true
-		} else if insec && bytes.HasSuffix(l, []byte("}")) {
+		} else if insec && strings.HasSuffix(l, "}") {
 			out += "return _buffer.String()\n}\n"
 			insec = false
 		} else {
-			out += string(l) + "\n"
+			out += l + "\n"
 		}
 	}
 	cp.buf = out
@@ -332,7 +331,7 @@ func GenFolder(indir string, outdir string) (err error) {
 	visit := func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
 			//Just do file with exstension .gohtml
-			if !bytes.HasSuffix([]byte(path), []byte(go_extension)) {
+			if !strings.HasSuffix(path, gz_extension) {
 				return nil
 			}
 			//adjust with the abs path, so that we keep the same directory hierarchy
