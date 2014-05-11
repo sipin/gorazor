@@ -64,7 +64,6 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 
 		if isImport {
 			parts := strings.SplitN(l, "/", -1)
-			fmt.Println("parts:", parts)
 			if len(parts) >= 2 && parts[len(parts)-2] == "layout" {
 				dir := strings.Join(parts[0:len(parts)-1], "/") + "\""
 				cp.imports[dir] = true
