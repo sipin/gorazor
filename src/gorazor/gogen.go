@@ -64,10 +64,9 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 
 		if isImport {
 			parts := strings.SplitN(l, "/", -1)
+			fmt.Println("parts:", parts)
 			if len(parts) >= 2 && parts[len(parts)-2] == "layout" {
-				lay := parts[len(parts)-1]
-				lay = lay[:len(lay)-1]
-				dir := strings.Replace(l, lay, "", 1)
+				dir := strings.Join(parts[0:len(parts)-1], "/") + "\""
 				cp.imports[dir] = true
 			} else {
 				cp.imports[l] = true
@@ -307,6 +306,8 @@ func GenFile(input string, output string, options Option) error {
 			panic(err)
 		}
 		cmd := exec.Command("gofmt", "-w", output)
+		cmd.Stdout = os.Stdout
+		cmd.Stderr = os.Stderr
 		if err := cmd.Run(); err != nil {
 			fmt.Println("gofmt: ", err)
 			return err

@@ -5,7 +5,7 @@ import (
 	"gorazor"
 	. "kp/models"
 	"tpl/helper"
-	"tpl/layout/"
+	"tpl/layout"
 )
 
 func End(totalMessage int, u *User) string {
