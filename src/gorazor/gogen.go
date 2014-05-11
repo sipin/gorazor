@@ -35,6 +35,7 @@ func getValStr(e interface{}) string {
 
 func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
 	v := strings.Replace(getValStr(child), "\n", "\\n", -1)
+	v = strings.Replace(v, "\"", "\\\"", -1)
 	cp.buf += "MKP(" + v + ")MKP"
 }
 
