@@ -339,7 +339,11 @@ func GenFolder(indir string, outdir string) (err error) {
 			input, _ := filepath.Abs(path)
 			output := strings.Replace(input, incdir_abs, outdir_abs, 1)
 			output = strings.Replace(output, gz_extension, go_extension, -1)
-			GenFile(path, output, options)
+			err := GenFile(path, output, options)
+			if err != nil {
+				os.Exit(2)
+			}
+
 		}
 		return nil
 	}
