@@ -286,17 +286,22 @@ func exists(path string) bool {
 // Generate from input to output file,
 // gofmt will trigger an error if it fails.
 func GenFile(input string, output string, options Option) error {
-	//fmt.Printf("Processing: %s --> %s\n", input, output)
+	fmt.Printf("Processing: %s --> %s\n", input, output)
 
 	//Use to as package name
 	options["Dir"] = filepath.Base(filepath.Dir(input))
 	options["File"] = strings.Replace(filepath.Base(input), gz_extension, "", 1)
 	options["File"] = Capitalize(options["File"].(string))
+	outdir := filepath.Dir(output)
+	if !exists(outdir) {
+		os.MkdirAll(outdir, 0775)
+	}
 	res, err := Generate(input, options)
 	if err != nil {
 		panic(err)
 	} else {
 		err := ioutil.WriteFile(output, []byte(res), 0644)
+		fmt.Println("error now:", err)
 		if err != nil {
 			panic(err)
 		}
