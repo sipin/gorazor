@@ -31,9 +31,8 @@ func main() {
 	if debug {
 		options["Debug"] = true
 	}
-
 	if indir != "" && outdir != "" {
-		err := gorazor.GenFolder(indir, outdir)
+		err := gorazor.GenFolder(indir, outdir, options)
 		if err != nil {
 			fmt.Println(err)
 		}

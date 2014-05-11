@@ -1,7 +1,6 @@
 package gorazor
 
 import (
-	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -64,7 +63,6 @@ func TestGenerate(t *testing.T) {
 			cmp := filepath.Join(logsdir, name)
 			log := filepath.Join(logsdir, "_"+name)
 			option := Option{}
-			fmt.Println("now processing:", path)
 			GenFile(path, log, option)
 			if !exists(cmp) {
 				t.Error("No cmp:", cmp)
@@ -77,7 +75,7 @@ func TestGenerate(t *testing.T) {
 				if _e1 != nil || _e2 != nil {
 					t.Error("Reading")
 				} else if string(_cmp) != string(_log) {
-					t.Error("MISMATCH:", cmp, log)
+					t.Error("MISMATCH:", log, cmp)
 				} else {
 					t.Log("PASS")
 				}

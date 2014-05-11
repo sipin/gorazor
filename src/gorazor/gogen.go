@@ -27,7 +27,11 @@ func getValStr(e interface{}) string {
 	case *Ast:
 		return v.TagName
 	case Token:
-		return v.Text
+		if !(v.Type == AT || v.Type == AT_COLON) {
+			return v.Text
+		} else {
+			return ""
+		}
 	default:
 		panic(e)
 	}
@@ -86,13 +90,15 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 	end := ""
 	ppNotExp := true
 	ppChildCnt := len(parent.Children)
+	pack := cp.options["Dir"].(string)
+	nohtmlEsc := cp.options["htmlEscape"]
 	if parent.Parent != nil && parent.Parent.Mode == EXP {
 		ppNotExp = false
 	}
 	val := getValStr(child)
-	if false { //TODO, options
+	if nohtmlEsc == nil {
 		if ppNotExp && idx == 0 && isHomo {
-			if val == "helper" || val == "raw" { //TODO
+			if val == "helper" || val == "raw" || pack == "layout" {
 				start += "("
 			} else {
 				start += "gorazor.HTMLEscape("
@@ -144,7 +150,7 @@ func (cp *Compiler) visitAst(ast *Ast) {
 		nonExp := ast.hasNonExp()
 		for i, c := range ast.Children {
 			if _, ok := c.(Token); ok {
-				cp.visitExp(c, ast, i, nonExp)
+				cp.visitExp(c, ast, i, !nonExp)
 			} else {
 				cp.visitAst(c.(*Ast))
 			}
@@ -193,12 +199,12 @@ func (cp *Compiler) visit() {
 	cp.visitAst(cp.ast)
 	cp.buf = cp.cleanUp(cp.buf)
 
-	dir := cp.options["Dir"].(string)
+	pack := cp.options["Dir"].(string)
 	fun := cp.options["File"].(string)
 
 	cp.imports[`"bytes"`] = true
 	cp.imports[`"gorazor"`] = true
-	head := "package " + dir + "\n import (\n"
+	head := "package " + pack + "\n import (\n"
 	for k, _ := range cp.imports {
 		head += k + "\n"
 	}
@@ -317,7 +323,7 @@ func GenFile(input string, output string, options Option) error {
 
 // Generate from directory to directory, Find all the files with extension
 // of .gohtml and generate it into target dir.
-func GenFolder(indir string, outdir string) (err error) {
+func GenFolder(indir string, outdir string, options Option) (err error) {
 	if !exists(indir) {
 		return errors.New("Input directory does not exsits")
 	} else {
@@ -331,7 +337,6 @@ func GenFolder(indir string, outdir string) (err error) {
 		os.MkdirAll(outdir, 0775)
 	}
 
-	options := Option{}
 	incdir_abs, _ := filepath.Abs(indir)
 	outdir_abs, _ := filepath.Abs(outdir)
 
