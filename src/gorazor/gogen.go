@@ -297,7 +297,7 @@ func GenFile(input string, output string, options Option) error {
 	if err != nil {
 		panic(err)
 	} else {
-		err := ioutil.WriteFile(output, []byte(res), 0777)
+		err := ioutil.WriteFile(output, []byte(res), 0644)
 		if err != nil {
 			panic(err)
 		}
@@ -322,7 +322,7 @@ func GenFolder(indir string, outdir string) (err error) {
 
 	//Make it
 	if !exists(outdir) {
-		os.MkdirAll(outdir, 0777)
+		os.MkdirAll(outdir, 0775)
 	}
 
 	options := Option{}

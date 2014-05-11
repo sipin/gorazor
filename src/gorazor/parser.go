@@ -223,7 +223,7 @@ func regMatch(reg string, text string) (string, error) {
 		panic(err)
 		return "", err
 	}
-	found := regc.FindIndex([]byte(text))
+	found := regc.FindStringIndex(text)
 	if found != nil {
 		return text[found[0]:found[1]], nil
 	}

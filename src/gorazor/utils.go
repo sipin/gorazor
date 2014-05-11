@@ -3,7 +3,7 @@ package gorazor
 import (
 	"html/template"
 	"strconv"
-	"unicode"
+	"strings"
 )
 
 func HTMLEscape(obj string) string {
@@ -15,8 +15,8 @@ func Itoa(obj int) string {
 }
 
 func Capitalize(str string) string {
-	for i, v := range str {
-		return string(unicode.ToUpper(v)) + str[i+1:]
+	if len(str) == 0 {
+		return ""
 	}
-	return ""
+	return strings.ToUpper(str[0:1]) + str[1:]
 }

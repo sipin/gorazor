@@ -10,12 +10,8 @@ import (
 )
 
 func Usage() {
-	fmt.Fprintf(os.Stderr, "Usage: Specify template file or directory\n")
-	fmt.Fprintf(os.Stderr, "      -f=\"\"      : Template file path\n")
-	fmt.Fprintf(os.Stderr, "      -o=\"\"      : Output file path\n")
-	fmt.Fprintf(os.Stderr, "      -indir=\"\"  : Template directory path\n")
-	fmt.Fprintf(os.Stderr, "      -outdir=\"\" : Output directory path\n")
-	os.Exit(0)
+	flag.PrintDefaults()
+	os.Exit(1)
 }
 
 func main() {
