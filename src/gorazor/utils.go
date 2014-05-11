@@ -15,8 +15,8 @@ func Itoa(obj int) string {
 }
 
 func Capitalize(str string) string {
-        for i, v := range str {
-                return string(unicode.ToUpper(v)) + str[i+1:]
-        }
-        return ""
+	for i, v := range str {
+		return string(unicode.ToUpper(v)) + str[i+1:]
+	}
+	return ""
 }

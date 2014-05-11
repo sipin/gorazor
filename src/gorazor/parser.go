@@ -1,11 +1,10 @@
 package gorazor
 
 import (
-        "fmt"
-        "regexp"
-        "strings"
+	"fmt"
+	"regexp"
+	"strings"
 )
-
 
 //------------------------------ Parser ------------------------------//
 const (
@@ -27,7 +26,6 @@ var PAIRS = map[int]int{
 	FORWARD_SLASH:   FORWARD_SLASH,
 }
 
-
 type Ast struct {
 	Parent   *Ast
 	Children []interface{}
@@ -35,21 +33,26 @@ type Ast struct {
 	TagName  string
 }
 
-func (ast *Ast) ModeStr() string{
+func (ast *Ast) ModeStr() string {
 	switch ast.Mode {
-	case PRG: return "PROGRAM"
-	case MKP: return "MARKUP"
-	case BLK: return "BLOCK"
-	case EXP: return "EXP"
-	default: return "UNDEF"
+	case PRG:
+		return "PROGRAM"
+	case MKP:
+		return "MARKUP"
+	case BLK:
+		return "BLOCK"
+	case EXP:
+		return "EXP"
+	default:
+		return "UNDEF"
 	}
 	return "UNDEF"
 }
 
 func (ast *Ast) check() {
-        if len(ast.Children) >= 100000 {
-                panic("Maximum number of elements exceeded.")
-        }
+	if len(ast.Children) >= 100000 {
+		panic("Maximum number of elements exceeded.")
+	}
 }
 
 func (ast *Ast) addChild(child interface{}) {
@@ -109,7 +112,6 @@ func (ast *Ast) root() *Ast {
 	return nil
 }
 
-
 func (ast *Ast) beget(mode int, tag string) *Ast {
 	child := &Ast{ast, []interface{}{}, mode, tag}
 	ast.addChild(child)
@@ -144,7 +146,6 @@ func (ast *Ast) hasNonExp() bool {
 	return false
 }
 
-
 func (ast *Ast) debug(depth int, max int) {
 	if depth >= max {
 		return
@@ -152,14 +153,14 @@ func (ast *Ast) debug(depth int, max int) {
 	for i := 0; i < depth; i++ {
 		fmt.Printf("%c", '-')
 	}
-        fmt.Printf("TagName: %s Mode: %s Children: %d [[ \n", ast.TagName, ast.ModeStr(), len(ast.Children))
+	fmt.Printf("TagName: %s Mode: %s Children: %d [[ \n", ast.TagName, ast.ModeStr(), len(ast.Children))
 	for _, a := range ast.Children {
 		//fmt.Printf("(%d)", idx)
 		if _, ok := a.(*Ast); ok {
 			b := (*Ast)(a.(*Ast))
 			b.debug(depth+1, max)
 		} else {
-			if depth + 1 < max {
+			if depth+1 < max {
 				aa := (Token)(a.(Token))
 				for i := 0; i < depth+1; i++ {
 					fmt.Printf("%c", '-')
@@ -168,9 +169,9 @@ func (ast *Ast) debug(depth int, max int) {
 			}
 		}
 	}
-        for i := 0; i < depth; i++ {
-                fmt.Printf("%c", '-')
-        }
+	for i := 0; i < depth; i++ {
+		fmt.Printf("%c", '-')
+	}
 
 	fmt.Println("]]")
 }
@@ -184,12 +185,12 @@ type Parser struct {
 	initMode    int
 }
 
-func (parser *Parser) prevToken(idx int) (*Token) {
+func (parser *Parser) prevToken(idx int) *Token {
 	l := len(parser.preTokens)
-	if l < idx + 1 {
+	if l < idx+1 {
 		return nil
 	}
-	return &(parser.preTokens[l - 1 - idx])
+	return &(parser.preTokens[l-1-idx])
 }
 
 func (parser *Parser) deferToken(token Token) {
@@ -197,19 +198,19 @@ func (parser *Parser) deferToken(token Token) {
 	parser.preTokens = parser.preTokens[:len(parser.preTokens)-1]
 }
 
-func (parser *Parser) peekToken(idx int) (*Token) {
-        if len(parser.tokens) <= idx  {
+func (parser *Parser) peekToken(idx int) *Token {
+	if len(parser.tokens) <= idx {
 		return nil
-        }
-        return &(parser.tokens[idx])
+	}
+	return &(parser.tokens[idx])
 }
 
-func (parser *Parser) nextToken() (Token) {
-        t := parser.peekToken(0)
-        if t != nil {
-                parser.tokens = parser.tokens[1:]
-        }
-        return *t
+func (parser *Parser) nextToken() Token {
+	t := parser.peekToken(0)
+	if t != nil {
+		parser.tokens = parser.tokens[1:]
+	}
+	return *t
 }
 
 func (parser *Parser) skipToken() {
@@ -284,7 +285,7 @@ func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) {
 		parser.ast.addChild(token)
 
 	}
-        _parser := &Parser{&Ast{}, subTokens, []Token{}, false, false, modeOpen}
+	_parser := &Parser{&Ast{}, subTokens, []Token{}, false, false, modeOpen}
 	_parser.Run()
 	if includeDelim {
 		_parser.ast.Children = append([]interface{}{token}, _parser.ast.Children...)
@@ -298,7 +299,7 @@ func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) {
 }
 
 func (parser *Parser) handleMKP(token Token) {
-	next  := parser.peekToken(0)
+	next := parser.peekToken(0)
 	//nnext := parser.peekToken(1)
 	switch token.Type {
 	case AT_STAR_OPEN:
@@ -389,17 +390,17 @@ func (parser *Parser) handleBLK(token Token) {
 		}
 
 	case AT_STAR_OPEN:
-        	parser.advanceUntil(token, AT_STAR_OPEN, AT_STAR_CLOSE, AT, AT)
+		parser.advanceUntil(token, AT_STAR_OPEN, AT_STAR_CLOSE, AT, AT)
 
 	case AT_COLON:
-                parser.subParse(token, MKP, true)
+		parser.subParse(token, MKP, true)
 
 	case TEXT_TAG_OPEN, TEXT_TAG_CLOSE, HTML_TAG_OPEN, HTML_TAG_CLOSE:
-                parser.ast = parser.ast.beget(MKP, "")
+		parser.ast = parser.ast.beget(MKP, "")
 		parser.deferToken(token)
 
 	case FORWARD_SLASH, SINGLE_QUOTE, DOUBLE_QUOTE:
-                if token.Type == FORWARD_SLASH && next != nil && next.Type == FORWARD_SLASH {
+		if token.Type == FORWARD_SLASH && next != nil && next.Type == FORWARD_SLASH {
 			parser.inComment = true
 		}
 		if !parser.inComment {
@@ -418,14 +419,14 @@ func (parser *Parser) handleBLK(token Token) {
 		}
 
 	case NEWLINE:
-                if parser.inComment {
+		if parser.inComment {
 			parser.inComment = false
 		}
 		parser.ast.addChild(token)
 
 	case BRACE_OPEN, PAREN_OPEN:
 		subMode := BLK
-		if false && token.Type == BRACE_OPEN {  //TODO
+		if false && token.Type == BRACE_OPEN { //TODO
 			subMode = MKP
 		}
 		parser.subParse(token, subMode, false)
@@ -443,7 +444,6 @@ func (parser *Parser) handleBLK(token Token) {
 		parser.ast.addChild(token)
 	}
 }
-
 
 func (parser *Parser) handleEXP(token Token) {
 	switch token.Type {
@@ -517,8 +517,8 @@ func (parser *Parser) Run() (err error) {
 		if len(parser.tokens) == 0 {
 			break
 		}
-                parser.preTokens = append(parser.preTokens, curr)
-        	curr = parser.nextToken()
+		parser.preTokens = append(parser.preTokens, curr)
+		curr = parser.nextToken()
 		if parser.ast.Mode == PRG {
 			init := parser.initMode
 			if init == UNK {
