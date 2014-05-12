@@ -10,36 +10,43 @@ import (
 )
 
 func Usage() {
+	fmt.Fprintf(os.Stderr, "usage: gorazor [input dir or file] [output dir or file]\n")
 	flag.PrintDefaults()
 	os.Exit(1)
 }
 
 func main() {
-
-	var indir, outdir, infile, outfile string
 	debug := false
-	flag.StringVar(&indir, "indir", "", "Template directory path")
-	flag.StringVar(&outdir, "outdir", "", "Output directory path")
-	flag.StringVar(&infile, "f", "", "Template file path")
-	flag.StringVar(&outfile, "o", "", "Output file path")
-	flag.BoolVar(&debug, "d", false, "Enable debug mode")
 	flag.Usage = Usage
 
 	flag.Parse()
-
 	options := gorazor.Option{}
 	if debug {
 		options["Debug"] = true
 	}
-	if indir != "" && outdir != "" {
-		err := gorazor.GenFolder(indir, outdir, options)
+
+	if flag.NArg() == 2 {
+		arg1, arg2 := flag.Arg(0), flag.Arg(1)
+		stat, err := os.Stat(arg1)
 		if err != nil {
 			fmt.Println(err)
+			os.Exit(2)
 		}
-	} else if infile != "" && outfile != "" {
-		fmt.Printf("processing: %s %s\n", infile, outfile)
-		gorazor.GenFile(infile, outfile, options)
+		if stat.IsDir() {
+			fmt.Printf("Processing dir: %s %s\n", arg1, arg2)
+			err := gorazor.GenFolder(arg1, arg2, options)
+			if err != nil {
+				fmt.Println(err)
+			}
+		} else if stat.Mode().IsRegular() {
+			fmt.Printf("Processing file: %s %s\n", arg1, arg2)
+			gorazor.GenFile(arg1, arg2, options)
+		} else {
+			flag.Usage()
+		}
 	} else {
 		flag.Usage()
+		os.Exit(2)
 	}
+
 }
