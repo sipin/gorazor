@@ -11,17 +11,13 @@ GoRazor is the Go port of the razor view engine originated from [asp.net in 2011
   * Go compiler validation for free
 * Strong type view model
 * Embedding templates support
-* Template layout (in progress)
+* Template layout
 
 # Usage
 
-Usage: `./gorazor.sh template_folder output_folder`
+Usage: `./gorazor template_folder output_folder` or `./gorazor template_file output_file`
 
-Tested on mac, but it should be trivial to adapt [gorazor.sh](https://github.com/Wuvist/gorazor/blob/master/gorazor.sh) to `gorazor.bat` for using in windows.
-
-This port is essentially a re-port from razor's port in javascript: [vash](https://github.com/kirbysayshi/vash). It just modifies on vast's generation functions to emit go code instead of javascript code.
-
-So, currently gorazor needs [node.js](http://nodejs.org) to run, but it only needs node, no other npm modules.
+This port is essentially a re-port from razor's port in javascript: [vash](https://github.com/kirbysayshi/vash). It just modifies on vast's generation functions to emit go code instead of javascript code. `js` directory contains the original Js version.
 
 # Syntax
 
@@ -76,7 +72,7 @@ Only use `raw` when you are 100% sure what you are doing, please always be aware
 }
 ```
 
-Please use [example](https://github.com/Wuvist/gorazor/blob/master/tpl/home.gohtml) for reference.
+Please use [example](https://github.com/sipin/gorazor/blob/master/examples/tpl/home.gohtml) for reference.
 
 ## Code block
 
@@ -145,7 +141,7 @@ So, using a helper template is similar to:
 
 GoRazor won't HTML escape the output of `helper.XXX`.
 
-Please use [example](https://github.com/Wuvist/gorazor/blob/master/tpl/home.gohtml) for reference.
+Please use [example](https://github.com/sipin/gorazor/blob/master/examples/tpl/home.gohtml) for reference.
 
 ## Layout
 
@@ -161,7 +157,7 @@ TBA
 
 # Example
 
-Here is a simple example of [gorazor templates](https://github.com/Wuvist/gorazor/tree/master/tpl) and the corresponding [generated codes](https://github.com/Wuvist/gorazor/tree/master/gen).
+Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor/tree/master/examples/tpl) and the corresponding [generated codes](https://github.com/sipin/gorazor/tree/master/examples/gen).
 
 # FAQ
 
@@ -177,14 +173,3 @@ TBA
 * Generate more function overloads, like accept additional buffer parameter for write
 * Support direct usage of int/date variables in tempate?
   * i.e. use @user.Level directly, instead of @gorazor.Itoa(user.Level)
-
-## GO version
-
-* Usage
- * go build gora, gora is an App for convertion direcotry or file
- * go build gorazor
-
-* Some trivial TODO
-* File change notify and re-generate
-* Need more testing
-* Code refactor
