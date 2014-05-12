@@ -61,7 +61,7 @@ Only use `raw` when you are 100% sure what you are doing, please always be aware
 }
 
 @for .... {
-	
+
 }
 
 @{
@@ -131,7 +131,7 @@ If your template doesn't need any model input, then just leave it blank.
 
 As gorazor compiles tempaltes to go function, embedding another template is just calling the generated function, like any other go function.
 
-However, if the template are designed to be embeded, it must be under `helper` namespace, i.e. put them in `helper` sub-folder. 
+However, if the template are designed to be embeded, it must be under `helper` namespace, i.e. put them in `helper` sub-folder.
 
 So, using a helper template is similar to:
 
@@ -177,3 +177,14 @@ TBA
 * Generate more function overloads, like accept additional buffer parameter for write
 * Support direct usage of int/date variables in tempate?
   * i.e. use @user.Level directly, instead of @gorazor.Itoa(user.Level)
+
+## GO version
+
+* Usage
+ * go build gora, gora is an App for convertion direcotry or file
+ * go build gorazor
+
+* Some trivial TODO
+* File change notify and re-generate
+* Need more testing
+* Code refactor
