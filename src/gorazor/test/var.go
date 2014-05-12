@@ -2,7 +2,6 @@ package cases
 
 import (
 	"bytes"
-	"gorazor"
 )
 
 func Var(totalMessage int) string {

@@ -102,6 +102,7 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 				start += "("
 			} else {
 				start += "gorazor.HTMLEscape("
+				cp.imports[`"gorazor"`] = true
 			}
 		}
 		if ppNotExp && idx == ppChildCnt-1 && isHomo {
@@ -203,7 +204,6 @@ func (cp *Compiler) visit() {
 	fun := cp.options["File"].(string)
 
 	cp.imports[`"bytes"`] = true
-	cp.imports[`"gorazor"`] = true
 	head := "package " + pack + "\n import (\n"
 	for k, _ := range cp.imports {
 		head += k + "\n"
