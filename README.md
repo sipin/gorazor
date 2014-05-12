@@ -175,11 +175,10 @@ TBA
 
 # Todo
 
-* Refactor all the quick & dirty code
-  * Maybe reimplement vash compiler in go?
-* Test suite
-* Add tools, like monitor template changes and auto re-generate
-* Performance benchmark
-* Generate more function overloads, like accept additional buffer parameter for write
+* Refactor
+  * Avoid regexp in lexer for performance?
+* Add tools, like monitor template changes and auto re-generate.
+* Test suite, Performance benchmark.
+* Generate more function overloads, like accept additional buffer parameter for write.
 * Support direct usage of int/date variables in tempate?
   * i.e. use @user.Level directly, instead of @gorazor.Itoa(user.Level)
