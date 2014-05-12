@@ -12,7 +12,7 @@ import (
 func Usage() {
 	fmt.Fprintf(os.Stderr, "usage: gorazor [input dir or file] [output dir or file]\n")
 	flag.PrintDefaults()
-	os.Exit(1)
+	os.Exit(2)
 }
 
 func main() {
@@ -46,7 +46,6 @@ func main() {
 		}
 	} else {
 		flag.Usage()
-		os.Exit(2)
 	}
 
 }
