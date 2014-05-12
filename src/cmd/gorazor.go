@@ -5,8 +5,9 @@ package main
 import (
 	"flag"
 	"fmt"
-	"gorazor"
 	"os"
+
+	"github.com/sipin/gorazor"
 )
 
 func Usage() {
