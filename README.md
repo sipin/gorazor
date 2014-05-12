@@ -15,8 +15,16 @@ GoRazor is the Go port of the razor view engine originated from [asp.net in 2011
 
 # Usage
 
-Usage: `./gorazor template_folder output_folder` or
-       `./gorazor template_file output_file`
+Install:
+
+```sh
+go get github.com/sipin/gorazor
+```
+
+Usage:
+
+`./gorazor template_folder output_folder` or
+`./gorazor template_file output_file`
 
 This is essentially a Go implementation from razor's port in javascript: [vash](https://github.com/kirbysayshi/vash), with Go code generation.
 The `js` directory contains the original Js version.
