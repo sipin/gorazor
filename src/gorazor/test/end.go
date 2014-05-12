@@ -113,5 +113,5 @@ func End(totalMessage int, u *User) string {
 	}
 	_buffer.WriteString("\n")
 
-	return _buffer.String()
+	return layout.Base(_buffer.String(), title(), side())
 }

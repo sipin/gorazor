@@ -16,6 +16,7 @@ import (
 type Compiler struct {
 	ast      *Ast
 	buf      string
+	layout   string
 	firstBLK int
 	params   []string
 	imports  map[string]bool
@@ -69,6 +70,11 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 		if isImport {
 			parts := strings.SplitN(l, "/", -1)
 			if len(parts) >= 2 && parts[len(parts)-2] == "layout" {
+				cp.layout = parts[len(parts)-1]
+				if strings.HasSuffix(cp.layout, "\"") {
+					cp.layout = cp.layout[:len(cp.layout)-1]
+				}
+				cp.layout = Capitalize(cp.layout)
 				dir := strings.Join(parts[0:len(parts)-1], "/") + "\""
 				cp.imports[dir] = true
 			} else {
@@ -174,18 +180,20 @@ func (cp *Compiler) cleanUp(buf string) string {
 }
 
 // TODO, this is dirty now
-func (cp *Compiler) layout() {
+func (cp *Compiler) processLayout() {
 	lines := strings.SplitN(cp.buf, "\n", -1)
 	out := ""
 	insec := false
+	sections := []string{}
 	for _, l := range lines {
 		l = strings.TrimSpace(l)
 		if strings.HasPrefix(l, "section") && strings.HasSuffix(l, "{") {
 			name := l
-			name = name[7 : len(name)-1]
+			name = strings.TrimSpace(name[7 : len(name)-1])
 			out += "\n " + name + " := func() string {\n"
 			out += "var _buffer bytes.Buffer\n"
 			insec = true
+			sections = append(sections, name)
 		} else if insec && strings.HasSuffix(l, "}") {
 			out += "return _buffer.String()\n}\n"
 			insec = false
@@ -194,6 +202,19 @@ func (cp *Compiler) layout() {
 		}
 	}
 	cp.buf = out
+	foot := "\nreturn "
+	if cp.layout != "" {
+		foot += "layout." + cp.layout + "("
+	}
+	foot += "_buffer.String()"
+	for _, sec := range sections {
+		foot += ", " + sec + "()"
+	}
+	if cp.layout != "" {
+		foot += ")"
+	}
+	foot += "\n}\n"
+	cp.buf += foot
 }
 
 func (cp *Compiler) visit() {
@@ -216,8 +237,8 @@ func (cp *Compiler) visit() {
 		}
 	}
 	head += ") string {\n var _buffer bytes.Buffer\n"
-	cp.buf = head + cp.buf + "\nreturn _buffer.String()\n}\n"
-	cp.layout()
+	cp.buf = head + cp.buf
+	cp.processLayout()
 }
 
 func Generate(path string, Options Option) (string, error) {
@@ -260,7 +281,7 @@ func Generate(path string, Options Option) (string, error) {
 		}
 	}
 
-	cp := &Compiler{ast: parser.ast, buf: "", firstBLK: 0,
+	cp := &Compiler{ast: parser.ast, buf: "", layout: "", firstBLK: 0,
 		params: []string{}, imports: map[string]bool{},
 		options: Options}
 	cp.visit()
