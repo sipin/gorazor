@@ -79,10 +79,12 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 			}
 		} else if strings.HasPrefix(l, "var") {
 			vname := l[4:]
-			cp.params = append(cp.params, vname)
 
 			if strings.HasSuffix(l, "GorazorWidget") {
 				cp.imports[GorazorNamespace] = true
+				cp.params = append(cp.params, vname[:len(vname)-13]+"gorazor.GorazorWidget")
+			} else {
+				cp.params = append(cp.params, vname)
 			}
 		}
 	}
