@@ -12,6 +12,8 @@ import (
 	"strings"
 )
 
+var GorazorNamespace = `"github.com/sipin/gorazor/gorazor"`
+
 //------------------------------ Compiler ------------------------------ //
 type Compiler struct {
 	ast      *Ast
@@ -78,6 +80,10 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 		} else if strings.HasPrefix(l, "var") {
 			vname := l[4:]
 			cp.params = append(cp.params, vname)
+
+			if strings.HasSuffix(l, "GorazorWidget") {
+				cp.imports[GorazorNamespace] = true
+			}
 		}
 	}
 	if cp.layout != "" {
@@ -114,7 +120,7 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 				start += "("
 			} else {
 				start += "gorazor.HTMLEscape("
-				cp.imports[`"github.com/sipin/gorazor/gorazor"`] = true
+				cp.imports[GorazorNamespace] = true
 			}
 		}
 		if ppNotExp && idx == ppChildCnt-1 && isHomo {
