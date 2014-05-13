@@ -2,10 +2,10 @@ package cases
 
 import (
 	"bytes"
+	"cases/layout"
 	"github.com/sipin/gorazor/gorazor"
 	. "kp/models"
 	"tpl/helper"
-	"tpl/layout"
 )
 
 func End(totalMessage int, u *User) string {
@@ -113,5 +113,5 @@ func End(totalMessage int, u *User) string {
 	}
 	_buffer.WriteString("\n")
 
-	return layout.Base(_buffer.String(), title(), side())
+	return layout.Base(_buffer.String(), title(), "")
 }

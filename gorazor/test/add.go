@@ -2,8 +2,8 @@ package cases
 
 import (
 	"bytes"
+	"cases/layout"
 	"github.com/sipin/gorazor/gorazor"
-	"tpl/admin/layout"
 )
 
 func Add(content string, err string) string {
