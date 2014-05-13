@@ -12,6 +12,7 @@ func Base(body string, title string, side string) string {
 	_buffer.WriteString((body))
 	_buffer.WriteString("</div>\n<div>")
 	_buffer.WriteString((side))
-	_buffer.WriteString("</div>\n</body>\n</html>")
+	_buffer.WriteString("</div>\n</body>\n</html>\n")
+
 	return _buffer.String()
 }
