@@ -1,0 +1,26 @@
+@{
+	import (
+		"tpl/admin/layout/base"
+		"kp/models"
+	)
+	var u *models.User
+}
+<div style="width: 500px">
+<form role="form">
+  <div class="form-group">
+    <label for="exampleInputEmail1">名字</label>
+    <input type="email" class="form-control" id="exampleInputEmail1" placeholder="Enter email" value="@u.Name">
+  </div>
+  <div class="form-group">
+    <label for="exampleInputPassword1">电邮</label>
+    <input type="email" class="form-control" id="exampleInputPassword1" placeholder="电邮" value="@u.Email">
+  </div>
+  <button type="submit" class="btn btn-primary">保存</button>
+  <a href="/admin/user" class="btn btn-default pull-right">返回</a>
+</form>
+</div>
+
+
+@section title {
+	@:用户管理
+}
