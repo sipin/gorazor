@@ -338,17 +338,6 @@ const (
 	gz_extension = ".gohtml"
 )
 
-func exists(path string) bool {
-	_, err := os.Stat(path)
-	if err == nil {
-		return true
-	}
-	if os.IsNotExist(err) {
-		return false
-	}
-	return false
-}
-
 // Generate from input to output file,
 // gofmt will trigger an error if it fails.
 func GenFile(input string, output string, options Option) error {

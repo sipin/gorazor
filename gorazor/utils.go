@@ -2,6 +2,7 @@ package gorazor
 
 import (
 	"html/template"
+	"os"
 	"strconv"
 	"strings"
 )
@@ -19,4 +20,15 @@ func Capitalize(str string) string {
 		return ""
 	}
 	return strings.ToUpper(str[0:1]) + str[1:]
+}
+
+func exists(path string) bool {
+	_, err := os.Stat(path)
+	if err == nil {
+		return true
+	}
+	if os.IsNotExist(err) {
+		return false
+	}
+	return false
 }
