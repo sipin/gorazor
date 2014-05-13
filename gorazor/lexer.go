@@ -124,7 +124,7 @@ func regRemoveTail(text string, regs []string) string {
 		if err != nil {
 			panic(err)
 		}
-		found := regc.FindIndex([]byte(text))
+		found := regc.FindIndex([]byte(res))
 		if found != nil {
 			res = res[:found[0]] //BUG?
 		}

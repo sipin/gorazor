@@ -1,0 +1,71 @@
+@{
+	import (
+		"tpl/admin/layout/base"
+	)
+
+	var content string
+	var err string
+}
+
+<link rel="stylesheet" href="/css/bootstrap-datetimepicker.css">
+
+<style>
+.row {
+	margin-top: 10px;
+}
+</style>
+
+<h2>日程登记</h2>
+
+<div class="container-fluid">
+	<form method="POST" action="">
+	<div class="row" >
+		<p class="bg-danger">@err</p>
+	</div>
+
+	<div class="row">
+	内容:
+	<input type='text' class="form-control" name="content" value="@content"/>
+	</div>
+	
+	<div class="row">
+	开始时间:
+	<input type='text' class="datetimepicker form-control" name="startTime"/>
+	</div>
+	
+	<div class="row">
+	结束时间:
+	<input type='text' class="datetimepicker form-control" name="endTime"/>
+	</div>
+
+	<div class="row">
+	日程指派:
+	<select name="appoint">
+		<option>cheney</option>
+		<option>wuvist</option>
+	</select>
+	</div>
+	
+	<div class="row">
+	<input style="float:right" type="submit" value="保存" class="btn btn-primary"/>
+	</div>
+	</form>
+</div>
+
+
+@section title {
+	@:管理后台 - 添加日程
+}
+
+@section js {
+<script src="/js/moment.js"></script>
+<script src="/js/bootstrap-datetimepicker.js"></script>
+<script type="text/javascript">
+	$(function () {
+		$(".datetimepicker").datetimepicker({
+			format: "YYYY-MM-DD HH:mm",
+			defaultDate: "2014-05-01 00:00",
+		})
+	});
+</script>
+}
