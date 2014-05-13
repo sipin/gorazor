@@ -12,13 +12,6 @@ import (
 	"strings"
 )
 
-//layout relation ship
-// path -> (args list), so we can use a path to find the layout args
-var LayoutMap map[string][]string
-
-// path -> layout path,
-var FileLayout map[string]string
-
 //------------------------------ Compiler ------------------------------ //
 type Compiler struct {
 	ast      *Ast
@@ -90,6 +83,7 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 	if cp.layout != "" {
 		path := cp.layout + ".gohtml"
 		if exists(path) && len(LayOutArgs(path)) == 0 {
+			//TODO, bad for performance
 			_cp, err := run(path, cp.options)
 			if err != nil {
 				panic(err)
