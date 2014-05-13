@@ -108,7 +108,7 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 				start += "("
 			} else {
 				start += "gorazor.HTMLEscape("
-				cp.imports[`"gorazor"`] = true
+				cp.imports[`"github.com/sipin/gorazor/gorazor"`] = true
 			}
 		}
 		if ppNotExp && idx == ppChildCnt-1 && isHomo {
