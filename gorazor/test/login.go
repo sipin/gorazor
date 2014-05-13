@@ -2,7 +2,7 @@ package cases
 
 import (
 	"bytes"
-	"gorazor"
+	"github.com/sipin/gorazor/gorazor"
 )
 
 func Login(msg string) string {

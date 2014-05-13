@@ -2,9 +2,9 @@ package cases
 
 import (
 	"bytes"
-	"gorazor"
+	"cases/layout"
+	"github.com/sipin/gorazor/gorazor"
 	"kp/models"
-	"tpl/admin/layout"
 )
 
 func Index(users []*models.User, total int, limit int, offset int) string {
@@ -25,6 +25,12 @@ func Index(users []*models.User, total int, limit int, offset int) string {
 	}
 	_buffer.WriteString("\n		</tbody>\n	</table>\n</div>\n\n")
 
+	js := func() string {
+		var _buffer bytes.Buffer
+		return _buffer.String()
+	}
+	_buffer.WriteString("\n\n\n")
+
 	title := func() string {
 		var _buffer bytes.Buffer
 
@@ -32,7 +38,7 @@ func Index(users []*models.User, total int, limit int, offset int) string {
 
 		return _buffer.String()
 	}
-	_buffer.WriteString("\n")
+	_buffer.WriteString("\n\n")
 
-	return layout.Base(_buffer.String(), title())
+	return layout.Base(_buffer.String(), title(), js())
 }

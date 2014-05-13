@@ -2,7 +2,7 @@ package cases
 
 import (
 	"bytes"
-	"gorazor"
+	"github.com/sipin/gorazor/gorazor"
 	. "kp/models"
 	"tpl/helper"
 	"tpl/layout"

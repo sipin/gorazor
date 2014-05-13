@@ -17,6 +17,20 @@ func TestCap(t *testing.T) {
 	}
 }
 
+func TestLayManager(t *testing.T) {
+	SetLayout("hello", []string{"this", "is", "good"})
+	SetLayout("world", []string{"funny"})
+	if len(LayOutArgs("hello")) != 3 {
+		t.Error()
+	}
+	if len(LayOutArgs("world")) != 1 {
+		t.Error()
+	}
+	if len(LayOutArgs("NO")) != 0 {
+		t.Error()
+	}
+}
+
 func TestLexer(t *testing.T) {
 	text := "case do func var switch"
 	lex := &Lexer{text, Tests}
@@ -55,13 +69,16 @@ func TestLexer(t *testing.T) {
 
 func TestGenerate(t *testing.T) {
 	casedir, _ := filepath.Abs(filepath.Dir("./cases/"))
-	logsdir, _ := filepath.Abs(filepath.Dir("./test/"))
 
 	visit := func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
-			name := strings.Replace(filepath.Base(path), ".gohtml", ".go", 1)
-			cmp := filepath.Join(logsdir, name)
-			log := filepath.Join(logsdir, "_"+name)
+			name := strings.Replace(path, ".gohtml", ".go", 1)
+			cmp := strings.Replace(name, "/cases/", "/test/", -1)
+			dirname := filepath.Dir(cmp)
+			log := filepath.Join(dirname, "_"+filepath.Base(cmp))
+			if !exists(dirname) {
+				os.MkdirAll(dirname, 0755)
+			}
 			option := Option{}
 			GenFile(path, log, option)
 			if !exists(cmp) {

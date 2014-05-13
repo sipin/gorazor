@@ -12,6 +12,13 @@ import (
 	"strings"
 )
 
+//layout relation ship
+// path -> (args list), so we can use a path to find the layout args
+var LayoutMap map[string][]string
+
+// path -> layout path,
+var FileLayout map[string]string
+
 //------------------------------ Compiler ------------------------------ //
 type Compiler struct {
 	ast      *Ast
@@ -54,7 +61,6 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 	first, cp.buf = cp.buf, pre
 	first = cp.cleanUp(first)
 	isImport := false
-
 	lines := strings.SplitN(first, "\n", -1)
 	for _, l := range lines {
 		l = strings.TrimSpace(l)
@@ -70,11 +76,7 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 		if isImport {
 			parts := strings.SplitN(l, "/", -1)
 			if len(parts) >= 2 && parts[len(parts)-2] == "layout" {
-				cp.layout = parts[len(parts)-1]
-				if strings.HasSuffix(cp.layout, "\"") {
-					cp.layout = cp.layout[:len(cp.layout)-1]
-				}
-				cp.layout = Capitalize(cp.layout)
+				cp.layout = strings.Replace(l, "\"", "", -1)
 				dir := strings.Join(parts[0:len(parts)-1], "/") + "\""
 				cp.imports[dir] = true
 			} else {
@@ -83,6 +85,16 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 		} else if strings.HasPrefix(l, "var") {
 			vname := l[4:]
 			cp.params = append(cp.params, vname)
+		}
+	}
+	if cp.layout != "" {
+		path := cp.layout + ".gohtml"
+		if exists(path) && len(LayOutArgs(path)) == 0 {
+			_cp, err := run(path, cp.options)
+			if err != nil {
+				panic(err)
+			}
+			SetLayout(cp.layout, _cp.params)
 		}
 	}
 }
@@ -204,11 +216,36 @@ func (cp *Compiler) processLayout() {
 	cp.buf = out
 	foot := "\nreturn "
 	if cp.layout != "" {
-		foot += "layout." + cp.layout + "("
+		parts := strings.SplitN(cp.layout, "/", -1)
+		base := Capitalize(parts[len(parts)-1])
+		foot += "layout." + base + "("
 	}
 	foot += "_buffer.String()"
-	for _, sec := range sections {
-		foot += ", " + sec + "()"
+	args := LayOutArgs(cp.layout)
+	if len(args) == 0 {
+		for _, sec := range sections {
+			foot += ", " + sec + "()"
+		}
+	} else {
+		for idx, arg := range args {
+			//body has been done
+			if idx == 0 {
+				continue
+			}
+			arg = strings.Replace(arg, "string", "", -1)
+			arg = strings.TrimSpace(arg)
+			found := false
+			for _, sec := range sections {
+				if sec == arg {
+					found = true
+					foot += ", " + sec + "()"
+					break
+				}
+			}
+			if !found {
+				foot += ", " + `""`
+			}
+		}
 	}
 	if cp.layout != "" {
 		foot += ")"
@@ -241,11 +278,11 @@ func (cp *Compiler) visit() {
 	cp.processLayout()
 }
 
-func Generate(path string, Options Option) (string, error) {
+func run(path string, Options Option) (*Compiler, error) {
 	buf := bytes.NewBuffer(nil)
 	f, err := os.Open(path)
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 	io.Copy(buf, f)
 	f.Close()
@@ -255,7 +292,7 @@ func Generate(path string, Options Option) (string, error) {
 
 	res, err := lex.Scan()
 	if err != nil {
-		return "", err
+		return nil, err
 	}
 
 	//DEBUG
@@ -289,7 +326,16 @@ func Generate(path string, Options Option) (string, error) {
 	if Options["Debug"] != nil {
 		fmt.Println(cp.buf)
 	}
-	return cp.buf, nil
+	return cp, nil
+
+}
+
+func Generate(path string, Options Option) (string, error) {
+	cp, err := run(path, Options)
+	if err != nil || cp == nil {
+		return "", err
+	}
+	return cp.buf, err
 }
 
 //------------------------------ API ------------------------------
