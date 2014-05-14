@@ -139,6 +139,7 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 func (cp *Compiler) visitAst(ast *Ast) {
 	switch ast.Mode {
 	case MKP:
+		cp.firstBLK = 1
 		for _, c := range ast.Children {
 			if _, ok := c.(Token); ok {
 				cp.visitMKP(c, ast)
@@ -160,6 +161,7 @@ func (cp *Compiler) visitAst(ast *Ast) {
 			}
 		}
 	case EXP:
+		cp.firstBLK = 1
 		nonExp := ast.hasNonExp()
 		for i, c := range ast.Children {
 			if _, ok := c.(Token); ok {
