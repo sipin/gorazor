@@ -15,7 +15,7 @@ func Base(body string, title string, js string) string {
 	_buffer.WriteString((body))
 	_buffer.WriteString("\n        </div>\n      </div>\n    </div>\n	<script src=\"/js/jquery.min.js\"></script>\n	<script src=\"/js/bootstrap.min.js\"></script>\n	")
 	_buffer.WriteString((js))
-	_buffer.WriteString("\n  </body>\n</html>\n\n")
+	_buffer.WriteString("\n  </body>\n</html>")
 
 	return _buffer.String()
 }

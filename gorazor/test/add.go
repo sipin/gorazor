@@ -12,7 +12,7 @@ func Add(content string, err string) string {
 	_buffer.WriteString(gorazor.HTMLEscape(err))
 	_buffer.WriteString("</p>\n	</div>\n\n	<div class=\"row\">\n	内容:\n	<input type='text' class=\"form-control\" name=\"content\" value=\"")
 	_buffer.WriteString(gorazor.HTMLEscape(content))
-	_buffer.WriteString("\"/>\n	</div>\n	\n	<div class=\"row\">\n	开始时间:\n	<input type='text' class=\"datetimepicker form-control\" name=\"startTime\"/>\n	</div>\n	\n	<div class=\"row\">\n	结束时间:\n	<input type='text' class=\"datetimepicker form-control\" name=\"endTime\"/>\n	</div>\n\n	<div class=\"row\">\n	日程指派:\n	<select name=\"appoint\">\n		<option>cheney</option>\n		<option>wuvist</option>\n	</select>\n	</div>\n	\n	<div class=\"row\">\n	<input style=\"float:right\" type=\"submit\" value=\"保存\" class=\"btn btn-primary\"/>\n	</div>\n	</form>\n</div>\n\n\n")
+	_buffer.WriteString("\"/>\n	</div>\n	\n	<div class=\"row\">\n	开始时间:\n	<input type='text' class=\"datetimepicker form-control\" name=\"startTime\"/>\n	</div>\n	\n	<div class=\"row\">\n	结束时间:\n	<input type='text' class=\"datetimepicker form-control\" name=\"endTime\"/>\n	</div>\n\n	<div class=\"row\">\n	日程指派:\n	<select name=\"appoint\">\n		<option>cheney</option>\n		<option>wuvist</option>\n	</select>\n	</div>\n	\n	<div class=\"row\">\n	<input style=\"float:right\" type=\"submit\" value=\"保存\" class=\"btn btn-primary\"/>\n	</div>\n	</form>\n</div>")
 
 	title := func() string {
 		var _buffer bytes.Buffer
@@ -21,7 +21,6 @@ func Add(content string, err string) string {
 
 		return _buffer.String()
 	}
-	_buffer.WriteString("\n\n")
 
 	js := func() string {
 		var _buffer bytes.Buffer
@@ -34,7 +33,6 @@ func Add(content string, err string) string {
 
 		return _buffer.String()
 	}
-	_buffer.WriteString("\n\n")
 
 	return layout.Base(_buffer.String(), title(), js())
 }

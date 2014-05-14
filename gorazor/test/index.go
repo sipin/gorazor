@@ -23,13 +23,12 @@ func Index(users []*models.User, total int, limit int, offset int) string {
 		_buffer.WriteString("\">编辑</a></td>\n			</tr>")
 
 	}
-	_buffer.WriteString("\n		</tbody>\n	</table>\n</div>\n\n")
+	_buffer.WriteString("\n		</tbody>\n	</table>\n</div>")
 
 	js := func() string {
 		var _buffer bytes.Buffer
 		return _buffer.String()
 	}
-	_buffer.WriteString("\n\n\n")
 
 	title := func() string {
 		var _buffer bytes.Buffer
@@ -38,7 +37,6 @@ func Index(users []*models.User, total int, limit int, offset int) string {
 
 		return _buffer.String()
 	}
-	_buffer.WriteString("\n\n")
 
 	return layout.Base(_buffer.String(), title(), js())
 }

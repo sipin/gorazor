@@ -14,7 +14,7 @@ func Base(body string, title string) string {
 	_buffer.WriteString((helper.Menu()))
 	_buffer.WriteString("\n        </div>\n        <div class=\"col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main\">\n          ")
 	_buffer.WriteString(gorazor.HTMLEscape(body))
-	_buffer.WriteString("\n        </div>\n      </div>\n    </div>\n	<script src=\"/js/jquery.min.js\"></script>\n	<script src=\"/js/bootstrap.min.js\"></script>\n  </body>\n</html>\n\n")
+	_buffer.WriteString("\n        </div>\n      </div>\n    </div>\n	<script src=\"/js/jquery.min.js\"></script>\n	<script src=\"/js/bootstrap.min.js\"></script>\n  </body>\n</html>")
 
 	return _buffer.String()
 }

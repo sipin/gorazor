@@ -13,7 +13,7 @@ func Edit(u *models.User) string {
 	_buffer.WriteString(gorazor.HTMLEscape(u.Name))
 	_buffer.WriteString("\">\n  </div>\n  <div class=\"form-group\">\n    <label for=\"exampleInputPassword1\">电邮</label>\n    <input type=\"email\" class=\"form-control\" id=\"exampleInputPassword1\" placeholder=\"电邮\" value=\"")
 	_buffer.WriteString(gorazor.HTMLEscape(u.Email))
-	_buffer.WriteString("\">\n  </div>\n  <button type=\"submit\" class=\"btn btn-primary\">保存</button>\n  <a href=\"/admin/user\" class=\"btn btn-default pull-right\">返回</a>\n</form>\n</div>\n\n\n")
+	_buffer.WriteString("\">\n  </div>\n  <button type=\"submit\" class=\"btn btn-primary\">保存</button>\n  <a href=\"/admin/user\" class=\"btn btn-default pull-right\">返回</a>\n</form>\n</div>")
 
 	title := func() string {
 		var _buffer bytes.Buffer
@@ -22,7 +22,6 @@ func Edit(u *models.User) string {
 
 		return _buffer.String()
 	}
-	_buffer.WriteString("\n")
 
 	return layout.Base(_buffer.String(), title())
 }

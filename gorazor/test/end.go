@@ -10,11 +10,11 @@ import (
 
 func End(totalMessage int, u *User) string {
 	var _buffer bytes.Buffer
-	_buffer.WriteString("\n\n\n")
+
 	_buffer.WriteString((helper.Header()))
-	_buffer.WriteString("\n")
+
 	_buffer.WriteString((helper.Msg(u)))
-	_buffer.WriteString("\n\n")
+
 	for i := 0; i < 2; i++ {
 		if totalMessage > 0 {
 			if totalMessage == 1 {
@@ -40,7 +40,7 @@ func End(totalMessage int, u *User) string {
 
 		}
 	}
-	_buffer.WriteString("\n\n\n")
+
 	{
 		for i := 0; i < 2; i++ {
 			if totalMessage > 0 {
@@ -68,7 +68,7 @@ func End(totalMessage int, u *User) string {
 			}
 		}
 	}
-	_buffer.WriteString("\n\n")
+
 	{
 		switch totalMessage {
 		case 1:
@@ -91,9 +91,8 @@ func End(totalMessage int, u *User) string {
 
 		}
 	}
-	_buffer.WriteString("\n\n")
+
 	_buffer.WriteString((helper.Footer()))
-	_buffer.WriteString("\n\n")
 
 	title := func() string {
 		var _buffer bytes.Buffer
@@ -104,14 +103,12 @@ func End(totalMessage int, u *User) string {
 
 		return _buffer.String()
 	}
-	_buffer.WriteString("\n\n")
 
 	side := func() string {
 		var _buffer bytes.Buffer
 
 		return _buffer.String()
 	}
-	_buffer.WriteString("\n")
 
 	return layout.Base(_buffer.String(), title(), "")
 }

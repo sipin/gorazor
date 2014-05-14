@@ -6,7 +6,7 @@ import (
 
 func Quote() string {
 	var _buffer bytes.Buffer
-	_buffer.WriteString("<html>'text'</html>\n\n")
+	_buffer.WriteString("<html>'text'</html>")
 
 	return _buffer.String()
 }

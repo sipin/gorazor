@@ -8,7 +8,7 @@ import (
 
 func Msg(u *User) string {
 	var _buffer bytes.Buffer
-	_buffer.WriteString("\n\n\n")
+
 	{
 		username := u.Name
 		if u.Email != "" {
@@ -19,7 +19,7 @@ func Msg(u *User) string {
 	_buffer.WriteString(gorazor.HTMLEscape(username))
 	_buffer.WriteString("</h4>\n\n<div>")
 	_buffer.WriteString((u.Intro))
-	_buffer.WriteString("</div>\n</div>\n\n")
+	_buffer.WriteString("</div>\n</div>")
 
 	return _buffer.String()
 }

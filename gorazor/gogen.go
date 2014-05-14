@@ -181,9 +181,18 @@ func (cp *Compiler) cleanUp(buf string) string {
 	buf = strings.Replace(buf, ")BLKBLK(", "", -1)
 	buf = strings.Replace(buf, ")MKPMKP(", "", -1)
 	buf = strings.Replace(buf, "MKP(", "_buffer.WriteString(\"", -1)
+
+	tmp := strings.Replace(buf, "\\n)MKP", ")MKP", -1)
+	for tmp != buf {
+		buf = tmp
+		tmp = strings.Replace(buf, "\\n)MKP", ")MKP", -1)
+	}
+
 	buf = strings.Replace(buf, ")MKP", "\")\n", -1)
 	buf = strings.Replace(buf, "BLK(", "", -1)
 	buf = strings.Replace(buf, ")BLK", "\n", -1)
+
+	buf = strings.Replace(buf, `_buffer.WriteString("")`, "", -1)
 	return buf
 }
 

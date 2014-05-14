@@ -15,7 +15,7 @@ func Login(msg string) string {
 		_buffer.WriteString("</div>")
 
 	}
-	_buffer.WriteString("\n\n    <input type=\"text\" name=\"username\" class=\"form-control\" placeholder=\"用户名\" required autofocus>\n    <input type=\"password\" class=\"form-control\" placeholder=\"密码\" required>\n    <label class=\"checkbox\">\n      <input type=\"checkbox\" value=\"remember-me\"> 记住我\n    </label>\n    <button class=\"btn btn-lg btn-primary btn-block\" type=\"submit\">登陆</button>\n  </form>\n  </div>\n  <script src=\"/js/jquery.min.js\"></script>\n  <script src=\"/js/bootstrap.min.js\"></script>\n</body>\n</html>\n")
+	_buffer.WriteString("\n\n    <input type=\"text\" name=\"username\" class=\"form-control\" placeholder=\"用户名\" required autofocus>\n    <input type=\"password\" class=\"form-control\" placeholder=\"密码\" required>\n    <label class=\"checkbox\">\n      <input type=\"checkbox\" value=\"remember-me\"> 记住我\n    </label>\n    <button class=\"btn btn-lg btn-primary btn-block\" type=\"submit\">登陆</button>\n  </form>\n  </div>\n  <script src=\"/js/jquery.min.js\"></script>\n  <script src=\"/js/bootstrap.min.js\"></script>\n</body>\n</html>")
 
 	return _buffer.String()
 }
