@@ -56,7 +56,7 @@ func rec(reg string) *regexp.Regexp {
 
 // The order is important
 var Tests = []TokenMatch{
-	TokenMatch{EMAIL, "EMAIL", rec(`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\\b`)},
+	TokenMatch{EMAIL, "EMAIL", rec(`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\b`)},
 	TokenMatch{AT_STAR_OPEN, "AT_STAR_OPEN", rec(`@\*`)},
 	TokenMatch{AT_STAR_CLOSE, "AT_STAR_CLOSE", rec(`(\*@)`)},
 	TokenMatch{AT_COLON, "AT_COLON", rec(`(@\:)`)},
