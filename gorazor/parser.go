@@ -487,8 +487,14 @@ func (parser *Parser) handleEXP(token Token) {
 		}
 
 	case BRACE_OPEN:
-		parser.deferToken(token)
-		parser.ast = parser.ast.beget(BLK, "")
+		prev := parser.prevToken(0)
+		//todo: Is this really neccessary?
+		if prev.Type == IDENTIFIER {
+			parser.ast.addChild(token)
+		} else {
+			parser.deferToken(token)
+			parser.ast = parser.ast.beget(BLK, "")
+		}
 
 	case PERIOD:
 		next := parser.peekToken(0)
