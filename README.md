@@ -27,7 +27,8 @@ Usage:
 `./gorazor template_file output_file`
 
 This is essentially a Go implementation from razor's port in javascript: [vash](https://github.com/kirbysayshi/vash), with Go code generation.
-The `js` directory contains the original Js version.
+
+The revision with tag `vash` is the js version.
 
 # Syntax
 
@@ -171,12 +172,35 @@ Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor
 
 # FAQ
 
-TBA
+## How to auto re-generate when gohtml file changes? 
+
+We may add `gorazor watch` cmd after Go 1.3 which has official [fsnotify](https://docs.google.com/document/d/1xl_aRcCbksFRmCKtoyRQG9L7j6DIdMZtrkFAoi5EXaA/edit) support.
+
+Currently, we are using below scripts to handle this issue on mac:
+
+* gorazor_watch.sh
+```bash
+#!/bin/bash
+
+gorazor tpl src/tpl
+watchmedo shell-command --patterns="*.gohtml" --recursive --command='python gorazor.py ${watch_src_path}'
+```
+
+* gorazor.py
+```python
+import sys, os
+
+path = sys.argv[1]
+os.system("gorazor " + path + " " + path.replace("/tpl/", "/src/tpl/")[:-4])
+```
+
+* [watchmedo](https://github.com/gorakhargosh/watchdog)
 
 # Todo
 
 * Refactor
-  * Avoid regexp in lexer for performance?
+  * Avoid massive string maniplation
+  * Avoid regexp in lexer?
 * Add tools, like monitor template changes and auto re-generate.
 * Test suite, Performance benchmark.
 * Generate more function overloads, like accept additional buffer parameter for write.
