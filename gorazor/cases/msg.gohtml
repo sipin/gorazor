@@ -7,9 +7,13 @@
 
 
 @{
-	username := u.Name
+	getName := func (u *User) string {
+		return "(" + u.Name + ")" 
+	}
+
+	var username string
 	if u.Email != "" {
-		username += "(" + u.Email + ")"
+		username = getName(u) + "(" + u.Email + ")"
 	}
 }
 <div class="welcome">

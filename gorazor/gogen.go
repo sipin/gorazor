@@ -189,6 +189,15 @@ func (cp *Compiler) cleanUp(buf string) string {
 	}
 
 	buf = strings.Replace(buf, ")MKP", "\")\n", -1)
+
+	i := strings.Index(buf, "BLK({")
+	for i > -1 {
+		buf = buf[0:i] + buf[i+5:]
+		i = strings.Index(buf, "})BLK")
+		buf = buf[0:i] + buf[i+5:]
+		i = strings.Index(buf, "BLK({")
+	}
+
 	buf = strings.Replace(buf, "BLK(", "", -1)
 	buf = strings.Replace(buf, ")BLK", "\n", -1)
 

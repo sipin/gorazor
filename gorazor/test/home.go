@@ -39,9 +39,7 @@ func Home(totalMessage int, u *User) string {
 			_buffer.WriteString(" has no messages</p>")
 
 		}
-	}
 
-	{
 		for i := 0; i < 2; i++ {
 			if totalMessage > 0 {
 				if totalMessage == 1 {
@@ -67,9 +65,7 @@ func Home(totalMessage int, u *User) string {
 
 			}
 		}
-	}
 
-	{
 		switch totalMessage {
 		case 1:
 

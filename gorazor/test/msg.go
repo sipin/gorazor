@@ -9,11 +9,13 @@ import (
 func Msg(u *User) string {
 	var _buffer bytes.Buffer
 
-	{
-		username := u.Name
-		if u.Email != "" {
-			username += "(" + u.Email + ")"
-		}
+	getName := func(u *User) string {
+		return "(" + u.Name + ")"
+	}
+
+	var username string
+	if u.Email != "" {
+		username = getName(u) + "(" + u.Email + ")"
 	}
 	_buffer.WriteString("\n<div class=\"welcome\">\n<h4>Hello ")
 	_buffer.WriteString(gorazor.HTMLEscape(username))
