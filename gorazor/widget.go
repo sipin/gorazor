@@ -1,9 +1,10 @@
 package gorazor
 
-type GorazorWidget interface {
-	GetLabel() string
-	GetValue() string
-	GetName() string
-	GetPlaceHolder() string
-	GetType() string
+type Widget struct {
+	Label       string
+	Value       string
+	Name        string
+	PlaceHolder string
+	Type        string
+	ErrorMsg    string
 }

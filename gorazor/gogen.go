@@ -80,9 +80,9 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 		} else if strings.HasPrefix(l, "var") {
 			vname := l[4:]
 
-			if strings.HasSuffix(l, "GorazorWidget") {
+			if strings.HasSuffix(l, "gorazor.Widget") {
 				cp.imports[GorazorNamespace] = true
-				cp.params = append(cp.params, vname[:len(vname)-13]+"gorazor.GorazorWidget")
+				cp.params = append(cp.params, vname[:len(vname)-14]+"gorazor.Widget")
 			} else {
 				cp.params = append(cp.params, vname)
 			}
@@ -118,7 +118,7 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 	val := getValStr(child)
 	if nohtmlEsc == nil {
 		if ppNotExp && idx == 0 && isHomo {
-			if val == "helper" || val == "raw" || pack == "layout" {
+			if val == "helper" || val == "html" || val == "raw" || pack == "layout" {
 				start += "("
 			} else {
 				start += "gorazor.HTMLEscape("
