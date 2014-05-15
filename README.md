@@ -23,8 +23,8 @@ go get github.com/sipin/gorazor
 
 Usage:
 
-`./gorazor template_folder output_folder` or
-`./gorazor template_file output_file`
+`gorazor template_folder output_folder` or
+`gorazor template_file output_file`
 
 This is essentially a Go implementation from razor's port in javascript: [vash](https://github.com/kirbysayshi/vash), with Go code generation.
 
