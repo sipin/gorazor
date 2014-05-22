@@ -84,7 +84,7 @@ var Tests = []TokenMatch{
 	TokenMatch{LOGICAL, "LOGICAL", rec(`(&&|\|\||&|\||\^)`)},
 	TokenMatch{ESCAPED_QUOTE, "ESCAPED_QUOTE", rec(`(\\+['\"])`)},
 	TokenMatch{BACKSLASH, "BACKSLASH", rec(`(\\)`)},
-	TokenMatch{DOUBLE_QUOTE, "DOUBLE_QUOTE", rec(`(")`)},
+	TokenMatch{DOUBLE_QUOTE, "DOUBLE_QUOTE", rec("(\"|`)")},
 	TokenMatch{SINGLE_QUOTE, "SINGLE_QUOTE", rec(`(')`)},
 	TokenMatch{NUMERIC_CONTENT, "NUMERIC_CONTENT", rec(`([0-9]+)`)},
 	TokenMatch{CONTENT, "CONTENT", rec(`([^\s})@.]+?)`)},
