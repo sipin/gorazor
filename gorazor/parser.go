@@ -2,6 +2,7 @@ package gorazor
 
 import (
 	"fmt"
+	"os"
 	"regexp"
 	"strings"
 )
@@ -292,7 +293,6 @@ func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) {
 		_parser.ast.Children = append([]interface{}{token}, _parser.ast.Children...)
 		_parser.ast.addChild(closer)
 	}
-	//_parser.ast.debug(0)
 	parser.ast.addAst(_parser.ast)
 	if !includeDelim {
 		parser.ast.addChild(closer)
@@ -351,7 +351,8 @@ func (parser *Parser) handleMKP(token Token) {
 		//TODO
 		opener := parser.ast.closest(MKP, tagName)
 		if opener.TagName != tagName { //unmatched
-			panic("UNMATCHED!")
+			fmt.Fprintf(os.Stderr, "UNMATCHED tag close: %s at line: %d pos: %d\n", tagName,
+				token.Line, token.Pos)
 		} else {
 			parser.ast = opener
 		}

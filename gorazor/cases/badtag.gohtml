@@ -1,0 +1,14 @@
+@{
+	var w *gorazor.Widget
+}
+
+@if w.ErrorMsg != "" {
+	<div class="form-group has-error">
+	<div class="alert alert-danger">@w.ErrorMsg</div>
+} else {
+	<div class="form-group">
+}
+
+	<label for="@w.Name">@w.Label</label>
+	<input type="text" name="@w.Name" class="form-control" id="@w.Name" placeholder="@w.PlaceHolder" value="@w.Value">
+</div>
