@@ -4,5 +4,8 @@ go:
  - 1.2
  - release
 
+install:
+ - go get github.com/sipin/gorazor
+
 script:
  - go test -v ./gorazor/
