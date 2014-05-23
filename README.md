@@ -1,5 +1,7 @@
 # GoRazor
 
+[![Build Status](https://travis-ci.org/sipin/gorazor.svg?branch=master)](https://travis-ci.org/sipin/gorazor)
+
 GoRazor is the Go port of the razor view engine originated from [asp.net in 2011](http://weblogs.asp.net/scottgu/archive/2010/07/02/introducing-razor.aspx). In summay, GoRazor's:
 
 * Consice syntax, no delineators like `<?`, `<%`, or `{{`.
@@ -266,7 +268,7 @@ Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor
 
 # FAQ
 
-## How to auto re-generate when gohtml file changes? 
+## How to auto re-generate when gohtml file changes?
 
 We may add `gorazor watch` cmd after Go 1.3 which has official [fsnotify](https://docs.google.com/document/d/1xl_aRcCbksFRmCKtoyRQG9L7j6DIdMZtrkFAoi5EXaA/edit) support.
 
