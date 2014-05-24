@@ -1,6 +1,7 @@
 package gorazor
 
 import (
+	"errors"
 	"fmt"
 	"os"
 	"regexp"
@@ -245,7 +246,7 @@ func (parser *Parser) advanceUntilNot(tokenType int) []Token {
 	return res
 }
 
-func (parser *Parser) advanceUntil(token Token, start, end, startEsc, endEsc int) []Token {
+func (parser *Parser) advanceUntil(token Token, start, end, startEsc, endEsc int) ([]Token, error) {
 	var prev *Token = nil
 	next := &token
 	res := []Token{}
@@ -271,15 +272,21 @@ func (parser *Parser) advanceUntil(token Token, start, end, startEsc, endEsc int
 		prev = next
 		next = parser.peekToken(0)
 		if next == nil {
-			panic("UNMATCHED")
+			//this will treated as a FATAL
+			msg := fmt.Sprintf("Unmatched tag close: \"%s\" at line: %d pos: %d\n",
+				token.Text, token.Line, token.Pos)
+			return nil, errors.New(msg)
 		}
 		parser.nextToken()
 	}
-	return res
+	return res, nil
 }
 
-func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) {
-	subTokens := parser.advanceUntil(token, token.Type, PAIRS[token.Type], -1, AT)
+func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) error {
+	subTokens, err := parser.advanceUntil(token, token.Type, PAIRS[token.Type], -1, AT)
+	if err != nil {
+		return err
+	}
 	subTokens = subTokens[1:]
 	closer := subTokens[len(subTokens)-1]
 	subTokens = subTokens[:len(subTokens)-1]
@@ -297,14 +304,18 @@ func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) {
 	if !includeDelim {
 		parser.ast.addChild(closer)
 	}
+	return nil
 }
 
-func (parser *Parser) handleMKP(token Token) {
+func (parser *Parser) handleMKP(token Token) error {
 	next := parser.peekToken(0)
 	//nnext := parser.peekToken(1)
 	switch token.Type {
 	case AT_STAR_OPEN:
-		parser.advanceUntil(token, AT_STAR_OPEN, AT_STAR_CLOSE, AT, AT)
+		_, err := parser.advanceUntil(token, AT_STAR_OPEN, AT_STAR_CLOSE, AT, AT)
+		if err != nil {
+			return err
+		}
 
 	case AT:
 		if next != nil {
@@ -351,7 +362,7 @@ func (parser *Parser) handleMKP(token Token) {
 		//TODO
 		opener := parser.ast.closest(MKP, tagName)
 		if opener.TagName != tagName { //unmatched
-			fmt.Fprintf(os.Stderr, "UNMATCHED tag close: %s at line: %d pos: %d\n", tagName,
+			fmt.Fprintf(os.Stderr, "UNMATCHED tag close: \"%s\" at line: %d pos: %d\n", token.Text,
 				token.Line, token.Pos)
 		} else {
 			parser.ast = opener
@@ -375,9 +386,10 @@ func (parser *Parser) handleMKP(token Token) {
 	default:
 		parser.ast.addChild(token)
 	}
+	return nil
 }
 
-func (parser *Parser) handleBLK(token Token) {
+func (parser *Parser) handleBLK(token Token) error {
 	next := parser.peekToken(0)
 	switch token.Type {
 	case AT:
@@ -405,10 +417,13 @@ func (parser *Parser) handleBLK(token Token) {
 			parser.inComment = true
 		}
 		if !parser.inComment {
-			subTokens := parser.advanceUntil(token, token.Type,
+			subTokens, err := parser.advanceUntil(token, token.Type,
 				PAIRS[token.Type],
 				BACKSLASH,
 				BACKSLASH)
+			if err != nil {
+				return err
+			}
 			for idx, _ := range subTokens {
 				if subTokens[idx].Type == AT {
 					subTokens[idx].Type = CONTENT
@@ -444,9 +459,10 @@ func (parser *Parser) handleBLK(token Token) {
 	default:
 		parser.ast.addChild(token)
 	}
+	return nil
 }
 
-func (parser *Parser) handleEXP(token Token) {
+func (parser *Parser) handleEXP(token Token) error {
 	switch token.Type {
 	case KEYWORD, FUNCTION:
 		parser.ast = parser.ast.beget(BLK, "")
@@ -465,8 +481,11 @@ func (parser *Parser) handleEXP(token Token) {
 	case SINGLE_QUOTE, DOUBLE_QUOTE:
 		//TODO
 		if parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP {
-			subTokens := parser.advanceUntil(token, token.Type,
+			subTokens, err := parser.advanceUntil(token, token.Type,
 				PAIRS[token.Type], BACKSLASH, BACKSLASH)
+			if err != nil {
+				return err
+			}
 			parser.ast.addChildren(subTokens)
 		} else {
 			parser.ast = parser.ast.Parent
@@ -482,7 +501,10 @@ func (parser *Parser) handleEXP(token Token) {
 			parser.ast = parser.ast.Parent
 			break
 		}
-		parser.subParse(token, EXP, false)
+		err := parser.subParse(token, EXP, false)
+		if err != nil {
+			return err
+		}
 		if (prev != nil && prev.Type == AT) || (next != nil && next.Type == IDENTIFIER) {
 			parser.ast = parser.ast.Parent
 		}
@@ -515,12 +537,14 @@ func (parser *Parser) handleEXP(token Token) {
 			parser.ast.addChild(token)
 		}
 	}
+	return nil
 }
 
-func (parser *Parser) Run() (err error) {
+func (parser *Parser) Run() error {
 	curr := Token{"UNDEF", "UNDEF", UNDEF, 0, 0}
 	parser.root = parser.ast
 	parser.ast.Mode = PRG
+	var err error
 	for {
 		if len(parser.tokens) == 0 {
 			break
@@ -539,11 +563,14 @@ func (parser *Parser) Run() (err error) {
 		}
 		switch parser.ast.Mode {
 		case MKP:
-			parser.handleMKP(curr)
+			err = parser.handleMKP(curr)
 		case BLK:
-			parser.handleBLK(curr)
+			err = parser.handleBLK(curr)
 		case EXP:
-			parser.handleEXP(curr)
+			err = parser.handleEXP(curr)
+		}
+		if err != nil {
+			return err
 		}
 	}
 

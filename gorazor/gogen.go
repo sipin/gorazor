@@ -328,6 +328,10 @@ func run(path string, Options Option) (*Compiler, error) {
 
 	parser := &Parser{&Ast{}, nil, res, []Token{}, false, false, UNK}
 	err = parser.Run()
+	if err != nil {
+		fmt.Println(err)
+		os.Exit(2)
+	}
 
 	//DEBUG
 	if Options["Debug"] != nil {
