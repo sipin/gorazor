@@ -5,10 +5,15 @@ import (
 	"os"
 	"strconv"
 	"strings"
+	"time"
 )
 
 func HTMLEscape(obj string) string {
 	return template.HTMLEscapeString(obj)
+}
+
+func StrTime(timestamp int64, format string) string {
+	return time.Unix(timestamp, 0).Format(format)
 }
 
 func Itoa(obj int) string {
