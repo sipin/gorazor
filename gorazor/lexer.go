@@ -152,12 +152,9 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 	text := strings.Replace(lexer.Text, "\r\n", "\n", -1)
 	text = strings.Replace(lexer.Text, "\r", "\n", -1)
 	text += "\n"
-	cur := 0
-	line := 0
-	pos := 0
+	cur, line, pos := 0, 0, 0
 	for cur < len(text) {
-		val := text[cur]
-		left := text[cur:]
+		val, left := text[cur], text[cur:]
 		var tok Token
 		switch val {
 		case '\n':
@@ -222,13 +219,11 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 				}
 			}
 		}
-		tok.Line = line
-		tok.Pos = pos
+		tok.Line, tok.Pos = line, pos
 		toks = append(toks, tok)
 		cur += len(tok.Text)
 		if tok.Type == NEWLINE {
-			line++
-			pos = 0
+			line, pos = line+1, 0
 		} else {
 			pos += len(tok.Text)
 		}
