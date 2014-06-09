@@ -327,7 +327,7 @@ func (parser *Parser) handleMKP(token Token) error {
 				}
 				parser.ast = parser.ast.beget(EXP, "")
 
-			case KEYWORD, FUNCTION, BRACE_OPEN: //BLK
+			case KEYWORD, BRACE_OPEN: //BLK
 				if len(parser.ast.Children) == 0 {
 					parser.ast = parser.ast.Parent
 					parser.ast.popChild()
@@ -449,7 +449,7 @@ func (parser *Parser) handleBLK(token Token) error {
 		subTokens := parser.advanceUntilNot(WHITESPACE)
 		next := parser.peekToken(0)
 		if next != nil && next.Type != KEYWORD &&
-			next.Type != FUNCTION && next.Type != BRACE_OPEN &&
+			next.Type != BRACE_OPEN &&
 			token.Type != PAREN_OPEN {
 			parser.tokens = append(parser.tokens, subTokens...)
 			parser.ast = parser.ast.Parent
@@ -464,7 +464,7 @@ func (parser *Parser) handleBLK(token Token) error {
 
 func (parser *Parser) handleEXP(token Token) error {
 	switch token.Type {
-	case KEYWORD, FUNCTION:
+	case KEYWORD:
 		parser.ast = parser.ast.beget(BLK, "")
 		parser.deferToken(token)
 
@@ -522,7 +522,7 @@ func (parser *Parser) handleEXP(token Token) error {
 	case PERIOD:
 		next := parser.peekToken(0)
 		if next != nil && (next.Type == IDENTIFIER || next.Type == KEYWORD ||
-			next.Type == FUNCTION || next.Type == PERIOD ||
+			next.Type == PERIOD ||
 			(parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP)) {
 			parser.ast.addChild(token)
 		} else {

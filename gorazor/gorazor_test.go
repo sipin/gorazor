@@ -46,7 +46,6 @@ func TestLexer(t *testing.T) {
 			t.Error("KEYWORD", x)
 		}
 	}
-
 	text = "case casex do do3 func func_ var var+ "
 	lex = &Lexer{text, Tests}
 	res, err = lex.Scan()
