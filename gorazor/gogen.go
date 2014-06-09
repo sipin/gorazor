@@ -15,15 +15,11 @@ import (
 var GorazorNamespace = `"github.com/sipin/gorazor/gorazor"`
 
 //------------------------------ Compiler ------------------------------ //
-type Compiler struct {
-	ast      *Ast
-	buf      string
-	layout   string
-	firstBLK int
-	params   []string
-	imports  map[string]bool
-	options  Option
-}
+const (
+	CMKP = iota
+	CBLK
+	CSTAT
+)
 
 func getValStr(e interface{}) string {
 	switch v := e.(type) {
@@ -32,23 +28,83 @@ func getValStr(e interface{}) string {
 	case Token:
 		if !(v.Type == AT || v.Type == AT_COLON) {
 			return v.Text
-		} else {
-			return ""
 		}
+		return ""
 	default:
 		panic(e)
 	}
+}
+
+type Part struct {
+	ptype int
+	value string
+}
+
+type Compiler struct {
+	ast *Ast
+	buf string //the final result
+
+	layout   string
+	firstBLK int
+	params   []string
+	parts    []Part
+	imports  map[string]bool
+	options  Option
+}
+
+func (self *Compiler) addPart(part Part) {
+	if len(self.parts) == 0 {
+		self.parts = append(self.parts, part)
+		return
+	}
+	last := &self.parts[len(self.parts)-1]
+	if last.ptype == part.ptype {
+		if !(last.value == "\\n" && part.value == "\\n") {
+			last.value += part.value
+		}
+	} else {
+		self.parts = append(self.parts, part)
+	}
+}
+
+func (self *Compiler) genPart() {
+	//fmt.Println(self.parts)
+	res := ""
+	for _, p := range self.parts {
+		if p.ptype == CMKP {
+			if p.value != "\\n" {
+				res += "_buffer.WriteString(\"" + p.value + "\")\n"
+			}
+		} else if p.ptype == CBLK {
+			b := p.value
+			for strings.HasPrefix(b, "{") && strings.HasSuffix(b, "}") {
+				b = b[1 : len(b)-1]
+			}
+			res += b + "\n"
+		}
+	}
+	self.buf = res
+}
+
+func makeCompiler(ast *Ast, options Option) *Compiler {
+	return &Compiler{ast: ast, buf: "",
+		layout: "", firstBLK: 0,
+		params: []string{}, parts: []Part{},
+		imports: map[string]bool{},
+		options: options}
 }
 
 func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
 	v := strings.Replace(getValStr(child), "\n", "\\n", -1)
 	v = strings.Replace(v, "\"", "\\\"", -1)
 	cp.buf += "MKP(" + v + ")MKP"
+	cp.addPart(Part{CMKP, v})
 }
 
 // First block contains imports and parameters, specific action for layout,
 // NOTE, layout have some conventions.
 func (cp *Compiler) visitFirstBLK(blk *Ast) {
+	return
 	pre := cp.buf
 	cp.buf = ""
 	first := ""
@@ -103,6 +159,7 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 
 func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
 	cp.buf += "BLK(" + getValStr(child) + ")BLK"
+	cp.addPart(Part{CBLK, getValStr(child)})
 }
 
 func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo bool) {
@@ -137,11 +194,14 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 		end += ")\n"
 	}
 
+	v := start
 	if val == "raw" {
-		cp.buf += start + end
+		v += end
 	} else {
-		cp.buf += start + val + end
+		v += val + end
 	}
+	cp.addPart(Part{CSTAT, v})
+	cp.buf += v
 }
 
 func (cp *Compiler) visitAst(ast *Ast) {
@@ -278,7 +338,10 @@ func (cp *Compiler) processLayout() {
 
 func (cp *Compiler) visit() {
 	cp.visitAst(cp.ast)
-	cp.buf = cp.cleanUp(cp.buf)
+	cp.genPart()
+	//fmt.Println("cp.buf:", cp.buf)
+	//cp.buf = cp.cleanUp(cp.buf)
+	//cp.buf =
 
 	pack := cp.options["Dir"].(string)
 	fun := cp.options["File"].(string)
@@ -336,7 +399,6 @@ func run(path string, Options Option) (*Compiler, error) {
 	//DEBUG
 	if Options["Debug"] != nil {
 		fmt.Println("--------------------- AST START -----------------")
-
 		parser.ast.debug(0, 7)
 		fmt.Println("--------------------- AST END -----------------\n")
 		if parser.ast.Mode != PRG {
@@ -344,9 +406,12 @@ func run(path string, Options Option) (*Compiler, error) {
 		}
 	}
 
-	cp := &Compiler{ast: parser.ast, buf: "", layout: "", firstBLK: 0,
-		params: []string{}, imports: map[string]bool{},
-		options: Options}
+	cp := makeCompiler(parser.ast, Options)
+
+	//cp := &Compiler{ast: parser.ast, buf: "", layout: "", firstBLK: 0,
+	//params: []string{}, parts: []Part{}, imports: map[string]bool{},
+	//options: Options}
+
 	cp.visit()
 
 	if Options["Debug"] != nil {
@@ -356,7 +421,7 @@ func run(path string, Options Option) (*Compiler, error) {
 
 }
 
-func Generate(path string, Options Option) (string, error) {
+func generate(path string, Options Option) (string, error) {
 	cp, err := run(path, Options)
 	if err != nil || cp == nil {
 		return "", err
@@ -384,7 +449,7 @@ func GenFile(input string, output string, options Option) error {
 		os.MkdirAll(outdir, 0775)
 	}
 
-	res, err := Generate(input, options)
+	res, err := generate(input, options)
 	if err != nil {
 		panic(err)
 	} else {

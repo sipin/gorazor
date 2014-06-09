@@ -157,7 +157,6 @@ func (ast *Ast) debug(depth int, max int) {
 	}
 	fmt.Printf("TagName: %s Mode: %s Children: %d [[ \n", ast.TagName, ast.ModeStr(), len(ast.Children))
 	for _, a := range ast.Children {
-		//fmt.Printf("(%d)", idx)
 		if _, ok := a.(*Ast); ok {
 			b := (*Ast)(a.(*Ast))
 			b.debug(depth+1, max)

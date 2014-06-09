@@ -2,7 +2,7 @@ package gorazor
 
 //For gorazor just process on single one gohtml file now
 //we use an singleton map to keep layout relationship
-//Not a good solution now
+//Not a good solution but works
 type LayManager struct {
 	layOutMap  map[string][]string
 	fileLayOut map[string]string
