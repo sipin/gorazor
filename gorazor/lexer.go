@@ -56,6 +56,8 @@ func rec(reg string) *regexp.Regexp {
 
 // The order is important
 var Tests = []TokenMatch{
+	TokenMatch{NEWLINE, "NEWLINE", rec(`(\n)`)},
+	TokenMatch{WHITESPACE, "WHITESPACE", rec(`(\s)`)},
 	TokenMatch{EMAIL, "EMAIL", rec(`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\b`)},
 	TokenMatch{AT_STAR_OPEN, "AT_STAR_OPEN", rec(`@\*`)},
 	TokenMatch{AT_STAR_CLOSE, "AT_STAR_CLOSE", rec(`(\*@)`)},
@@ -73,15 +75,10 @@ var Tests = []TokenMatch{
 	TokenMatch{HTML_TAG_CLOSE, "HTML_TAG_CLOSE", rec(`(</[^>@]+?>)`)},
 	TokenMatch{HTML_TAG_VOID_CLOSE, "HTML_TAG_VOID_CLOSE", rec(`(\/\s*>)`)},
 	TokenMatch{PERIOD, "PERIOD", rec(`(\.)`)},
-	TokenMatch{NEWLINE, "NEWLINE", rec(`(\n)`)},
-	TokenMatch{WHITESPACE, "WHITESPACE", rec(`(\s)`)},
-	//TokenMatch{FUNCTION, "FUNCTION", rec(`(function)([^\d\w])`)},
 	TokenMatch{KEYWORD, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|var|with)([^\d\w])`)},
 	TokenMatch{IDENTIFIER, "IDENTIFIER", rec(`([_$a-zA-Z][_$a-zA-Z0-9]*)`)}, //need verify
 	TokenMatch{FORWARD_SLASH, "FORWARD_SLASH", rec(`(\/)`)},
-	TokenMatch{OPERATOR, "OPERATOR", rec(`(===|!==|==|!==|>>>|<<|>>|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
-	TokenMatch{ASSIGN_OPERATOR, "ASSIGN_OPERATOR", rec(`(\|=|\^=|&=|>>>=|>>=|<<=|-=|\+=|%=|\/=|\*=|=)`)},
-	TokenMatch{LOGICAL, "LOGICAL", rec(`(&&|\|\||&|\||\^)`)},
+	TokenMatch{OPERATOR, "OPERATOR", rec(`(==|!=|>>>|<<|>>|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
 	TokenMatch{ESCAPED_QUOTE, "ESCAPED_QUOTE", rec(`(\\+['\"])`)},
 	TokenMatch{BACKSLASH, "BACKSLASH", rec(`(\\)`)},
 	TokenMatch{DOUBLE_QUOTE, "DOUBLE_QUOTE", rec("(\"|`)")},
@@ -120,10 +117,7 @@ func lineAndPos(src string, pos int) (int, int) {
 func regRemoveTail(text string, regs []string) string {
 	res := text
 	for _, reg := range regs {
-		regc, err := regexp.Compile(reg)
-		if err != nil {
-			panic(err)
-		}
+		regc := regexp.MustCompile(reg)
 		found := regc.FindIndex([]byte(res))
 		if found != nil {
 			res = res[:found[0]] //BUG?
@@ -161,7 +155,6 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 				match = true
 				line, pos := lineAndPos(text, pos)
 				tokenVal := left[found[0]:found[1]]
-
 				if m.Type == HTML_TAG_OPEN {
 					tokenVal = tagClean(tokenVal)
 				} else if m.Type == KEYWORD {

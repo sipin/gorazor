@@ -289,9 +289,9 @@ func (cp *Compiler) visit() {
 		head += k + "\n"
 	}
 	head += "\n)\n func " + fun + "("
-	for i, p := range cp.params {
+	for idx, p := range cp.params {
 		head += p
-		if i != len(cp.params)-1 {
+		if idx != len(cp.params)-1 {
 			head += ", "
 		}
 	}
