@@ -7,7 +7,6 @@ import (
 
 func Badtag(w *gorazor.Widget) string {
 	var _buffer bytes.Buffer
-
 	if w.ErrorMsg != "" {
 
 		_buffer.WriteString("<div class=\"form-group has-error\">\n	<div class=\"alert alert-danger\">")

@@ -41,9 +41,8 @@ type Part struct {
 }
 
 type Compiler struct {
-	ast *Ast
-	buf string //the final result
-
+	ast      *Ast
+	buf      string //the final result
 	layout   string
 	firstBLK int
 	params   []string
@@ -59,28 +58,36 @@ func (self *Compiler) addPart(part Part) {
 	}
 	last := &self.parts[len(self.parts)-1]
 	if last.ptype == part.ptype {
-		if !(last.value == "\\n" && part.value == "\\n") {
-			last.value += part.value
-		}
+		last.value += part.value
 	} else {
 		self.parts = append(self.parts, part)
 	}
 }
 
 func (self *Compiler) genPart() {
-	//fmt.Println(self.parts)
 	res := ""
+	found := 0
 	for _, p := range self.parts {
-		if p.ptype == CMKP {
-			if p.value != "\\n" {
+		if p.ptype == CMKP && p.value != "" {
+			for strings.HasSuffix(p.value, "\\n") {
+				p.value = p.value[:len(p.value)-2]
+			}
+			if p.value != "\\n" && p.value != "" {
 				res += "_buffer.WriteString(\"" + p.value + "\")\n"
 			}
 		} else if p.ptype == CBLK {
 			b := p.value
-			for strings.HasPrefix(b, "{") && strings.HasSuffix(b, "}") {
-				b = b[1 : len(b)-1]
+			if strings.HasPrefix(b, "{") {
+				b = b[1:]
+				found = 1
+			}
+			if found == 1 && strings.HasSuffix(b, "}") {
+				b = b[:len(b)-2]
+				found = 0
 			}
 			res += b + "\n"
+		} else {
+			res += p.value
 		}
 	}
 	self.buf = res
@@ -94,23 +101,29 @@ func makeCompiler(ast *Ast, options Option) *Compiler {
 		options: options}
 }
 
+func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
+	cp.addPart(Part{CBLK, getValStr(child)})
+}
+
 func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
 	v := strings.Replace(getValStr(child), "\n", "\\n", -1)
 	v = strings.Replace(v, "\"", "\\\"", -1)
-	cp.buf += "MKP(" + v + ")MKP"
 	cp.addPart(Part{CMKP, v})
 }
 
 // First block contains imports and parameters, specific action for layout,
 // NOTE, layout have some conventions.
 func (cp *Compiler) visitFirstBLK(blk *Ast) {
-	return
 	pre := cp.buf
 	cp.buf = ""
 	first := ""
+	backup := cp.parts
+	cp.parts = []Part{}
 	cp.visitAst(blk)
+	cp.genPart()
 	first, cp.buf = cp.buf, pre
-	first = cp.cleanUp(first)
+	cp.parts = backup
+
 	isImport := false
 	lines := strings.SplitN(first, "\n", -1)
 	for _, l := range lines {
@@ -157,23 +170,18 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 	}
 }
 
-func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
-	cp.buf += "BLK(" + getValStr(child) + ")BLK"
-	cp.addPart(Part{CBLK, getValStr(child)})
-}
-
 func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo bool) {
 	start := ""
 	end := ""
 	ppNotExp := true
 	ppChildCnt := len(parent.Children)
 	pack := cp.options["Dir"].(string)
-	nohtmlEsc := cp.options["htmlEscape"]
+	htmlEsc := cp.options["htmlEscape"]
 	if parent.Parent != nil && parent.Parent.Mode == EXP {
 		ppNotExp = false
 	}
 	val := getValStr(child)
-	if nohtmlEsc == nil {
+	if htmlEsc == nil {
 		if ppNotExp && idx == 0 && isHomo {
 			if val == "helper" || val == "html" || val == "raw" || pack == "layout" {
 				start += "("
@@ -201,7 +209,6 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 		v += val + end
 	}
 	cp.addPart(Part{CSTAT, v})
-	cp.buf += v
 }
 
 func (cp *Compiler) visitAst(ast *Ast) {
@@ -243,34 +250,6 @@ func (cp *Compiler) visitAst(ast *Ast) {
 			cp.visitAst(c.(*Ast))
 		}
 	}
-}
-
-func (cp *Compiler) cleanUp(buf string) string {
-	buf = strings.Replace(buf, ")BLKBLK(", "", -1)
-	buf = strings.Replace(buf, ")MKPMKP(", "", -1)
-	buf = strings.Replace(buf, "MKP(", "_buffer.WriteString(\"", -1)
-
-	tmp := strings.Replace(buf, "\\n)MKP", ")MKP", -1)
-	for tmp != buf {
-		buf = tmp
-		tmp = strings.Replace(buf, "\\n)MKP", ")MKP", -1)
-	}
-
-	buf = strings.Replace(buf, ")MKP", "\")\n", -1)
-
-	i := strings.Index(buf, "BLK({")
-	for i > -1 {
-		buf = buf[0:i] + buf[i+5:]
-		i = strings.Index(buf, "})BLK")
-		buf = buf[0:i] + buf[i+5:]
-		i = strings.Index(buf, "BLK({")
-	}
-
-	buf = strings.Replace(buf, "BLK(", "", -1)
-	buf = strings.Replace(buf, ")BLK", "\n", -1)
-
-	buf = strings.Replace(buf, `_buffer.WriteString("")`, "", -1)
-	return buf
 }
 
 // TODO, this is dirty now
@@ -339,9 +318,6 @@ func (cp *Compiler) processLayout() {
 func (cp *Compiler) visit() {
 	cp.visitAst(cp.ast)
 	cp.genPart()
-	//fmt.Println("cp.buf:", cp.buf)
-	//cp.buf = cp.cleanUp(cp.buf)
-	//cp.buf =
 
 	pack := cp.options["Dir"].(string)
 	fun := cp.options["File"].(string)
@@ -407,11 +383,6 @@ func run(path string, Options Option) (*Compiler, error) {
 	}
 
 	cp := makeCompiler(parser.ast, Options)
-
-	//cp := &Compiler{ast: parser.ast, buf: "", layout: "", firstBLK: 0,
-	//params: []string{}, parts: []Part{}, imports: map[string]bool{},
-	//options: Options}
-
 	cp.visit()
 
 	if Options["Debug"] != nil {
@@ -478,7 +449,6 @@ func GenFolder(indir string, outdir string, options Option) (err error) {
 			return err
 		}
 	}
-
 	//Make it
 	if !exists(outdir) {
 		os.MkdirAll(outdir, 0775)
