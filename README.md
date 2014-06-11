@@ -8,12 +8,13 @@ GoRazor is the Go port of the razor view engine originated from [asp.net in 2011
   * Original [Razor Syntax](http://www.asp.net/web-pages/tutorials/basics/2-introduction-to-asp-net-web-programming-using-the-razor-syntax) & [quick reference](http://haacked.com/archive/2011/01/06/razor-syntax-quick-reference.aspx/) for asp.net.
 * Able to mix go code in view template
   * Insert code block to import & call arbitrary go modules & functions
+  * Flow controls are just Go, no need to learn another mini-language
 * Code generation approach
   * No reflection overhead
   * Go compiler validation for free
 * Strong type view model
 * Embedding templates support
-* Template layout
+* Layout/Section support
 
 # Usage
 
@@ -27,10 +28,6 @@ Usage:
 
 `gorazor template_folder output_folder` or
 `gorazor template_file output_file`
-
-This is essentially a Go implementation from razor's port in javascript: [vash](https://github.com/kirbysayshi/vash), with Go code generation.
-
-The revision with tag `vash` is the js version.
 
 # Syntax
 
@@ -292,13 +289,15 @@ os.system("gorazor " + path + " " + path.replace("/tpl/", "/src/tpl/")[:-4])
 
 * [watchmedo](https://github.com/gorakhargosh/watchdog)
 
+# Credits
+
+The very [first version](https://github.com/sipin/gorazor/releases/tag/vash) of GoRazor is essentially a hack of razor's port in javascript: [vash](https://github.com/kirbysayshi/vash), thus requires node's to run.
+
+GoRazor has been though serveral rounds of refactoring and it has completely rewriten in pure Go. Nonetheless, THANK YOU [@kirbysayshi](https://github.com/kirbysayshi) for Vash! Without Vash, GoRazor may never start.
+
 # Todo
 
-* Refactor
-  * Avoid massive string maniplation
-  * Avoid regexp in lexer?
-* Add tools, like monitor template changes and auto re-generate.
-* Test suite, Performance benchmark.
-* Generate more function overloads, like accept additional buffer parameter for write.
-* Support direct usage of int/date variables in tempate?
-  * i.e. use @user.Level directly, instead of @gorazor.Itoa(user.Level)
+* Add tools, like monitor template changes and auto re-generate
+* Add default html widgets
+* Add more usage examples
+* Generate more function overloads, like accept additional buffer parameter for write
