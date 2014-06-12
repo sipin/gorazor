@@ -260,13 +260,15 @@ func (cp *Compiler) processLayout() {
 	sections := []string{}
 	for _, l := range lines {
 		l = strings.TrimSpace(l)
-		if strings.HasPrefix(l, "section") && strings.HasSuffix(l, "{") {
+		if (strings.HasPrefix(l, "section") || strings.HasPrefix(l, "rawhtml")) && strings.HasSuffix(l, "{") {
 			name := l
 			name = strings.TrimSpace(name[7 : len(name)-1])
 			out += "\n " + name + " := func() string {\n"
 			out += "var _buffer bytes.Buffer\n"
 			insec = true
-			sections = append(sections, name)
+			if strings.HasPrefix(l, "section") {
+				sections = append(sections, name)
+			}
 		} else if insec && strings.HasSuffix(l, "}") {
 			out += "return _buffer.String()\n}\n"
 			insec = false
