@@ -1,6 +1,7 @@
 package gorazor
 
 import (
+	"fmt"
 	"html/template"
 	"os"
 	"strconv"
@@ -8,8 +9,9 @@ import (
 	"time"
 )
 
-func HTMLEscape(obj string) string {
-	return template.HTMLEscapeString(obj)
+func HTMLEscape(m interface{}) string {
+	s := fmt.Sprint(m)
+	return template.HTMLEscapeString(s)
 }
 
 func StrTime(timestamp int64, format string) string {
