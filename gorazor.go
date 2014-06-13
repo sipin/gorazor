@@ -11,22 +11,20 @@ import (
 )
 
 func Usage() {
-	fmt.Fprintf(os.Stderr, "usage: gorazor [input dir or file] [output dir or file]\n")
+	fmt.Fprintf(os.Stderr, "usage: gorazor <input dir or file> <output dir or file> [-debug]\n")
 	flag.PrintDefaults()
 	os.Exit(2)
 }
 
 func main() {
-	debug := false
 	flag.Usage = Usage
-
 	flag.Parse()
 	options := gorazor.Option{}
-	if debug {
+
+	if flag.NArg() == 3 && flag.Arg(2) == "-debug" {
 		options["Debug"] = true
 	}
-
-	if flag.NArg() == 2 {
+	if flag.NArg() >= 2 {
 		arg1, arg2 := flag.Arg(0), flag.Arg(1)
 		stat, err := os.Stat(arg1)
 		if err != nil {
@@ -45,8 +43,5 @@ func main() {
 		} else {
 			flag.Usage()
 		}
-	} else {
-		flag.Usage()
 	}
-
 }

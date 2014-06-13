@@ -1,10 +1,8 @@
 package gorazor
 
 import (
-	"bytes"
 	"errors"
 	"fmt"
-	"io"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -340,22 +338,17 @@ func (cp *Compiler) visit() {
 }
 
 func run(path string, Options Option) (*Compiler, error) {
-	buf := bytes.NewBuffer(nil)
-	f, err := os.Open(path)
+	content, err := ioutil.ReadFile(path)
 	if err != nil {
 		return nil, err
 	}
-	io.Copy(buf, f)
-	f.Close()
-
-	text := string(buf.Bytes())
+	text := string(content)
 	lex := &Lexer{text, Tests}
 
 	res, err := lex.Scan()
 	if err != nil {
 		return nil, err
 	}
-
 	//DEBUG
 	if Options["Debug"] != nil {
 		fmt.Println("------------------- TOKEN START -----------------")
@@ -384,20 +377,27 @@ func run(path string, Options Option) (*Compiler, error) {
 
 	cp := makeCompiler(parser.ast, Options)
 	cp.visit()
-
-	if Options["Debug"] != nil {
-		fmt.Println(cp.buf)
-	}
 	return cp, nil
-
 }
 
-func generate(path string, Options Option) (string, error) {
+func generate(path string, output string, Options Option) error {
 	cp, err := run(path, Options)
 	if err != nil || cp == nil {
-		return "", err
+		panic(err)
 	}
-	return cp.buf, err
+	err = ioutil.WriteFile(output, []byte(cp.buf), 0644)
+	cmd := exec.Command("gofmt", "-w", output)
+	cmd.Stdout = os.Stdout
+	cmd.Stderr = os.Stderr
+	if err := cmd.Run(); err != nil {
+		fmt.Println("gofmt: ", err)
+		return err
+	}
+	if Options["Debug"] != nil {
+		content, _ := ioutil.ReadFile(output)
+		fmt.Println(string(content))
+	}
+	return err
 }
 
 //------------------------------ API ------------------------------
@@ -419,24 +419,7 @@ func GenFile(input string, output string, options Option) error {
 	if !exists(outdir) {
 		os.MkdirAll(outdir, 0775)
 	}
-
-	res, err := generate(input, options)
-	if err != nil {
-		panic(err)
-	} else {
-		err := ioutil.WriteFile(output, []byte(res), 0644)
-		if err != nil {
-			panic(err)
-		}
-		cmd := exec.Command("gofmt", "-w", output)
-		cmd.Stdout = os.Stdout
-		cmd.Stderr = os.Stderr
-		if err := cmd.Run(); err != nil {
-			fmt.Println("gofmt: ", err)
-			return err
-		}
-	}
-	return nil
+	return generate(input, output, options)
 }
 
 // Generate from directory to directory, Find all the files with extension
