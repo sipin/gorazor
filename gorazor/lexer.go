@@ -74,8 +74,8 @@ var Tests = []TokenMatch{
 	TokenMatch{HTML_TAG_VOID_CLOSE, "HTML_TAG_VOID_CLOSE", rec(`(\/\s*>)`)},
 	TokenMatch{KEYWORD, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|var|with)([^\d\w])`)},
 	TokenMatch{IDENTIFIER, "IDENTIFIER", rec(`([_$a-zA-Z][_$a-zA-Z0-9]*)`)}, //need verify
-	TokenMatch{FORWARD_SLASH, "FORWARD_SLASH", rec(`(\/)`)},
 	TokenMatch{OPERATOR, "OPERATOR", rec(`(==|!=|>>|<<|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
+	TokenMatch{FORWARD_SLASH, "FORWARD_SLASH", rec(`(\/)`)},
 	TokenMatch{ESCAPED_QUOTE, "ESCAPED_QUOTE", rec(`(\\+['\"])`)},
 	TokenMatch{NUMERIC_CONTENT, "NUMERIC_CONTENT", rec(`([0-9]+)`)},
 	TokenMatch{CONTENT, "CONTENT", rec(`([^\s})@.]+?)`)},
