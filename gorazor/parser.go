@@ -291,7 +291,6 @@ func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) err
 	subTokens = subTokens[:len(subTokens)-1]
 	if !includeDelim {
 		parser.ast.addChild(token)
-
 	}
 	_parser := &Parser{&Ast{}, nil, subTokens, []Token{}, false, false, modeOpen}
 	_parser.Run()

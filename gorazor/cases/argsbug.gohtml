@@ -1,0 +1,15 @@
+@{
+import (
+    . "kp/models"
+     "tpl/helper"
+     "cases/layout/args"
+)
+var totalMessage int
+var u *User
+}
+
+@{
+     messages := []string{}
+}
+
+<p>@gorazor.Itoa(args(messages...))</p>

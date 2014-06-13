@@ -1,0 +1,11 @@
+@{
+import (
+"strconv"
+"zfw/models"
+)
+var objs ...*models.Widget
+}
+
+@{
+  size := strconv.Itoa(12/len(objs))
+}
