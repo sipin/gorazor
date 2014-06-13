@@ -365,7 +365,7 @@ func run(path string, Options Option) (*Compiler, error) {
 		fmt.Println("--------------------- TOKEN END -----------------\n")
 	}
 
-	parser := &Parser{&Ast{}, nil, res, []Token{}, false, false, UNK}
+	parser := &Parser{&Ast{}, nil, res, []Token{}, false, UNK}
 	err = parser.Run()
 	if err != nil {
 		fmt.Println(err)

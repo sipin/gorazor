@@ -25,7 +25,6 @@ var PAIRS = map[int]int{
 	PAREN_OPEN:      PAREN_CLOSE,
 	SINGLE_QUOTE:    SINGLE_QUOTE,
 	AT_COLON:        NEWLINE,
-	FORWARD_SLASH:   FORWARD_SLASH,
 }
 
 type Ast struct {
@@ -182,7 +181,6 @@ type Parser struct {
 	root        *Ast
 	tokens      []Token
 	preTokens   []Token
-	inComment   bool
 	saveTextTag bool
 	initMode    int
 }
@@ -292,7 +290,7 @@ func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) err
 	if !includeDelim {
 		parser.ast.addChild(token)
 	}
-	_parser := &Parser{&Ast{}, nil, subTokens, []Token{}, false, false, modeOpen}
+	_parser := &Parser{&Ast{}, nil, subTokens, []Token{}, false, modeOpen}
 	_parser.Run()
 	if includeDelim {
 		_parser.ast.Children = append([]interface{}{token}, _parser.ast.Children...)
@@ -359,7 +357,7 @@ func (parser *Parser) handleMKP(token Token) error {
 		tagName = strings.Replace(tagName, "</", "", -1)
 		//TODO
 		opener := parser.ast.closest(MKP, tagName)
-		if opener.TagName != tagName { //unmatched
+		if opener.TagName != tagName {
 			fmt.Fprintf(os.Stderr, "UNMATCHED tag close: \"%s\" at line: %d pos: %d\n", token.Text,
 				token.Line, token.Pos)
 		} else {
@@ -377,10 +375,6 @@ func (parser *Parser) handleMKP(token Token) error {
 	case HTML_TAG_VOID_CLOSE:
 		parser.ast.addChild(token)
 		parser.ast = parser.ast.Parent
-
-	case BACKSLASH:
-		token.Text += "\\"
-		parser.ast.addChild(token)
 	default:
 		parser.ast.addChild(token)
 	}
@@ -391,7 +385,7 @@ func (parser *Parser) handleBLK(token Token) error {
 	next := parser.peekToken(0)
 	switch token.Type {
 	case AT:
-		if (next.Type != AT) && (!parser.inComment) {
+		if next.Type != AT {
 			parser.deferToken(token)
 			parser.ast = parser.ast.beget(MKP, "")
 		} else {
@@ -410,32 +404,22 @@ func (parser *Parser) handleBLK(token Token) error {
 		parser.ast = parser.ast.beget(MKP, "")
 		parser.deferToken(token)
 
-	case FORWARD_SLASH, SINGLE_QUOTE, DOUBLE_QUOTE:
-		if token.Type == FORWARD_SLASH && next != nil && next.Type == FORWARD_SLASH {
-			parser.inComment = true
+	case SINGLE_QUOTE, DOUBLE_QUOTE:
+		subTokens, err := parser.advanceUntil(token, token.Type,
+			PAIRS[token.Type],
+			BACKSLASH,
+			BACKSLASH)
+		if err != nil {
+			return err
 		}
-		if !parser.inComment {
-			subTokens, err := parser.advanceUntil(token, token.Type,
-				PAIRS[token.Type],
-				BACKSLASH,
-				BACKSLASH)
-			if err != nil {
-				return err
+		for idx, _ := range subTokens {
+			if subTokens[idx].Type == AT {
+				subTokens[idx].Type = CONTENT
 			}
-			for idx, _ := range subTokens {
-				if subTokens[idx].Type == AT {
-					subTokens[idx].Type = CONTENT
-				}
-			}
-			parser.ast.addChildren(subTokens)
-		} else {
-			parser.ast.addChild(token)
 		}
+		parser.ast.addChildren(subTokens)
 
 	case NEWLINE:
-		if parser.inComment {
-			parser.inComment = false
-		}
 		parser.ast.addChild(token)
 
 	case BRACE_OPEN, PAREN_OPEN:

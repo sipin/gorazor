@@ -19,7 +19,6 @@ const (
 	CONTENT
 	EMAIL
 	ESCAPED_QUOTE
-	FORWARD_SLASH
 	HARD_PAREN_CLOSE
 	HARD_PAREN_OPEN
 	HTML_TAG_OPEN
@@ -45,7 +44,7 @@ var typeStr = [...]string{
 	"UNDEF", "AT", "ASSIGN_OPERATOR", "AT_COLON",
 	"AT_STAR_CLOSE", "AT_STAR_OPEN", "BACKSLASH",
 	"BRACE_CLOSE", "BRACE_OPEN", "CONTENT",
-	"EMAIL", "ESCAPED_QUOTE", "FORWARD_SLASH",
+	"EMAIL", "ESCAPED_QUOTE",
 	"HARD_PAREN_CLOSE", "HARD_PAREN_OPEN",
 	"HTML_TAG_OPEN", "HTML_TAG_CLOSE", "HTML_TAG_VOID_CLOSE",
 	"IDENTIFIER", "KEYWORD", "LOGICAL",
@@ -75,7 +74,6 @@ var Tests = []TokenMatch{
 	TokenMatch{KEYWORD, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|var|with)([^\d\w])`)},
 	TokenMatch{IDENTIFIER, "IDENTIFIER", rec(`([_$a-zA-Z][_$a-zA-Z0-9]*(\.\.\.)?)`)}, //need verify
 	TokenMatch{OPERATOR, "OPERATOR", rec(`(==|!=|>>|<<|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
-	TokenMatch{FORWARD_SLASH, "FORWARD_SLASH", rec(`(\/)`)},
 	TokenMatch{ESCAPED_QUOTE, "ESCAPED_QUOTE", rec(`(\\+['\"])`)},
 	TokenMatch{NUMERIC_CONTENT, "NUMERIC_CONTENT", rec(`([0-9]+)`)},
 	TokenMatch{CONTENT, "CONTENT", rec(`([^\s})@.]+?)`)},
@@ -175,8 +173,6 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 			tok = makeToken(string(val), BRACE_CLOSE)
 		case '"', '`':
 			tok = makeToken(string(val), DOUBLE_QUOTE)
-		case '\\':
-			tok = makeToken(string(val), BACKSLASH)
 		case '\'':
 			tok = makeToken(string(val), SINGLE_QUOTE)
 		case '.':
