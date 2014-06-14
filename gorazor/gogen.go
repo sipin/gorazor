@@ -254,8 +254,8 @@ func (cp *Compiler) visitAst(ast *Ast) {
 func (cp *Compiler) processLayout() {
 	lines := strings.SplitN(cp.buf, "\n", -1)
 	out := ""
-	insec := false
 	sections := []string{}
+	scope := 0
 	for _, l := range lines {
 		l = strings.TrimSpace(l)
 		if strings.HasPrefix(l, "section") && strings.HasSuffix(l, "{") {
@@ -263,11 +263,20 @@ func (cp *Compiler) processLayout() {
 			name = strings.TrimSpace(name[7 : len(name)-1])
 			out += "\n " + name + " := func() string {\n"
 			out += "var _buffer bytes.Buffer\n"
-			insec = true
+			scope = 1
 			sections = append(sections, name)
-		} else if insec && strings.HasSuffix(l, "}") {
-			out += "return _buffer.String()\n}\n"
-			insec = false
+		} else if scope > 0 {
+			if strings.HasSuffix(l, "{") {
+				scope++
+			} else if strings.HasSuffix(l, "}") {
+				scope--
+			}
+			if scope == 0 {
+				out += "return _buffer.String()\n}\n"
+				scope = 0
+			} else {
+				out += l + "\n"
+			}
 		} else {
 			out += l + "\n"
 		}
