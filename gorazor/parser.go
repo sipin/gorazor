@@ -424,9 +424,6 @@ func (parser *Parser) handleBLK(token Token) error {
 
 	case BRACE_OPEN, PAREN_OPEN:
 		subMode := BLK
-		if false && token.Type == BRACE_OPEN { //TODO
-			subMode = MKP
-		}
 		parser.subParse(token, subMode, false)
 		subTokens := parser.advanceUntilNot(WHITESPACE)
 		next := parser.peekToken(0)

@@ -63,8 +63,14 @@ func (self *Compiler) addPart(part Part) {
 }
 
 func (self *Compiler) genPart() {
+	for idx, p := range self.parts {
+		if p.ptype == CBLK &&
+			strings.HasPrefix(p.value, "{") &&
+			strings.HasSuffix(p.value, "}") {
+			self.parts[idx].value = p.value[1 : len(p.value)-2]
+		}
+	}
 	res := ""
-	found := 0
 	for _, p := range self.parts {
 		if p.ptype == CMKP && p.value != "" {
 			for strings.HasSuffix(p.value, "\\n") {
@@ -74,16 +80,7 @@ func (self *Compiler) genPart() {
 				res += "_buffer.WriteString(\"" + p.value + "\")\n"
 			}
 		} else if p.ptype == CBLK {
-			b := p.value
-			if strings.HasPrefix(b, "{") {
-				b = b[1:]
-				found = 1
-			}
-			if found == 1 && strings.HasSuffix(b, "}") {
-				b = b[:len(b)-2]
-				found = 0
-			}
-			res += b + "\n"
+			res += p.value + "\n"
 		} else {
 			res += p.value
 		}
@@ -377,7 +374,7 @@ func run(path string, Options Option) (*Compiler, error) {
 	//DEBUG
 	if Options["Debug"] != nil {
 		fmt.Println("--------------------- AST START -----------------")
-		parser.ast.debug(0, 7)
+		parser.ast.debug(0, 20)
 		fmt.Println("--------------------- AST END -----------------\n")
 		if parser.ast.Mode != PRG {
 			panic("TYPE")
