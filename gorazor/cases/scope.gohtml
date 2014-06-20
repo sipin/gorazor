@@ -1,0 +1,49 @@
+@{
+import (
+"zfw/models"
+. "zfw/tplhelper"
+"dm"
+)
+var obj *models.Widget
+}
+
+@{
+data, dmType := dm.GetData(obj.PlaceHolder)
+
+if dmType == "simple" {
+obj.StringList = data.([]string)
+<div>@raw(SelectPk(obj))</div>
+} else {
+node := data.(*dm.DMTree)
+<div class="form-group @GetErrorClass(obj)">
+  <label for="@obj.Name" class="col-sm-2 control-label">@obj.Label</label>
+  <div class="col-sm-10">
+    <select class="form-control" name="@obj.Name" @BoolStr(obj.Disabled, "disabled")>
+      @for _, option := range node.Keys{
+      if values, ok := node.Values[option]; ok {
+      <optgroup label="@option">
+        @for _, value := range values{
+        if value == obj.Value{
+        <option selected>@value</option>
+        }else{
+        <option>@value</option>
+        }
+        }
+      </optgroup>
+      } else {
+      if option == obj.Value{
+      <option selected>@option</option>
+      }else{
+      <option>@option</option>
+      }
+      }
+      }
+    </select>
+    @if obj.ErrorMsg != "" {
+    <span class="label label-danger">@obj.ErrorMsg</span>
+    }
+  </div>
+</div>
+
+}
+}
