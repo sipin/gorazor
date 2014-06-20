@@ -7,6 +7,7 @@ import (
 	"os"
 	"os/exec"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
@@ -47,6 +48,8 @@ type Compiler struct {
 	parts    []Part
 	imports  map[string]bool
 	options  Option
+	dir      string
+	file     string
 }
 
 func (self *Compiler) addPart(part Part) {
@@ -85,12 +88,17 @@ func (self *Compiler) genPart() {
 	self.buf = res
 }
 
-func makeCompiler(ast *Ast, options Option) *Compiler {
+func makeCompiler(ast *Ast, options Option, input string) *Compiler {
+	dir := filepath.Base(filepath.Dir(input))
+	file := Capitalize(strings.Replace(filepath.Base(input), gz_extension, "", 1))
 	return &Compiler{ast: ast, buf: "",
 		layout: "", firstBLK: 0,
 		params: []string{}, parts: []Part{},
 		imports: map[string]bool{},
-		options: options}
+		options: options,
+		dir:     dir,
+		file:    file,
+	}
 }
 
 func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
@@ -167,7 +175,7 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 	end := ""
 	ppNotExp := true
 	ppChildCnt := len(parent.Children)
-	pack := cp.options["Dir"].(string)
+	pack := cp.dir
 	htmlEsc := cp.options["htmlEscape"]
 	if parent.Parent != nil && parent.Parent.Mode == EXP {
 		ppNotExp = false
@@ -320,8 +328,8 @@ func (cp *Compiler) visit() {
 	cp.visitAst(cp.ast)
 	cp.genPart()
 
-	pack := cp.options["Dir"].(string)
-	fun := cp.options["File"].(string)
+	pack := cp.dir
+	fun := cp.file
 
 	cp.imports[`"bytes"`] = true
 	head := "package " + pack + "\n import (\n"
@@ -377,8 +385,7 @@ func run(path string, Options Option) (*Compiler, error) {
 			panic("TYPE")
 		}
 	}
-
-	cp := makeCompiler(parser.ast, Options)
+	cp := makeCompiler(parser.ast, Options, path)
 	cp.visit()
 	return cp, nil
 }
@@ -412,12 +419,7 @@ const (
 // Generate from input to output file,
 // gofmt will trigger an error if it fails.
 func GenFile(input string, output string, options Option) error {
-	fmt.Printf("Processing: %s --> %s\n", input, output)
-
 	//Use to as package name
-	options["Dir"] = filepath.Base(filepath.Dir(input))
-	options["File"] = strings.Replace(filepath.Base(input), gz_extension, "", 1)
-	options["File"] = Capitalize(options["File"].(string))
 	outdir := filepath.Dir(output)
 	if !exists(outdir) {
 		os.MkdirAll(outdir, 0775)
@@ -443,24 +445,41 @@ func GenFolder(indir string, outdir string, options Option) (err error) {
 	incdir_abs, _ := filepath.Abs(indir)
 	outdir_abs, _ := filepath.Abs(outdir)
 
+	paths := []string{}
+
 	visit := func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
 			//Just do file with exstension .gohtml
 			if !strings.HasSuffix(path, gz_extension) {
 				return nil
 			}
-			//adjust with the abs path, so that we keep the same directory hierarchy
-			input, _ := filepath.Abs(path)
-			output := strings.Replace(input, incdir_abs, outdir_abs, 1)
-			output = strings.Replace(output, gz_extension, go_extension, -1)
-			err := GenFile(path, output, options)
-			if err != nil {
-				os.Exit(2)
-			}
-
+			paths = append(paths, path)
 		}
 		return nil
 	}
+
+	fun := func(path string, res chan<- string) {
+		//adjust with the abs path, so that we keep the same directory hierarchy
+		input, _ := filepath.Abs(path)
+		output := strings.Replace(input, incdir_abs, outdir_abs, 1)
+		output = strings.Replace(output, gz_extension, go_extension, -1)
+		err := GenFile(path, output, options)
+		if err != nil {
+			res <- fmt.Sprintf("%s -> %s", path, output)
+			os.Exit(2)
+		}
+		res <- fmt.Sprintf("%s -> %s", path, output)
+	}
+
 	err = filepath.Walk(indir, visit)
-	return err
+	runtime.GOMAXPROCS(runtime.NumCPU())
+	result := make(chan string, len(paths))
+
+	for w := 0; w < len(paths); w++ {
+		go fun(paths[w], result)
+	}
+	for i := 0; i < len(paths); i++ {
+		<-result
+	}
+	return
 }

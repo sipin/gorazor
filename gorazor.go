@@ -32,13 +32,13 @@ func main() {
 			os.Exit(2)
 		}
 		if stat.IsDir() {
-			fmt.Printf("Processing dir: %s %s\n", arg1, arg2)
+			fmt.Printf("Gorazor processing dir: %s -> %s\n", arg1, arg2)
 			err := gorazor.GenFolder(arg1, arg2, options)
 			if err != nil {
 				fmt.Println(err)
 			}
 		} else if stat.Mode().IsRegular() {
-			fmt.Printf("Processing file: %s %s\n", arg1, arg2)
+			fmt.Printf("Gorazor processing file: %s -> %s\n", arg1, arg2)
 			gorazor.GenFile(arg1, arg2, options)
 		} else {
 			flag.Usage()
