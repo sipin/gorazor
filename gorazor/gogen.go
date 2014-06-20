@@ -63,13 +63,6 @@ func (self *Compiler) addPart(part Part) {
 }
 
 func (self *Compiler) genPart() {
-	for idx, p := range self.parts {
-		if p.ptype == CBLK &&
-			strings.HasPrefix(p.value, "{") &&
-			strings.HasSuffix(p.value, "}") {
-			self.parts[idx].value = p.value[1 : len(p.value)-2]
-		}
-	}
 	res := ""
 	for _, p := range self.parts {
 		if p.ptype == CMKP && p.value != "" {
@@ -80,6 +73,10 @@ func (self *Compiler) genPart() {
 				res += "_buffer.WriteString(\"" + p.value + "\")\n"
 			}
 		} else if p.ptype == CBLK {
+			if strings.HasPrefix(p.value, "{") &&
+				strings.HasSuffix(p.value, "}") {
+				p.value = p.value[1 : len(p.value)-2]
+			}
 			res += p.value + "\n"
 		} else {
 			res += p.value
