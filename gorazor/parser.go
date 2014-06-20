@@ -3,7 +3,6 @@ package gorazor
 import (
 	"errors"
 	"fmt"
-	"os"
 	"regexp"
 	"strings"
 )
@@ -357,10 +356,7 @@ func (parser *Parser) handleMKP(token Token) error {
 		tagName = strings.Replace(tagName, "</", "", -1)
 		//TODO
 		opener := parser.ast.closest(MKP, tagName)
-		if opener.TagName != tagName {
-			fmt.Fprintf(os.Stderr, "UNMATCHED tag close: \"%s\" at line: %d pos: %d\n", token.Text,
-				token.Line, token.Pos)
-		} else {
+		if opener.TagName == tagName {
 			parser.ast = opener
 		}
 		if token.Type == HTML_TAG_CLOSE || parser.saveTextTag {
