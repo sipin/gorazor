@@ -72,6 +72,7 @@ func (self *Compiler) genPart() {
 			for strings.HasSuffix(p.value, "\\n") {
 				p.value = p.value[:len(p.value)-2]
 			}
+			p.value = strings.Replace(p.value, "\n", "\\n", -1)
 			if p.value != "\\n" && p.value != "" {
 				res += "_buffer.WriteString(\"" + p.value + "\")\n"
 			}
@@ -360,6 +361,7 @@ func run(path string, Options Option) (*Compiler, error) {
 	if err != nil {
 		return nil, err
 	}
+
 	//DEBUG
 	if Options["Debug"] != nil {
 		fmt.Println("------------------- TOKEN START -----------------")
@@ -419,7 +421,6 @@ const (
 // Generate from input to output file,
 // gofmt will trigger an error if it fails.
 func GenFile(input string, output string, options Option) error {
-	//Use to as package name
 	outdir := filepath.Dir(output)
 	if !exists(outdir) {
 		os.MkdirAll(outdir, 0775)
