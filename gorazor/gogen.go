@@ -454,6 +454,10 @@ func GenFolder(indir string, outdir string, options Option) (err error) {
 			if !strings.HasSuffix(path, gz_extension) {
 				return nil
 			}
+			filename := filepath.Base(path)
+			if strings.HasPrefix(filename, ".#") {
+				return nil
+			}
 			paths = append(paths, path)
 		}
 		return nil
