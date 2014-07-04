@@ -265,6 +265,10 @@ Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor
 
 # FAQ
 
+## IDE / Editor support?
+
+* Sublime Text 2/3 Syntax Highlight: search & install `GoRazor` via Package Control.
+
 ## How to auto re-generate when gohtml file changes?
 
 We may add `gorazor watch` cmd after Go 1.3 which has official [fsnotify](https://docs.google.com/document/d/1xl_aRcCbksFRmCKtoyRQG9L7j6DIdMZtrkFAoi5EXaA/edit) support.
