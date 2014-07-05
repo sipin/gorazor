@@ -268,6 +268,7 @@ Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor
 ## IDE / Editor support?
 
 * Sublime Text 2/3 Syntax Highlight: search & install `GoRazor` via Package Control.
+  * **Context aware** auto-completion? Manually replace `gscomplete.py` in GoSublime package folder (`~/Library/Application\ Support/Sublime\ Text\ 2/Packages/GoSublime` on Mac) with [this](https://raw.githubusercontent.com/sipin/GoSublime/gorazor/gscomplete.py) and `gslint.py` with [this](https://raw.githubusercontent.com/sipin/GoSublime/gorazor/gslint.py)
 
 ## How to auto re-generate when gohtml file changes?
 
