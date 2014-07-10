@@ -35,7 +35,7 @@ Usage:
 
 * `@variable` to insert **string** variable into html template
   * variable could be wrapped by arbitrary go functions
-  * variable inserted will be automatically [esacped](http://golang.org/pkg/html/template/#HTMLEscapeString)
+  * variable inserted will be automatically [escaped](http://golang.org/pkg/html/template/#HTMLEscapeString)
 
 ```html
 <div>Hello @user.Name</div>
