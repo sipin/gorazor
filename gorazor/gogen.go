@@ -69,10 +69,13 @@ func (self *Compiler) genPart() {
 	res := ""
 	for _, p := range self.parts {
 		if p.ptype == CMKP && p.value != "" {
+			// do some escapings
+			p.value = strings.Replace(p.value, `\n`, `\\n`, -1)
+			p.value = strings.Replace(p.value, "\n", `\n`, -1)
+			p.value = strings.Replace(p.value, `"`, `\"`, -1)
 			for strings.HasSuffix(p.value, "\\n") {
 				p.value = p.value[:len(p.value)-2]
 			}
-			p.value = strings.Replace(p.value, "\n", "\\n", -1)
 			if p.value != "\\n" && p.value != "" {
 				res += "_buffer.WriteString(\"" + p.value + "\")\n"
 			}
@@ -107,9 +110,8 @@ func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
 }
 
 func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
-	v := strings.Replace(getValStr(child), "\n", "\\n", -1)
-	v = strings.Replace(v, "\"", "\\\"", -1)
-	cp.addPart(Part{CMKP, v})
+
+	cp.addPart(Part{CMKP, getValStr(child)})
 }
 
 // First block contains imports and parameters, specific action for layout,
