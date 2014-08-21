@@ -277,6 +277,21 @@ Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor
 
 ![auto complete](https://lh5.googleusercontent.com/-A95EdOJGVv8/U7kaSdMkP-I/AAAAAAAAH5A/5ZI4z7X2l_Y/w958-h664-no/Screen+Shot+2014-07-05+at+10.38.22+PM.png)
 
+### Emacs
+[web-mode](http://web-mode.org/) supports Razor template engine, so add this into your Emacs config file:
+
+```lisp
+(require 'web-mode)
+(add-hook 'web-mode-hook  'my-web-mode-hook)
+(add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.gohtml\\'" . web-mode))
+(add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
+(setq web-mode-engines-alist
+'(("razor" . "\\.gohtml\\'")
+)
+)
+```
+
 ## How to auto re-generate when gohtml file changes?
 
 We may add `gorazor watch` cmd after Go 1.3 which has official [fsnotify](https://docs.google.com/document/d/1xl_aRcCbksFRmCKtoyRQG9L7j6DIdMZtrkFAoi5EXaA/edit) support.
