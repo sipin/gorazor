@@ -331,7 +331,7 @@ func (parser *Parser) handleMKP(token Token) error {
 
 			case AT, AT_COLON:
 				//we want to keep the token, but remove it's special meanning
-				next.Type = CONTENT //Modify from a pointer, work?
+				next.Type = CONTENT
 				parser.ast.addChild(parser.nextToken())
 			default:
 				parser.ast.addChild(parser.nextToken())
@@ -396,7 +396,7 @@ func (parser *Parser) handleBLK(token Token) error {
 	case AT_COLON:
 		parser.subParse(token, MKP, true)
 
-	case TEXT_TAG_OPEN, TEXT_TAG_CLOSE, HTML_TAG_OPEN, HTML_TAG_CLOSE:
+	case TEXT_TAG_OPEN, TEXT_TAG_CLOSE, HTML_TAG_OPEN, HTML_TAG_CLOSE, COMMENT_TAG_OPEN, COMMENT_TAG_CLOSE:
 		parser.ast = parser.ast.beget(MKP, "")
 		parser.deferToken(token)
 
@@ -414,9 +414,6 @@ func (parser *Parser) handleBLK(token Token) error {
 			}
 		}
 		parser.ast.addChildren(subTokens)
-
-	case NEWLINE:
-		parser.ast.addChild(token)
 
 	case BRACE_OPEN, PAREN_OPEN:
 		subMode := BLK

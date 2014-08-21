@@ -37,6 +37,8 @@ const (
 	DOUBLE_QUOTE
 	TEXT_TAG_CLOSE
 	TEXT_TAG_OPEN
+	COMMENT_TAG_OPEN
+	COMMENT_TAG_CLOSE
 	WHITESPACE
 )
 
@@ -51,7 +53,7 @@ var typeStr = [...]string{
 	"NEWLINE", "NUMERIC_CONTENT", "OPERATOR",
 	"PAREN_CLOSE", "PAREN_OPEN", "PERIOD",
 	"SINGLE_QUOTE", "DOUBLE_QUOTE", "TEXT_TAG_CLOSE",
-	"TEXT_TAG_OPEN", "WHITESPACE"}
+	"TEXT_TAG_OPEN", "COMMENT_TAG_OPEN", "COMMENT_TAG_CLOSE", "WHITESPACE"}
 
 type Option map[string]interface{}
 
@@ -192,6 +194,10 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 				tok = makeToken("<text>", TEXT_TAG_OPEN)
 			} else if peekNext("</text>", left) {
 				tok = makeToken("</text>", TEXT_TAG_CLOSE)
+			} else if peekNext("<!--", left) {
+				tok = makeToken("<!--", COMMENT_TAG_OPEN)
+			} else if peekNext("-->", left) {
+				tok = makeToken("-->", COMMENT_TAG_CLOSE)
 			} else {
 				//try rec
 				match := false

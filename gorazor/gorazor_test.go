@@ -70,7 +70,10 @@ func TestGenerate(t *testing.T) {
 	casedir, _ := filepath.Abs(filepath.Dir("./cases/"))
 
 	visit := func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
+		if !info.IsDir() { // regular file
+			if strings.HasPrefix(filepath.Base(path), ".") {
+				return nil
+			}
 			name := strings.Replace(path, ".gohtml", ".go", 1)
 			cmp := strings.Replace(name, "/cases/", "/test/", -1)
 			dirname := filepath.Dir(cmp)
