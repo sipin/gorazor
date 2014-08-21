@@ -286,10 +286,7 @@ Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor
 (add-to-list 'auto-mode-alist '("\\.html?\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.gohtml\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
-(setq web-mode-engines-alist
-'(("razor" . "\\.gohtml\\'")
-)
-)
+(setq web-mode-engines-alist '(("razor" . "\\.gohtml\\'")))
 ```
 
 ## How to auto re-generate when gohtml file changes?
