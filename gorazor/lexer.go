@@ -182,7 +182,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 		case '@':
 			if peekNext(string(':'), left[1:]) {
 				tok = makeToken("@:", AT_COLON)
-			} else if peekNext(string('*'), left) {
+			} else if peekNext(string('*'), left[1:]) {
 				tok = makeToken("@*", AT_STAR_OPEN)
 			} else {
 				tok = makeToken("@", AT)
