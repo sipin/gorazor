@@ -132,7 +132,8 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 	fset := token.NewFileSet()
 	f, err := parser.ParseFile(fset, "", "package main\n"+first, parser.ImportsOnly)
 	if err != nil {
-		panic(err)
+		fmt.Println(err)
+		os.Exit(1)
 	} else {
 		for _, s := range f.Imports {
 			v := s.Path.Value
