@@ -3,6 +3,8 @@ package gorazor
 import (
 	"errors"
 	"fmt"
+	"go/parser"
+	"go/token"
 	"io/ioutil"
 	"os"
 	"os/exec"
@@ -114,7 +116,6 @@ func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
 	cp.addPart(Part{CMKP, getValStr(child)})
 }
 
-// First block contains imports and parameters, specific action for layout,
 // NOTE, layout have some conventions.
 func (cp *Compiler) visitFirstBLK(blk *Ast) {
 	pre := cp.buf
@@ -127,31 +128,32 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 	first, cp.buf = cp.buf, pre
 	cp.parts = backup
 
-	isImport := false
-	lines := strings.SplitN(first, "\n", -1)
-	for _, l := range lines {
-		l = strings.TrimSpace(l)
-		if strings.HasPrefix(l, "import") {
-			isImport = true
-			continue
-		}
-		if l == ")" {
-			isImport = false
-			continue
-		}
-
-		if isImport {
-			parts := strings.SplitN(l, "/", -1)
+	fset := token.NewFileSet()
+	f, err := parser.ParseFile(fset, "", "package main\n"+first, parser.ImportsOnly)
+	if err != nil {
+		panic(err)
+	} else {
+		for _, s := range f.Imports {
+			v := s.Path.Value
+			if s.Name != nil {
+				v = s.Name.Name + " " + v
+			}
+			parts := strings.SplitN(v, "/", -1)
 			if len(parts) >= 2 && parts[len(parts)-2] == "layout" {
-				cp.layout = strings.Replace(l, "\"", "", -1)
+				cp.layout = strings.Replace(v, "\"", "", -1)
 				dir := strings.Join(parts[0:len(parts)-1], "/") + "\""
 				cp.imports[dir] = true
 			} else {
-				cp.imports[l] = true
+				cp.imports[v] = true
 			}
-		} else if strings.HasPrefix(l, "var") {
-			vname := l[4:]
+		}
+	}
 
+	lines := strings.SplitN(first, "\n", -1)
+	for _, l := range lines {
+		l = strings.TrimSpace(l)
+		if strings.HasPrefix(l, "var") {
+			vname := l[4:]
 			if strings.HasSuffix(l, "gorazor.Widget") {
 				cp.imports[GorazorNamespace] = true
 				cp.params = append(cp.params, vname[:len(vname)-14]+"gorazor.Widget")
