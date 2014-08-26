@@ -116,6 +116,7 @@ func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
 	cp.addPart(Part{CMKP, getValStr(child)})
 }
 
+// First block contains imports and parameters, specific action for layout,
 // NOTE, layout have some conventions.
 func (cp *Compiler) visitFirstBLK(blk *Ast) {
 	pre := cp.buf
