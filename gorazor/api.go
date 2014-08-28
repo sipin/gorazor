@@ -37,6 +37,7 @@ func GenFolder(indir string, outdir string, options Option) (err error) {
 		}
 	}
 
+	//Make sure we have a clean output directory
 	os.RemoveAll(outdir)
 	//Make it
 	if !exists(outdir) {
