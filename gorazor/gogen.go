@@ -321,11 +321,7 @@ func (cp *Compiler) processLayout() {
 				}
 			}
 			if !found {
-				if arg == "ctx *web.Context" {
-					foot += ", " + `ctx`
-				} else {
-					foot += ", " + `""`
-				}
+				foot += ", " + `""`
 			}
 		}
 	}
