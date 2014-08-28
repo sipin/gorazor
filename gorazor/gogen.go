@@ -1,16 +1,17 @@
 package gorazor
 
 import (
-	"errors"
 	"fmt"
 	"go/parser"
 	"go/token"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
+
+	"gopkg.in/fsnotify.v1"
 )
 
 var GorazorNamespace = `"github.com/sipin/gorazor/gorazor"`
@@ -320,7 +321,11 @@ func (cp *Compiler) processLayout() {
 				}
 			}
 			if !found {
-				foot += ", " + `""`
+				if arg == "ctx *web.Context" {
+					foot += ", " + `ctx`
+				} else {
+					foot += ", " + `""`
+				}
 			}
 		}
 	}
@@ -418,79 +423,82 @@ func generate(path string, output string, Options Option) error {
 	return err
 }
 
-//------------------------------ API ------------------------------
-const (
-	go_extension = ".go"
-	gz_extension = ".gohtml"
-)
-
-// Generate from input to output file,
-// gofmt will trigger an error if it fails.
-func GenFile(input string, output string, options Option) error {
-	outdir := filepath.Dir(output)
-	if !exists(outdir) {
-		os.MkdirAll(outdir, 0775)
+func watchDir(input, output string, options Option) error {
+	fmt.Println("watching dir:", input, output)
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
 	}
-	return generate(input, output, options)
-}
+	defer watcher.Close()
 
-// Generate from directory to directory, Find all the files with extension
-// of .gohtml and generate it into target dir.
-func GenFolder(indir string, outdir string, options Option) (err error) {
-	if !exists(indir) {
-		return errors.New("Input directory does not exsits")
-	} else {
-		if err != nil {
-			return err
+	done := make(chan bool)
+
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+				filename := event.Name
+				if event.Op&fsnotify.Write == fsnotify.Write ||
+					event.Op&fsnotify.Create == fsnotify.Create {
+					stat, err := os.Stat(filename)
+					if err != nil {
+						continue
+					}
+					if stat.IsDir() {
+						log.Println("add dir:", filename)
+						watcher.Add(filename)
+						continue
+					}
+					if !strings.HasPrefix(filepath.Base(filename), ".#") &&
+						strings.HasSuffix(filename, ".gohtml") {
+						name := strings.Replace(filename, input, "", 1)
+						name = strings.Replace(name, ".gohtml", ".go", 1)
+						outpath := output + name
+						outdir := filepath.Dir(outpath)
+						if !exists(outdir) {
+							os.MkdirAll(outdir, 0775)
+						}
+						err := GenFile(filename, outpath, options)
+						if err == nil {
+							log.Printf("%s -> %s\n", filename, outpath)
+						}
+					}
+				} else if event.Op&fsnotify.Remove == fsnotify.Remove {
+					watcher.Remove(filename)
+					output := strings.Replace(filename, input, output, 1)
+					if exists(output) {
+						//shoud be dir
+						log.Println("remove dir:", filename)
+						os.RemoveAll(output)
+					} else if strings.HasSuffix(output, ".gohtml") {
+						output = strings.Replace(output, ".gohtml", ".go", 1)
+						if exists(output) {
+							log.Println("removing file:", output)
+							os.Remove(output)
+						}
+					}
+				}
+			case err := <-watcher.Errors:
+				log.Println("error:", err)
+				fmt.Println("fuck")
+			}
 		}
-	}
-	//Make it
-	if !exists(outdir) {
-		os.MkdirAll(outdir, 0775)
-	}
-
-	incdir_abs, _ := filepath.Abs(indir)
-	outdir_abs, _ := filepath.Abs(outdir)
-
-	paths := []string{}
+	}()
 
 	visit := func(path string, info os.FileInfo, err error) error {
-		if !info.IsDir() {
-			//Just do file with exstension .gohtml
-			if !strings.HasSuffix(path, gz_extension) {
-				return nil
-			}
-			filename := filepath.Base(path)
-			if strings.HasPrefix(filename, ".#") {
-				return nil
-			}
-			paths = append(paths, path)
+		if info.IsDir() {
+			watcher.Add(path)
 		}
 		return nil
 	}
 
-	fun := func(path string, res chan<- string) {
-		//adjust with the abs path, so that we keep the same directory hierarchy
-		input, _ := filepath.Abs(path)
-		output := strings.Replace(input, incdir_abs, outdir_abs, 1)
-		output = strings.Replace(output, gz_extension, go_extension, -1)
-		err := GenFile(path, output, options)
-		if err != nil {
-			res <- fmt.Sprintf("%s -> %s", path, output)
-			os.Exit(2)
-		}
-		res <- fmt.Sprintf("%s -> %s", path, output)
+	err = filepath.Walk(input, visit)
+	err = watcher.Add(input)
+	if err != nil {
+		fmt.Println("error:", err)
+		log.Fatal(err)
 	}
-
-	err = filepath.Walk(indir, visit)
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	result := make(chan string, len(paths))
-
-	for w := 0; w < len(paths); w++ {
-		go fun(paths[w], result)
-	}
-	for i := 0; i < len(paths); i++ {
-		<-result
-	}
-	return
+	fmt.Println("finished")
+	<-done
+	return nil
 }
