@@ -420,7 +420,7 @@ func generate(path string, output string, Options Option) error {
 }
 
 func watchDir(input, output string, options Option) error {
-	fmt.Println("watching dir:", input, output)
+	log.Println("Watching dir:", input, output)
 	watcher, err := fsnotify.NewWatcher()
 	if err != nil {
 		log.Fatal(err)
@@ -464,19 +464,18 @@ func watchDir(input, output string, options Option) error {
 					output := strings.Replace(filename, input, output, 1)
 					if exists(output) {
 						//shoud be dir
-						log.Println("remove dir:", filename)
 						os.RemoveAll(output)
+						log.Println("remove dir:", filename)
 					} else if strings.HasSuffix(output, ".gohtml") {
 						output = strings.Replace(output, ".gohtml", ".go", 1)
 						if exists(output) {
-							log.Println("removing file:", output)
 							os.Remove(output)
+							log.Println("removing file:", output)
 						}
 					}
 				}
 			case err := <-watcher.Errors:
 				log.Println("error:", err)
-				fmt.Println("fuck")
 			}
 		}
 	}()
@@ -491,10 +490,8 @@ func watchDir(input, output string, options Option) error {
 	err = filepath.Walk(input, visit)
 	err = watcher.Add(input)
 	if err != nil {
-		fmt.Println("error:", err)
 		log.Fatal(err)
 	}
-	fmt.Println("finished")
 	<-done
 	return nil
 }
