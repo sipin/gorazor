@@ -292,10 +292,11 @@ Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor
 ## How to auto re-generate when gohtml file changes?
 
 We use `https://gopkg.in/fsnotify.v1` to implement watching option.
+
 Useage: `gorazor -watch input_dir output_dir` to re-generate gohtml file changes,
 
 ```bash
-new/modify  ->   generate corresponding Go file
+new/modify  ->   generate corresponding Go file, make new directory if necessary
 remove      ->   remove corresponding Go file or directory
 ```
 
