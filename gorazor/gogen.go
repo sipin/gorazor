@@ -476,6 +476,7 @@ func watchDir(input, output string, options Option) error {
 				}
 			case err := <-watcher.Errors:
 				log.Println("error:", err)
+				done <- true
 			}
 		}
 	}()
