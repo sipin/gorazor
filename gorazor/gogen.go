@@ -429,13 +429,55 @@ func watchDir(input, output string, options Option) error {
 
 	done := make(chan bool)
 
+	output_path := func(path string) string {
+		res := strings.Replace(path, input, output, 1)
+		return res
+	}
+
+	gen := func(filename string) error {
+		outpath := output_path(filename)
+		outpath = strings.Replace(outpath, ".gohtml", ".go", 1)
+		outdir := filepath.Dir(outpath)
+		if !exists(outdir) {
+			os.MkdirAll(outdir, 0775)
+		}
+		err := GenFile(filename, outpath, options)
+		if err == nil {
+			log.Printf("%s -> %s\n", filename, outpath)
+		}
+		return err
+	}
+
+	visit_gen := func(path string, info os.FileInfo, err error) error {
+		if !info.IsDir() {
+			//Just do file with exstension .gohtml
+			if !strings.HasSuffix(path, ".gohtml") {
+				return nil
+			}
+			filename := filepath.Base(path)
+			if strings.HasPrefix(filename, ".#") {
+				return nil
+			}
+			err := gen(path)
+			if err != nil {
+				return err
+			}
+		}
+		return nil
+	}
+
 	go func() {
 		for {
 			select {
 			case event := <-watcher.Events:
 				filename := event.Name
-				if event.Op&fsnotify.Write == fsnotify.Write ||
-					event.Op&fsnotify.Create == fsnotify.Create {
+				if filename == "" {
+					//should be a bug for fsnotify
+					continue
+				}
+				if event.Op&fsnotify.Remove != fsnotify.Remove &&
+					(event.Op&fsnotify.Write == fsnotify.Write ||
+						event.Op&fsnotify.Create == fsnotify.Create) {
 					stat, err := os.Stat(filename)
 					if err != nil {
 						continue
@@ -443,29 +485,29 @@ func watchDir(input, output string, options Option) error {
 					if stat.IsDir() {
 						log.Println("add dir:", filename)
 						watcher.Add(filename)
+						output := output_path(filename)
+						log.Println("mkdir:", output)
+						if !exists(output) {
+							os.MkdirAll(output, 0755)
+							err = filepath.Walk(filename, visit_gen)
+							if err != nil {
+								done <- true
+							}
+						}
 						continue
 					}
 					if !strings.HasPrefix(filepath.Base(filename), ".#") &&
 						strings.HasSuffix(filename, ".gohtml") {
-						name := strings.Replace(filename, input, "", 1)
-						name = strings.Replace(name, ".gohtml", ".go", 1)
-						outpath := output + name
-						outdir := filepath.Dir(outpath)
-						if !exists(outdir) {
-							os.MkdirAll(outdir, 0775)
-						}
-						err := GenFile(filename, outpath, options)
-						if err == nil {
-							log.Printf("%s -> %s\n", filename, outpath)
-						}
+						gen(filename)
 					}
-				} else if event.Op&fsnotify.Remove == fsnotify.Remove {
-					watcher.Remove(filename)
-					output := strings.Replace(filename, input, output, 1)
+				} else if event.Op&fsnotify.Remove == fsnotify.Remove ||
+					event.Op&fsnotify.Rename == fsnotify.Rename {
+					output := output_path(filename)
 					if exists(output) {
 						//shoud be dir
+						watcher.Remove(filename)
 						os.RemoveAll(output)
-						log.Println("remove dir:", filename)
+						log.Println("remove dir:", output)
 					} else if strings.HasSuffix(output, ".gohtml") {
 						output = strings.Replace(output, ".gohtml", ".go", 1)
 						if exists(output) {
@@ -476,7 +518,7 @@ func watchDir(input, output string, options Option) error {
 				}
 			case err := <-watcher.Errors:
 				log.Println("error:", err)
-				done <- true
+				continue
 			}
 		}
 	}()

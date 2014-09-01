@@ -36,9 +36,6 @@ func GenFolder(indir string, outdir string, options Option) (err error) {
 			return err
 		}
 	}
-
-	//Make sure we have a clean output directory
-	os.RemoveAll(outdir)
 	//Make it
 	if !exists(outdir) {
 		os.MkdirAll(outdir, 0775)
