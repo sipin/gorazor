@@ -291,27 +291,14 @@ Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor
 
 ## How to auto re-generate when gohtml file changes?
 
-We may add `gorazor watch` cmd after Go 1.3 which has official [fsnotify](https://docs.google.com/document/d/1xl_aRcCbksFRmCKtoyRQG9L7j6DIdMZtrkFAoi5EXaA/edit) support.
+We use `https://gopkg.in/fsnotify.v1` to implement watching option.
 
-Currently, we are using below scripts to handle this issue on mac:
+Useage: `gorazor -watch input_dir output_dir` to re-generate gohtml file changes,
 
-* gorazor_watch.sh
 ```bash
-#!/bin/bash
-
-gorazor tpl src/tpl
-watchmedo shell-command --patterns="*.gohtml" --recursive --command='python gorazor.py ${watch_src_path}'
+new/modify  ->   generate corresponding Go file, make new directory if necessary
+remove      ->   remove corresponding Go file or directory
 ```
-
-* gorazor.py
-```python
-import sys, os
-
-path = sys.argv[1]
-os.system("gorazor " + path + " " + path.replace("/tpl/", "/src/tpl/")[:-4])
-```
-
-* [watchmedo](https://github.com/gorakhargosh/watchdog)
 
 # Credits
 
@@ -321,7 +308,6 @@ GoRazor has been though several rounds of refactoring and it has completely rewr
 
 # Todo
 
-* Add tools, like monitor template changes and auto re-generate
 * Add default html widgets
 * Add more usage examples
 * Generate more function overloads, like accept additional buffer parameter for write

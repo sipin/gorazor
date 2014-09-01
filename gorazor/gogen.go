@@ -1,16 +1,17 @@
 package gorazor
 
 import (
-	"errors"
 	"fmt"
 	"go/parser"
 	"go/token"
 	"io/ioutil"
+	"log"
 	"os"
 	"os/exec"
 	"path/filepath"
-	"runtime"
 	"strings"
+
+	"gopkg.in/fsnotify.v1"
 )
 
 var GorazorNamespace = `"github.com/sipin/gorazor/gorazor"`
@@ -418,79 +419,122 @@ func generate(path string, output string, Options Option) error {
 	return err
 }
 
-//------------------------------ API ------------------------------
-const (
-	go_extension = ".go"
-	gz_extension = ".gohtml"
-)
-
-// Generate from input to output file,
-// gofmt will trigger an error if it fails.
-func GenFile(input string, output string, options Option) error {
-	outdir := filepath.Dir(output)
-	if !exists(outdir) {
-		os.MkdirAll(outdir, 0775)
+func watchDir(input, output string, options Option) error {
+	log.Println("Watching dir:", input, output)
+	watcher, err := fsnotify.NewWatcher()
+	if err != nil {
+		log.Fatal(err)
 	}
-	return generate(input, output, options)
-}
+	defer watcher.Close()
 
-// Generate from directory to directory, Find all the files with extension
-// of .gohtml and generate it into target dir.
-func GenFolder(indir string, outdir string, options Option) (err error) {
-	if !exists(indir) {
-		return errors.New("Input directory does not exsits")
-	} else {
-		if err != nil {
-			return err
+	done := make(chan bool)
+
+	output_path := func(path string) string {
+		res := strings.Replace(path, input, output, 1)
+		return res
+	}
+
+	gen := func(filename string) error {
+		outpath := output_path(filename)
+		outpath = strings.Replace(outpath, ".gohtml", ".go", 1)
+		outdir := filepath.Dir(outpath)
+		if !exists(outdir) {
+			os.MkdirAll(outdir, 0775)
 		}
+		err := GenFile(filename, outpath, options)
+		if err == nil {
+			log.Printf("%s -> %s\n", filename, outpath)
+		}
+		return err
 	}
-	//Make it
-	if !exists(outdir) {
-		os.MkdirAll(outdir, 0775)
-	}
 
-	incdir_abs, _ := filepath.Abs(indir)
-	outdir_abs, _ := filepath.Abs(outdir)
-
-	paths := []string{}
-
-	visit := func(path string, info os.FileInfo, err error) error {
+	visit_gen := func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
 			//Just do file with exstension .gohtml
-			if !strings.HasSuffix(path, gz_extension) {
+			if !strings.HasSuffix(path, ".gohtml") {
 				return nil
 			}
 			filename := filepath.Base(path)
 			if strings.HasPrefix(filename, ".#") {
 				return nil
 			}
-			paths = append(paths, path)
+			err := gen(path)
+			if err != nil {
+				return err
+			}
 		}
 		return nil
 	}
 
-	fun := func(path string, res chan<- string) {
-		//adjust with the abs path, so that we keep the same directory hierarchy
-		input, _ := filepath.Abs(path)
-		output := strings.Replace(input, incdir_abs, outdir_abs, 1)
-		output = strings.Replace(output, gz_extension, go_extension, -1)
-		err := GenFile(path, output, options)
-		if err != nil {
-			res <- fmt.Sprintf("%s -> %s", path, output)
-			os.Exit(2)
+	go func() {
+		for {
+			select {
+			case event := <-watcher.Events:
+				filename := event.Name
+				if filename == "" {
+					//should be a bug for fsnotify
+					continue
+				}
+				if event.Op&fsnotify.Remove != fsnotify.Remove &&
+					(event.Op&fsnotify.Write == fsnotify.Write ||
+						event.Op&fsnotify.Create == fsnotify.Create) {
+					stat, err := os.Stat(filename)
+					if err != nil {
+						continue
+					}
+					if stat.IsDir() {
+						log.Println("add dir:", filename)
+						watcher.Add(filename)
+						output := output_path(filename)
+						log.Println("mkdir:", output)
+						if !exists(output) {
+							os.MkdirAll(output, 0755)
+							err = filepath.Walk(filename, visit_gen)
+							if err != nil {
+								done <- true
+							}
+						}
+						continue
+					}
+					if !strings.HasPrefix(filepath.Base(filename), ".#") &&
+						strings.HasSuffix(filename, ".gohtml") {
+						gen(filename)
+					}
+				} else if event.Op&fsnotify.Remove == fsnotify.Remove ||
+					event.Op&fsnotify.Rename == fsnotify.Rename {
+					output := output_path(filename)
+					if exists(output) {
+						//shoud be dir
+						watcher.Remove(filename)
+						os.RemoveAll(output)
+						log.Println("remove dir:", output)
+					} else if strings.HasSuffix(output, ".gohtml") {
+						output = strings.Replace(output, ".gohtml", ".go", 1)
+						if exists(output) {
+							os.Remove(output)
+							log.Println("removing file:", output)
+						}
+					}
+				}
+			case err := <-watcher.Errors:
+				log.Println("error:", err)
+				continue
+			}
 		}
-		res <- fmt.Sprintf("%s -> %s", path, output)
+	}()
+
+	visit := func(path string, info os.FileInfo, err error) error {
+		if info.IsDir() {
+			watcher.Add(path)
+		}
+		return nil
 	}
 
-	err = filepath.Walk(indir, visit)
-	runtime.GOMAXPROCS(runtime.NumCPU())
-	result := make(chan string, len(paths))
-
-	for w := 0; w < len(paths); w++ {
-		go fun(paths[w], result)
+	err = filepath.Walk(input, visit)
+	err = watcher.Add(input)
+	if err != nil {
+		log.Fatal(err)
 	}
-	for i := 0; i < len(paths); i++ {
-		<-result
-	}
-	return
+	<-done
+	return nil
 }
