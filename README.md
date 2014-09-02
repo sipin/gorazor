@@ -21,13 +21,22 @@ GoRazor is the Go port of the razor view engine originated from [asp.net in 2011
 Install:
 
 ```sh
+go get gopkg.in/fsnotify.v1
 go get github.com/sipin/gorazor
 ```
 
 Usage:
 
 `gorazor template_folder output_folder` or
-`gorazor template_file output_file`
+`gorazor template_file output_file` or
+
+`gorazor -watch input_dir output_dir` to auto re-generate code when file changes.
+
+```bash
+new/modify  ->   generate corresponding Go file, make new directory if necessary
+remove      ->   remove corresponding Go file or directory
+```
+
 
 # Syntax
 
@@ -287,17 +296,6 @@ Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor
 (add-to-list 'auto-mode-alist '("\\.gohtml\\'" . web-mode))
 (add-to-list 'auto-mode-alist '("\\.js\\'" . web-mode))
 (setq web-mode-engines-alist '(("razor" . "\\.gohtml\\'")))
-```
-
-## How to auto re-generate when gohtml file changes?
-
-We use `https://gopkg.in/fsnotify.v1` to implement watching option.
-
-Useage: `gorazor -watch input_dir output_dir` to re-generate gohtml file changes,
-
-```bash
-new/modify  ->   generate corresponding Go file, make new directory if necessary
-remove      ->   remove corresponding Go file or directory
 ```
 
 # Credits
