@@ -95,7 +95,7 @@ func main() {
 
 ```
 
-## Section
+## Code sections
 
 In `gohtml` you may insert `Go` code snippet, like this:
 ```html
@@ -114,7 +114,8 @@ In `gohtml` you may insert `Go` code snippet, like this:
 }
 ```
 
-And you may also add `javascript` code in `gohtml`, where ctx is `var ctx *web.Context`, which is a extend for web.Context, details please refer to [sipin/web](http://github.com/sipin/web).
+For more details syntax please refer to [Web programming using the Razor syntax](http://www.asp.net/web-pages/tutorials/basics/2-introduction-to-asp-net-web-programming-using-the-razor-syntax).
+And you may also add `javascript` code in `gohtml`, where ctx is `var ctx *web.Context`, details please refer to [sipin/web](http://github.com/sipin/web).
 
 
 ```javascript
