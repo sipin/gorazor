@@ -96,3 +96,47 @@ func main() {
 ```
 
 ## Section
+
+In `gohtml` you may insert `Go` code snippet, like this:
+```html
+@{
+  import (
+    "time"
+  )
+}
+
+<p>This is Index</p>
+
+@{
+   t := time.Now()
+   StrTime := t.Format("2006-01-02 15:04:05")
+   <p>Time now is:  @StrTime </p>
+}
+```
+
+And you may also add `javascript` code in `gohtml`, where ctx is `var ctx *web.Context`, which is a extend for web.Context, details please refer to [sipin/web](http://github.com/sipin/web).
+
+
+```javascript
+@section js {
+ctx.AddJS("/assets/js/moment.js")
+ctx.AddJS("/assets/js/bootstrap-datetimepicker.js")
+<script type="text/javascript">
+  jQuery(document).ready(function($) {
+    $(".datetimepicker").datetimepicker({
+      format: "YYYY-MM-DD HH:mm:ss",
+    });
+  });
+</script>
+ctx.AddJS("/assets/js/bootstrap-multiselect.js")
+<script>
+  $(document).ready(function() {
+    $('.multiselect').multiselect({
+      enableFiltering: true,
+      buttonWidth: '170px',
+      maxHeight: 200
+    });
+  });
+</script>
+}
+```
