@@ -2,7 +2,7 @@
 
 ## Hello world
 
-Gorazor is a translator from `gohtml` to `go`. For every `gohtml` file will translated into a Go program with a function declared, which will return a `string` value as HTML output.
+Gorazor is a translator from `gohtml` to `go`. For every `gohtml` file will be translated into a Go program with a function declared, which will return a `string` value as HTML output.
 
 For example:
 
@@ -31,12 +31,16 @@ Note: put hello.gohtml in a directory, the directory name will be used as packag
 
 ## Routes
 
-Let's use framework [web.go](github.com/hoisie/web) as example, the `Hello world` example in web.go is main.go:
+Let's use framework [web.go](github.com/hoisie/web) as example,
+
+Firstly let's install web.go as below:
 ```shell
 mkdir src
 export GOPATH=$PWD
 go get github.com/hoisie/web
 ```
+
+the `Hello world` example in web.go is main.go:
 
 ```go
 package main
@@ -58,13 +62,13 @@ func main() {
 
 use command: `go run src/main.go` to start web server, and localhost:9999 will ready for use. For more details please have a look at: [web.go toturial](http://webgo.io/).
 
-We make a new directory named `tpl` in project dir, and write a index.gohtml in it.
+Then we make a new directory named `tpl` in project dir, and write an `index.gohtml` in it.
 
 ```html
 <p>This is Index</p>
 ```
 
-and then use : `gorazor tpl src/tpl` will generate go files into `src/tpl`.
+and then use : `gorazor tpl src/tpl` will generate `Go` files into `src/tpl`.
 and then modify main.go:
 
 ```go
