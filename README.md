@@ -33,8 +33,8 @@ Usage:
 `gorazor -watch input_dir output_dir` to auto re-generate code when file changes.
 
 ```bash
-new/modify  ->   generate corresponding Go file, make new directory if necessary
-remove      ->   remove corresponding Go file or directory
+new/modify      ->   generate corresponding Go file, make new directory if necessary
+remove/rename   ->   remove/rename corresponding Go file or directory
 ```
 
 
