@@ -17,6 +17,7 @@ func Msg(u *User) string {
 	if u.Email != "" {
 		username = getName(u) + "(" + u.Email + ")"
 	}
+
 	_buffer.WriteString("\n<div class=\"welcome\">\n<h4>Hello ")
 	_buffer.WriteString(gorazor.HTMLEscape(username))
 	_buffer.WriteString("</h4>\n\n<div>")

@@ -70,6 +70,7 @@ func (self *Compiler) addPart(part Part) {
 
 func (self *Compiler) genPart() {
 	res := ""
+
 	for _, p := range self.parts {
 		if p.ptype == CMKP && p.value != "" {
 			// do some escapings
@@ -83,10 +84,6 @@ func (self *Compiler) genPart() {
 				res += "_buffer.WriteString(\"" + p.value + "\")\n"
 			}
 		} else if p.ptype == CBLK {
-			if strings.HasPrefix(p.value, "{") &&
-				strings.HasSuffix(p.value, "}") {
-				p.value = p.value[1 : len(p.value)-2]
-			}
 			res += p.value + "\n"
 		} else {
 			res += p.value
@@ -235,7 +232,20 @@ func (cp *Compiler) visitAst(ast *Ast) {
 			cp.firstBLK = 1
 			cp.visitFirstBLK(ast)
 		} else {
-			for _, c := range ast.Children {
+			remove := false
+			if len(ast.Children) >= 2 {
+				first := ast.Children[0]
+				last := ast.Children[len(ast.Children)-1]
+				v1, ok1 := first.(Token)
+				v2, ok2 := last.(Token)
+				if ok1 && ok2 && v1.Text == "{" && v2.Text == "}" {
+					remove = true
+				}
+			}
+			for idx, c := range ast.Children {
+				if remove && (idx == 0 || idx == len(ast.Children)-1) {
+					continue
+				}
 				if _, ok := c.(Token); ok {
 					cp.visitBLK(c, ast)
 				} else {
