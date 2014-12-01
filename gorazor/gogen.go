@@ -188,11 +188,25 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 	val := getValStr(child)
 	if htmlEsc == nil {
 		if ppNotExp && idx == 0 && isHomo {
-			if val == "helper" || val == "html" || val == "raw" || pack == "layout" {
-				start += "("
-			} else {
+			needEsape := true
+			switch {
+			case val == "helper" || val == "html" || val == "raw":
+				needEsape = false
+			case pack == "layout":
+				needEsape = true
+				for _, param := range cp.params {
+					if strings.HasPrefix(param, val+" ") {
+						needEsape = false
+						break
+					}
+				}
+			}
+
+			if needEsape {
 				start += "gorazor.HTMLEscape("
 				cp.imports[GorazorNamespace] = true
+			} else {
+				start += "("
 			}
 		}
 		if ppNotExp && idx == ppChildCnt-1 && isHomo {
