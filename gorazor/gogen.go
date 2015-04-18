@@ -74,13 +74,14 @@ func (self *Compiler) genPart() {
 	for _, p := range self.parts {
 		if p.ptype == CMKP && p.value != "" {
 			// do some escapings
-			p.value = strings.Replace(p.value, `\n`, `\\n`, -1)
-			p.value = strings.Replace(p.value, "\n", `\n`, -1)
-			p.value = strings.Replace(p.value, `"`, `\"`, -1)
-			for strings.HasSuffix(p.value, "\\n") {
-				p.value = p.value[:len(p.value)-2]
+			for strings.HasSuffix(p.value, "\n") {
+				p.value = p.value[:len(p.value)-1]
 			}
-			if p.value != "\\n" && p.value != "" {
+			p.value = fmt.Sprintf("%#v", p.value)
+			p.value = p.value[1 : len(p.value)-1]
+			p.value = strings.Replace(p.value, `\t`, "\t", -1)
+
+			if p.value != `\n` && p.value != "" {
 				res += "_buffer.WriteString(\"" + p.value + "\")\n"
 			}
 		} else if p.ptype == CBLK {
