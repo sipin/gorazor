@@ -20,6 +20,7 @@ func main() {
 	flag.Usage = Usage
 	isDebug := flag.Bool("debug", false, "use debug mode")
 	isWatch := flag.Bool("watch", false, "use watch mode")
+	nameNotChange := flag.Bool("nameNotChange", false, "do not change name of the template")
 
 	flag.Parse()
 
@@ -30,6 +31,9 @@ func main() {
 	}
 	if *isWatch {
 		options["Watch"] = *isWatch
+	}
+	if *nameNotChange {
+		options["NameNotChange"] = *nameNotChange
 	}
 
 	if len(flag.Args()) != 2 {
