@@ -55,6 +55,10 @@ var typeStr = [...]string{
 	"SINGLE_QUOTE", "DOUBLE_QUOTE", "TEXT_TAG_CLOSE",
 	"TEXT_TAG_OPEN", "COMMENT_TAG_OPEN", "COMMENT_TAG_CLOSE", "WHITESPACE"}
 
+// Option have following options:
+//   Debug bool
+//   Watch bool
+//   NameNotChange bool
 type Option map[string]interface{}
 
 type TokenMatch struct {

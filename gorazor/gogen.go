@@ -95,7 +95,10 @@ func (self *Compiler) genPart() {
 
 func makeCompiler(ast *Ast, options Option, input string) *Compiler {
 	dir := filepath.Base(filepath.Dir(input))
-	file := Capitalize(strings.Replace(filepath.Base(input), gz_extension, "", 1))
+	file := strings.Replace(filepath.Base(input), gz_extension, "", 1)
+	if options["NameNotChange"] == nil {
+		file = Capitalize(file)
+	}
 	return &Compiler{ast: ast, buf: "",
 		layout: "", firstBLK: 0,
 		params: []string{}, parts: []Part{},
