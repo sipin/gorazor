@@ -9,18 +9,18 @@ func Badtag(w *gorazor.Widget) string {
 	var _buffer bytes.Buffer
 	if w.ErrorMsg != "" {
 
-		_buffer.WriteString("<div class=\"form-group has-error\">\n	<div class=\"alert alert-danger\">")
+		_buffer.WriteString("<div class=\"form-group has-error\">\n\t<div class=\"alert alert-danger\">")
 		_buffer.WriteString(gorazor.HTMLEscape(w.ErrorMsg))
 		_buffer.WriteString("</div>")
 	} else {
 
 		_buffer.WriteString("<div class=\"form-group\">")
 	}
-	_buffer.WriteString("\n\n	<label for=\"")
+	_buffer.WriteString("\n\n\t<label for=\"")
 	_buffer.WriteString(gorazor.HTMLEscape(w.Name))
 	_buffer.WriteString("\">")
 	_buffer.WriteString(gorazor.HTMLEscape(w.Label))
-	_buffer.WriteString("</label>\n	<input type=\"text\" name=\"")
+	_buffer.WriteString("</label>\n\t<input type=\"text\" name=\"")
 	_buffer.WriteString(gorazor.HTMLEscape(w.Name))
 	_buffer.WriteString("\" class=\"form-control\" id=\"")
 	_buffer.WriteString(gorazor.HTMLEscape(w.Name))
