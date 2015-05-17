@@ -16,10 +16,10 @@ func Scopebug(obj *models.Widget) string {
 		for _, v := range values {
 			if v, ok := v.(type); ok {
 
-				_buffer.WriteString("<a>\n					")
+				_buffer.WriteString("<a>\n\t\t\t\t\t")
 				for _, v := range values {
 				}
-				_buffer.WriteString("\n				</a>")
+				_buffer.WriteString("\n\t\t\t\t</a>")
 
 			} else {
 
