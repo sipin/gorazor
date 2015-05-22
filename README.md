@@ -304,6 +304,10 @@ The very [first version](https://github.com/sipin/gorazor/releases/tag/vash) of 
 
 GoRazor has been though several rounds of refactoring and it has completely rewritten in pure Go. Nonetheless, THANK YOU [@kirbysayshi](https://github.com/kirbysayshi) for Vash! Without Vash, GoRazor may never start.
 
+# LICENSE
+
+[LICENSE](LICENSE)? Well, [WTFPL](http://www.wtfpl.net/about/).
+
 # Todo
 
 * Add default html widgets
