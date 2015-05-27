@@ -406,7 +406,7 @@ func run(path string, Options Option) (*Compiler, error) {
 	parser := &Parser{&Ast{}, nil, res, []Token{}, false, UNK}
 	err = parser.Run()
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(path, ":", err)
 		os.Exit(2)
 	}
 
