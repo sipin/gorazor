@@ -165,7 +165,7 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 	}
 	if cp.layout != "" {
 		path := cp.layout + ".gohtml"
-		if exists(path) && len(LayOutArgs(path)) == 0 {
+		if exists(path) && len(LayoutArgs(path)) == 0 {
 			//TODO, bad for performance
 			_cp, err := run(path, cp.options)
 			if err != nil {
@@ -324,7 +324,7 @@ func (cp *Compiler) processLayout() {
 		foot += "layout." + base + "("
 	}
 	foot += "_buffer.String()"
-	args := LayOutArgs(cp.layout)
+	args := LayoutArgs(cp.layout)
 	if len(args) == 0 {
 		for _, sec := range sections {
 			foot += ", " + sec + "()"

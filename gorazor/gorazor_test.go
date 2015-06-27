@@ -20,13 +20,13 @@ func TestCap(t *testing.T) {
 func TestLayManager(t *testing.T) {
 	SetLayout("hello", []string{"this", "is", "good"})
 	SetLayout("world", []string{"funny"})
-	if len(LayOutArgs("hello")) != 3 {
+	if len(LayoutArgs("hello")) != 3 {
 		t.Error()
 	}
-	if len(LayOutArgs("world")) != 1 {
+	if len(LayoutArgs("world")) != 1 {
 		t.Error()
 	}
-	if len(LayOutArgs("NO")) != 0 {
+	if len(LayoutArgs("NO")) != 0 {
 		t.Error()
 	}
 }
