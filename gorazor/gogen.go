@@ -11,7 +11,7 @@ import (
 	"path/filepath"
 	"strings"
 
-	"gopkg.in/fsnotify.v1"
+	"github.com/fsnotify/fsnotify"
 )
 
 var GorazorNamespace = `"github.com/sipin/gorazor/gorazor"`
