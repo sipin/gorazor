@@ -322,6 +322,9 @@ func (cp *Compiler) processLayout() {
 		parts := strings.SplitN(cp.layout, "/", -1)
 		base := Capitalize(parts[len(parts)-1])
 		foot += "layout." + base + "("
+	} else if len(sections) > 0 {
+		fmt.Println("expect layout for sections")
+		os.Exit(1)
 	}
 	foot += "_buffer.String()"
 	args := LayoutArgs(cp.layout)
