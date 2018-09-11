@@ -21,7 +21,6 @@ GoRazor is the Go port of the razor view engine originated from [asp.net in 2011
 Install:
 
 ```sh
-go get gopkg.in/fsnotify.v1
 go get github.com/sipin/gorazor
 ```
 
