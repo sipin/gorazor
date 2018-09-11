@@ -68,6 +68,7 @@ func TestLexer(t *testing.T) {
 
 func TestGenerate(t *testing.T) {
 	casedir, _ := filepath.Abs(filepath.Dir("./cases/"))
+	sap := string(filepath.Separator)
 
 	visit := func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() { // regular file
@@ -75,7 +76,7 @@ func TestGenerate(t *testing.T) {
 				return nil
 			}
 			name := strings.Replace(path, ".gohtml", ".go", 1)
-			cmp := strings.Replace(name, "/cases/", "/test/", -1)
+			cmp := strings.Replace(name, sap+"cases"+sap, sap+"test"+sap, -1)
 			dirname := filepath.Dir(cmp)
 			log := filepath.Join(dirname, "_"+filepath.Base(cmp))
 			if !exists(dirname) {

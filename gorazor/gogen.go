@@ -403,7 +403,7 @@ func run(path string, Options Option) (*Compiler, error) {
 		for _, elem := range res {
 			elem.P()
 		}
-		fmt.Println("--------------------- TOKEN END -----------------\n")
+		fmt.Println("--------------------- TOKEN END -----------------")
 	}
 
 	parser := &Parser{&Ast{}, nil, res, []Token{}, false, UNK}
@@ -417,7 +417,7 @@ func run(path string, Options Option) (*Compiler, error) {
 	if Options["Debug"] != nil {
 		fmt.Println("--------------------- AST START -----------------")
 		parser.ast.debug(0, 20)
-		fmt.Println("--------------------- AST END -----------------\n")
+		fmt.Println("--------------------- AST END -----------------")
 		if parser.ast.Mode != PRG {
 			panic("TYPE")
 		}

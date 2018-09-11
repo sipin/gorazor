@@ -2,6 +2,7 @@ package cases
 
 import (
 	"bytes"
+	"tpl/layout"
 )
 
 func Section_comment_bug() string {
@@ -15,5 +16,5 @@ func Section_comment_bug() string {
 		return _buffer.String()
 	}
 
-	return _buffer.String(), side()
+	return layout.Base(_buffer.String(), side())
 }
