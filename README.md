@@ -1,6 +1,8 @@
 # GoRazor
 
 [![Build Status](https://travis-ci.org/sipin/gorazor.svg?branch=master)](https://travis-ci.org/sipin/gorazor)
+[![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
+[![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE)
 
 GoRazor is the Go port of the razor view engine originated from [asp.net in 2011](http://weblogs.asp.net/scottgu/archive/2010/07/02/introducing-razor.aspx). In summary, GoRazor's:
 
@@ -305,7 +307,7 @@ GoRazor has been though several rounds of refactoring and it has completely rewr
 
 # LICENSE
 
-[996.icu](LICENSE).
+[LICENSE](LICENSE)? Well, [WTFPL](http://www.wtfpl.net/about/) and [996.icu](LICENSE).
 
 # Todo
 
