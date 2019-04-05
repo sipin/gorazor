@@ -305,7 +305,7 @@ GoRazor has been though several rounds of refactoring and it has completely rewr
 
 # LICENSE
 
-[LICENSE](LICENSE)? Well, [WTFPL](http://www.wtfpl.net/about/).
+[996.icu](LICENSE).
 
 # Todo
 
