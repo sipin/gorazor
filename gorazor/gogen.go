@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"log"
 	"os"
-	"os/exec"
 	"path/filepath"
 	"strings"
 
@@ -432,19 +431,8 @@ func generate(path string, output string, Options Option) error {
 	if err != nil || cp == nil {
 		panic(err)
 	}
-	err = ioutil.WriteFile(output, []byte(cp.buf), 0644)
-	cmd := exec.Command("gofmt", "-w", output)
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-	if err := cmd.Run(); err != nil {
-		fmt.Println("gofmt: ", err)
-		return err
-	}
-	if Options["Debug"] != nil {
-		content, _ := ioutil.ReadFile(output)
-		fmt.Println(string(content))
-	}
-	return err
+
+	return ioutil.WriteFile(output, []byte(FormatBuffer(cp.buf)), 0644)
 }
 
 func watchDir(input, output string, options Option) error {
