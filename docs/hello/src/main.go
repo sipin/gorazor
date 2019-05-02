@@ -3,19 +3,14 @@ package main
 import (
 	"tpl"
 
-	"github.com/hoisie/web"
+	"fmt"
+	"net/http"
 )
 
-func init_web() {
-	web.Get("/index", tpl.Index)
-}
-
-func hello(val string) string {
-	return "hello " + val
-}
-
 func main() {
-	init_web()
-	web.Get("/(.*)", hello)
-	web.Run("0.0.0.0:9999")
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, tpl.Index)
+	})
+
+	http.ListenAndServe(":8080", nil)
 }

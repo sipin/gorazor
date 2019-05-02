@@ -31,13 +31,12 @@ Note: put hello.gohtml in a directory, the directory name will be used as packag
 
 ## Routes
 
-Let's use framework [web.go](github.com/hoisie/web) as example,
+Let's use golang's built in [HTTP Server](https://gowebexamples.com/http-server/) as example,
 
 Firstly let's install web.go as below:
 ```shell
 mkdir src
 export GOPATH=$PWD
-go get github.com/hoisie/web
 ```
 
 the `Hello world` example in web.go is main.go:
@@ -46,18 +45,17 @@ the `Hello world` example in web.go is main.go:
 package main
 
 import (
-    "github.com/hoisie/web"
+	"fmt"
+	"net/http"
 )
 
-func hello(val string) string {
-    return "hello " + val
-}
-
 func main() {
-    web.Get("/(.*)", hello)
-    web.Run("0.0.0.0:9999")
-}
+	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello world!")
+	})
 
+	http.ListenAndServe(":8080", nil)
+}
 ```
 
 use command: `go run src/main.go` to start web server, and localhost:9999 will ready for use. For more details please have a look at: [web.go toturial](http://webgo.io/).
@@ -75,24 +73,23 @@ and then modify main.go:
 package main
 
 import (
+	"fmt"
+	"net/http"
+
 	"tpl"
-	"github.com/hoisie/web"
 )
 
-func init_web() {
-	web.Get("/index", tpl.Index)
-}
-
-func hello(val string) string {
-	return "hello " + val
-}
-
 func main() {
-	init_web()
-	web.Get("/(.*)", hello)
-	web.Run("0.0.0.0:9999")
-}
+	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "Hello world!")
+  })
 
+	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, tpl.Index)
+	})
+
+	http.ListenAndServe(":8080", nil)
+}
 ```
 
 ## Code sections
