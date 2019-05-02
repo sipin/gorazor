@@ -463,8 +463,17 @@ func (parser *Parser) handleEXP(token Token) error {
 			parser.ast = parser.ast.Parent
 			parser.deferToken(token)
 		}
-
-	case HARD_PAREN_OPEN, PAREN_OPEN:
+	case HARD_PAREN_OPEN:
+		prev := parser.prevToken(0)
+		next := parser.peekToken(0)
+		err := parser.subParse(token, EXP, false)
+		if err != nil {
+			return err
+		}
+		if (prev != nil && prev.Type == AT) || (next != nil && next.Type == IDENTIFIER) {
+			parser.ast = parser.ast.Parent
+		}
+	case PAREN_OPEN:
 		prev := parser.prevToken(0)
 		next := parser.peekToken(0)
 		if token.Type == HARD_PAREN_OPEN && next.Type == HARD_PAREN_CLOSE {
