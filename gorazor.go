@@ -1,7 +1,5 @@
 package main
 
-// considering import fsnotify
-
 import (
 	"flag"
 	"fmt"
@@ -11,7 +9,7 @@ import (
 )
 
 func usage() {
-	fmt.Fprintf(os.Stderr, "usage: gorazor [-debug] [-watch] <input dir or file> <output dir or file>\n")
+	fmt.Fprintf(os.Stderr, "usage: gorazor [-debug] <input dir or file> <output dir or file>\n")
 	flag.PrintDefaults()
 	os.Exit(1)
 }
@@ -44,13 +42,13 @@ func main() {
 	}
 
 	if stat.IsDir() {
-		fmt.Printf("Gorazor processing dir: %s -> %s\n", input, output)
+		fmt.Printf("gorazor processing dir: %s -> %s\n", input, output)
 		err := gorazor.GenFolder(input, output, options)
 		if err != nil {
 			fmt.Println(err)
 		}
 	} else if stat.Mode().IsRegular() {
-		fmt.Printf("Gorazor processing file: %s -> %s\n", input, output)
+		fmt.Printf("gorazor processing file: %s -> %s\n", input, output)
 		gorazor.GenFile(input, output, options)
 	}
 }
