@@ -2,3 +2,5 @@ tmp/
 *.log
 _*
 *.exe
+.vscode
+*.out
