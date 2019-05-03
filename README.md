@@ -29,9 +29,7 @@ go get github.com/sipin/gorazor
 Usage:
 
 `gorazor template_folder output_folder` or
-`gorazor template_file output_file` or
-
-`gorazor -watch input_dir output_dir` to auto re-generate code when file changes.
+`gorazor template_file output_file`
 
 ```bash
 new/modify      ->   generate corresponding Go file, make new directory if necessary

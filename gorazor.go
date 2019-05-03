@@ -10,16 +10,15 @@ import (
 	"github.com/sipin/gorazor/gorazor"
 )
 
-func Usage() {
+func usage() {
 	fmt.Fprintf(os.Stderr, "usage: gorazor [-debug] [-watch] <input dir or file> <output dir or file>\n")
 	flag.PrintDefaults()
 	os.Exit(1)
 }
 
 func main() {
-	flag.Usage = Usage
+	flag.Usage = usage
 	isDebug := flag.Bool("debug", false, "use debug mode")
-	isWatch := flag.Bool("watch", false, "use watch mode")
 	nameNotChange := flag.Bool("nameNotChange", false, "do not change name of the template")
 
 	flag.Parse()
@@ -28,9 +27,6 @@ func main() {
 
 	if *isDebug {
 		options["Debug"] = *isDebug
-	}
-	if *isWatch {
-		options["Watch"] = *isWatch
 	}
 	if *nameNotChange {
 		options["NameNotChange"] = *nameNotChange

@@ -85,8 +85,5 @@ func GenFolder(indir string, outdir string, options Option) (err error) {
 		<-result
 	}
 
-	if options["Watch"] != nil {
-		watchDir(incdir_abs, outdir_abs, options)
-	}
 	return
 }
