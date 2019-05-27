@@ -365,7 +365,7 @@ func (cp *Compiler) visit() {
 
 	cp.imports[`"bytes"`] = true
 	head := "package " + pack + "\n import (\n"
-	for k, _ := range cp.imports {
+	for k := range cp.imports {
 		head += k + "\n"
 	}
 	head += "\n)\n func " + fun + "("
