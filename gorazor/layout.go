@@ -2,15 +2,16 @@ package gorazor
 
 import "sync"
 
-//For gorazor just process on single one gohtml file now
-//we use an singleton map to keep layout relationship
-//Not a good solution but works
+// LayManager is the layout manager
 type LayManager struct {
+	// For gorazor just process on single one gohtml file now
+	// we use an singleton map to keep layout relationship
+	// Not a good solution but works
 	layOutMap  map[string][]string
 	fileLayOut map[string]string
 }
 
-var single *LayManager = nil
+var single *LayManager
 var mutexLock sync.RWMutex
 
 func LayoutArgs(file string) []string {

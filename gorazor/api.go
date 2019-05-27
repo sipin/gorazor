@@ -12,11 +12,11 @@ import (
 )
 
 const (
-	go_extension = ".go"
-	gz_extension = ".gohtml"
+	goExtension = ".go"
+	gzExtension = ".gohtml"
 )
 
-// Generate from input to output file,
+// GenFile generate from input to output file,
 // gofmt will trigger an error if it fails.
 func GenFile(input string, output string, options Option) error {
 	outdir := filepath.Dir(output)
@@ -26,11 +26,11 @@ func GenFile(input string, output string, options Option) error {
 	return generate(input, output, options)
 }
 
-// Generate from directory to directory, Find all the files with extension
+// GenFolder generate from directory to directory, Find all the files with extension
 // of .gohtml and generate it into target dir.
 func GenFolder(indir string, outdir string, options Option) (err error) {
 	if !exists(indir) {
-		return errors.New("Input directory does not exsits")
+		return errors.New("Input directory does not exsit")
 	} else {
 		if err != nil {
 			return err
@@ -41,15 +41,15 @@ func GenFolder(indir string, outdir string, options Option) (err error) {
 		os.MkdirAll(outdir, 0775)
 	}
 
-	incdir_abs, _ := filepath.Abs(indir)
-	outdir_abs, _ := filepath.Abs(outdir)
+	incdirAbs, _ := filepath.Abs(indir)
+	outdirAbs, _ := filepath.Abs(outdir)
 
 	paths := []string{}
 
 	visit := func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
 			//Just do file with exstension .gohtml
-			if !strings.HasSuffix(path, gz_extension) {
+			if !strings.HasSuffix(path, goExtension) {
 				return nil
 			}
 			filename := filepath.Base(path)
@@ -64,8 +64,8 @@ func GenFolder(indir string, outdir string, options Option) (err error) {
 	fun := func(path string, res chan<- string) {
 		//adjust with the abs path, so that we keep the same directory hierarchy
 		input, _ := filepath.Abs(path)
-		output := strings.Replace(input, incdir_abs, outdir_abs, 1)
-		output = strings.Replace(output, gz_extension, go_extension, -1)
+		output := strings.Replace(input, incdirAbs, outdirAbs, 1)
+		output = strings.Replace(output, gzExtension, goExtension, -1)
 		err := GenFile(path, output, options)
 		if err != nil {
 			res <- fmt.Sprintf("%s -> %s", path, output)

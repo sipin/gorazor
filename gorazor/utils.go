@@ -18,6 +18,7 @@ var (
 	rgxSyntaxError = regexp.MustCompile(`(\d+):\d+: `)
 )
 
+// FormatBuffer format go code, panic when code is invalid
 func FormatBuffer(code string) string {
 	buf := bytes.NewBufferString(code)
 	output, err := format.Source(buf.Bytes())
