@@ -2,42 +2,42 @@ package gorazor
 
 import "sync"
 
-// LayManager is the layout manager
-type LayManager struct {
+// LayoutManager is the layout manager
+type LayoutManager struct {
 	// For gorazor just process on single one gohtml file now
 	// we use an singleton map to keep layout relationship
 	// Not a good solution but works
-	layOutMap  map[string][]string
-	fileLayOut map[string]string
+	layoutMap map[string][]string
 }
 
-var single *LayManager
+var single *LayoutManager
 var mutexLock sync.RWMutex
 
+// LayoutArgs returns arguments of given layout file
 func LayoutArgs(file string) []string {
 	mutexLock.RLock()
 	defer mutexLock.RUnlock()
 	manager := newManager()
-	if args, ok := manager.layOutMap[file]; ok {
+	if args, ok := manager.layoutMap[file]; ok {
 		return args
 	}
 	return []string{}
 }
 
+// SetLayout arguments for layout file
 func SetLayout(file string, args []string) {
 	mutexLock.Lock()
 	manager := newManager()
-	manager.layOutMap[file] = args
+	manager.layoutMap[file] = args
 	mutexLock.Unlock()
 }
 
-func newManager() *LayManager {
+func newManager() *LayoutManager {
 	if single != nil {
 		return single
 	}
-	lay := &LayManager{}
-	lay.layOutMap = map[string][]string{}
-	lay.fileLayOut = map[string]string{}
+	lay := &LayoutManager{}
+	lay.layoutMap = map[string][]string{}
 	single = lay
 	return lay
 }
