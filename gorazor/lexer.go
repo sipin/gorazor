@@ -61,6 +61,7 @@ var typeStr = [...]string{
 //   NameNotChange bool
 type Option map[string]interface{}
 
+// TokenMatch store matched token
 type TokenMatch struct {
 	Type  int
 	Text  string
@@ -71,7 +72,7 @@ func rec(reg string) *regexp.Regexp {
 	return regexp.MustCompile("^" + reg)
 }
 
-// The order is important
+// Tests stores TokenMatch list, TokenMatch order is important
 var Tests = []TokenMatch{
 	TokenMatch{EMAIL, "EMAIL", rec(`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\b`)},
 	TokenMatch{HTML_TAG_OPEN, "HTML_TAG_OPEN", rec(`(<[a-zA-Z@]+?[^>]*?["a-zA-Z]*>)`)},
@@ -85,6 +86,7 @@ var Tests = []TokenMatch{
 	TokenMatch{CONTENT, "CONTENT", rec(`([^\s})@.]+?)`)},
 }
 
+// Token represent a token in code
 type Token struct {
 	Text    string
 	TypeStr string
@@ -93,6 +95,7 @@ type Token struct {
 	Pos     int
 }
 
+// P for print
 func (token Token) P() {
 	textStr := strings.Replace(token.Text, "\n", "\\n", -1)
 	textStr = strings.Replace(textStr, "\t", "\\t", -1)
@@ -100,6 +103,7 @@ func (token Token) P() {
 		token.TypeStr, token.Line, token.Pos, textStr)
 }
 
+// Lexer for gorazor
 type Lexer struct {
 	Text    string
 	Matches []TokenMatch
@@ -151,6 +155,7 @@ func makeToken(val string, tokenType int) Token {
 	return Token{val, typeStr[tokenType], tokenType, 0, 0}
 }
 
+// Scan return gorazor doc as list for Token
 func (lexer *Lexer) Scan() ([]Token, error) {
 	toks := []Token{}
 	text := strings.Replace(lexer.Text, "\r\n", "\n", -1)
