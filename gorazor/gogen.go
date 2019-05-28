@@ -34,11 +34,13 @@ func getValStr(e interface{}) string {
 	}
 }
 
+// Part represent gorazor template parts
 type Part struct {
 	ptype int
 	value string
 }
 
+// Compiler generate go code for gorazor template
 type Compiler struct {
 	ast      *Ast
 	buf      string //the final result
@@ -108,7 +110,6 @@ func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
 }
 
 func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
-
 	cp.addPart(Part{CMKP, getValStr(child)})
 }
 
