@@ -11,7 +11,6 @@ import (
 	"regexp"
 	"strconv"
 	"strings"
-	"time"
 )
 
 var (
@@ -54,19 +53,18 @@ func FormatBuffer(code string) string {
 	return ""
 }
 
+// HTMLEscape wraps template.HTMLEscapeString
 func HTMLEscape(m interface{}) string {
 	s := fmt.Sprint(m)
 	return template.HTMLEscapeString(s)
 }
 
-func StrTime(timestamp int64, format string) string {
-	return time.Unix(timestamp, 0).Format(format)
-}
-
+// Itoa wraps strconv.Itoa
 func Itoa(obj int) string {
 	return strconv.Itoa(obj)
 }
 
+// Capitalize change first character to upper
 func Capitalize(str string) string {
 	if len(str) == 0 {
 		return ""
