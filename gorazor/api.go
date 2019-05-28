@@ -31,11 +31,8 @@ func GenFile(input string, output string, options Option) error {
 func GenFolder(indir string, outdir string, options Option) (err error) {
 	if !exists(indir) {
 		return errors.New("Input directory does not exsit")
-	} else {
-		if err != nil {
-			return err
-		}
 	}
+
 	//Make it
 	if !exists(outdir) {
 		os.MkdirAll(outdir, 0775)
