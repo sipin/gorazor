@@ -354,7 +354,6 @@ func (cp *Compiler) processLayout() {
 	if cp.layout != "" {
 		foot += ")"
 	}
-	foot += "\n}\n"
 	cp.buf += foot
 }
 
@@ -370,16 +369,16 @@ func (cp *Compiler) visit() {
 	for k := range cp.imports {
 		head += k + "\n"
 	}
-	head += "\n)\n func " + fun + "("
-	for idx, p := range cp.params {
-		head += p
-		if idx != len(cp.params)-1 {
-			head += ", "
-		}
-	}
-	head += ") string {\n var _buffer bytes.Buffer\n"
+
+	funcArgs := strings.Join(cp.params, ", ")
+
+	head += "\n)\n"
+	head += "func " + fun + "(" + funcArgs + ") string {\n"
+	head += "var _buffer bytes.Buffer\n"
 	cp.buf = head + cp.buf
 	cp.processLayout()
+	foot := "\n}\n"
+	cp.buf += foot
 }
 
 func run(path string, Options Option) (*Compiler, error) {
