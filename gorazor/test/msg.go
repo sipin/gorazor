@@ -3,11 +3,18 @@ package cases
 import (
 	"bytes"
 	"github.com/sipin/gorazor/gorazor"
+	"io"
 	. "kp/models"
+	"strings"
 )
 
 func Msg(u *User) string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteMsg(&_b, u)
+	return _b.String()
+}
+
+func WriteMsg(_buffer io.StringWriter, u *User) {
 
 	getName := func(u *User) string {
 		return "(" + u.Name + ")"
@@ -24,5 +31,4 @@ func Msg(u *User) string {
 	_buffer.WriteString((u.Intro))
 	_buffer.WriteString("</div>\n</div>")
 
-	return _buffer.String()
 }

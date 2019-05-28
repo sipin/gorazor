@@ -4,11 +4,18 @@ import (
 	"bytes"
 	"cases/layout"
 	"github.com/sipin/gorazor/gorazor"
+	"io"
 	"kp/models"
+	"strings"
 )
 
 func Index(users []*models.User, total int, limit int, offset int) string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteIndex(&_b, users, total, limit, offset)
+	return _b.String()
+}
+
+func WriteIndex(_buffer io.StringWriter, users []*models.User, total int, limit int, offset int) {
 	_buffer.WriteString("\n\n<h2 class=\"sub-header\">用户总数：")
 	_buffer.WriteString(gorazor.HTMLEscape(gorazor.Itoa(total)))
 	_buffer.WriteString("</h2>\n<div class=\"table-responsive\">\n\t<table class=\"table table-striped\">\n\t\t<thead>\n\t\t\t<tr>\n\t\t\t\t<th>名字</th>\n\t\t\t\t<th>电邮</th>\n\t\t\t\t<th>编辑</th>\n\t\t\t</tr>\n\t\t</thead>\n\t\t<tbody>\n\t\t\t")

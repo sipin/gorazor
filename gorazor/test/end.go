@@ -4,12 +4,19 @@ import (
 	"bytes"
 	"cases/layout"
 	"github.com/sipin/gorazor/gorazor"
+	"io"
 	. "kp/models"
+	"strings"
 	"tpl/helper"
 )
 
 func End(totalMessage int, u *User) string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteEnd(&_b, totalMessage, u)
+	return _b.String()
+}
+
+func WriteEnd(_buffer io.StringWriter, totalMessage int, u *User) {
 	_buffer.WriteString((helper.Header()))
 	_buffer.WriteString((helper.Msg(u)))
 	for i := 0; i < 2; i++ {

@@ -2,10 +2,16 @@ package cases
 
 import (
 	"bytes"
+	"io"
+	"strings"
 )
 
 func Var(totalMessage int) string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteVar(&_b, totalMessage)
+	return _b.String()
+}
 
-	return _buffer.String()
+func WriteVar(_buffer io.StringWriter, totalMessage int) {
+
 }

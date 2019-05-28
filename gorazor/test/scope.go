@@ -4,12 +4,19 @@ import (
 	"bytes"
 	"dm"
 	"github.com/sipin/gorazor/gorazor"
+	"io"
+	"strings"
 	"zfw/models"
 	. "zfw/tplhelper"
 )
 
 func Scope(obj *models.Widget) string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteScope(&_b, obj)
+	return _b.String()
+}
+
+func WriteScope(_buffer io.StringWriter, obj *models.Widget) {
 
 	data, dmType := dm.GetData(obj.PlaceHolder)
 
@@ -84,5 +91,4 @@ func Scope(obj *models.Widget) string {
 		_buffer.WriteString("\n  </div>\n</div>")
 	}
 
-	return _buffer.String()
 }

@@ -3,10 +3,17 @@ package cases
 import (
 	"bytes"
 	"cases/layout"
+	"io"
+	"strings"
 )
 
 func Forward(content string, err string) string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteForward(&_b, content, err)
+	return _b.String()
+}
+
+func WriteForward(_buffer io.StringWriter, content string, err string) {
 
 	//hello word
 	/* hello this */

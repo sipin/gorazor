@@ -2,10 +2,16 @@ package cases
 
 import (
 	"bytes"
+	"io"
+	"strings"
 )
 
 func Codeblock() string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteCodeblock(&_b)
+	return _b.String()
+}
 
-	return _buffer.String()
+func WriteCodeblock(_buffer io.StringWriter) {
+
 }

@@ -3,12 +3,19 @@ package cases
 import (
 	"bytes"
 	"github.com/sipin/gorazor/gorazor"
+	"io"
 	"kp/models"
+	"strings"
 	"tpl/admin/layout"
 )
 
 func Sectionbug() string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteSectionbug(&_b)
+	return _b.String()
+}
+
+func WriteSectionbug(_buffer io.StringWriter) {
 
 	js := func() string {
 		var _buffer bytes.Buffer

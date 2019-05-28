@@ -4,10 +4,17 @@ import (
 	"bytes"
 	"cases/layout"
 	"github.com/sipin/gorazor/gorazor"
+	"io"
+	"strings"
 )
 
 func Add(content string, err string) string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteAdd(&_b, content, err)
+	return _b.String()
+}
+
+func WriteAdd(_buffer io.StringWriter, content string, err string) {
 	_buffer.WriteString("\n\n<link rel=\"stylesheet\" href=\"/css/bootstrap-datetimepicker.css\">\n\n<style>\n.row {\n\tmargin-top: 10px;\n}\n</style>\n\n<h2>日程登记</h2>\n\n<div class=\"container-fluid\">\n\t<form method=\"POST\" action=\"\">\n\t<div class=\"row\" >\n\t\t<p class=\"bg-danger\">")
 	_buffer.WriteString(gorazor.HTMLEscape(err))
 	_buffer.WriteString("</p>\n\t</div>\n\n\t<div class=\"row\">\n\t内容:\n\t<input type='text' class=\"form-control\" name=\"content\" value=\"")

@@ -3,12 +3,19 @@ package cases
 import (
 	"bytes"
 	"dm"
+	"io"
+	"strings"
 	"zfw/models"
 	. "zfw/tplhelper"
 )
 
 func Scopebug(obj *models.Widget) string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteScopebug(&_b, obj)
+	return _b.String()
+}
+
+func WriteScopebug(_buffer io.StringWriter, obj *models.Widget) {
 
 	if 1 == 2 {
 	} else {
@@ -27,5 +34,4 @@ func Scopebug(obj *models.Widget) string {
 		}
 	}
 
-	return _buffer.String()
 }

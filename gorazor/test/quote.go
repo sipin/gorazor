@@ -2,11 +2,17 @@ package cases
 
 import (
 	"bytes"
+	"io"
+	"strings"
 )
 
 func Quote() string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteQuote(&_b)
+	return _b.String()
+}
+
+func WriteQuote(_buffer io.StringWriter) {
 	_buffer.WriteString("<html>'text'</html>")
 
-	return _buffer.String()
 }

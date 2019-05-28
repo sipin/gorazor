@@ -315,16 +315,19 @@ func (cp *Compiler) processLayout() {
 		}
 	}
 	cp.buf = out
-	foot := "\nreturn "
+	foot := ""
+
 	if cp.layout != "" {
+		foot += "\nreturn "
 		parts := strings.SplitN(cp.layout, "/", -1)
 		base := Capitalize(parts[len(parts)-1])
 		foot += "layout." + base + "("
+		foot += "_buffer.String()"
 	} else if len(sections) > 0 {
 		fmt.Println("expect layout for sections")
 		os.Exit(1)
 	}
-	foot += "_buffer.String()"
+
 	args := LayoutArgs(cp.layout)
 	if len(args) == 0 {
 		for _, sec := range sections {
@@ -365,16 +368,33 @@ func (cp *Compiler) visit() {
 	fun := cp.file
 
 	cp.imports[`"bytes"`] = true
+	cp.imports[`"io"`] = true
+	cp.imports[`"strings"`] = true
+
 	head := "package " + pack + "\n import (\n"
 	for k := range cp.imports {
 		head += k + "\n"
 	}
 
 	funcArgs := strings.Join(cp.params, ", ")
+	var args []string
+	for _, p := range cp.params {
+		arg := strings.Split(p, " ")[0]
+		args = append(args, arg)
+	}
 
 	head += "\n)\n"
-	head += "func " + fun + "(" + funcArgs + ") string {\n"
-	head += "var _buffer bytes.Buffer\n"
+
+	head += fmt.Sprintf(`func %s(%s) string {
+		var _b strings.Builder
+		Write%s(&_b, %s)
+		return _b.String()
+	}
+
+	`, fun, funcArgs, fun, strings.Join(args, ", "))
+
+	head += "func Write" + fun + "(_buffer io.StringWriter, " + funcArgs + ") {\n"
+
 	cp.buf = head + cp.buf
 	cp.processLayout()
 	foot := "\n}\n"

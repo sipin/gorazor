@@ -3,10 +3,17 @@ package cases
 import (
 	"bytes"
 	"github.com/sipin/gorazor/gorazor"
+	"io"
+	"strings"
 )
 
 func Badtag(w *gorazor.Widget) string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteBadtag(&_b, w)
+	return _b.String()
+}
+
+func WriteBadtag(_buffer io.StringWriter, w *gorazor.Widget) {
 	if w.ErrorMsg != "" {
 
 		_buffer.WriteString("<div class=\"form-group has-error\">\n\t<div class=\"alert alert-danger\">")
@@ -30,5 +37,4 @@ func Badtag(w *gorazor.Widget) string {
 	_buffer.WriteString(gorazor.HTMLEscape(w.Value))
 	_buffer.WriteString("\">\n</div>")
 
-	return _buffer.String()
 }

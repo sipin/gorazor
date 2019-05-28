@@ -4,12 +4,19 @@ import (
 	"bytes"
 	"cases/layout"
 	"github.com/sipin/gorazor/gorazor"
+	"io"
 	. "kp/models"
+	"strings"
 	"tpl/helper"
 )
 
 func Argsbug(totalMessage int, u *User) string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteArgsbug(&_b, totalMessage, u)
+	return _b.String()
+}
+
+func WriteArgsbug(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	messages := []string{}
 

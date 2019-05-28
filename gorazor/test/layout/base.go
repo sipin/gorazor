@@ -3,11 +3,18 @@ package layout
 import (
 	"bytes"
 	"github.com/sipin/gorazor/gorazor"
+	"io"
+	"strings"
 	"tpl/admin/helper"
 )
 
 func Base(body string, title string, js string) string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteBase(&_b, body, title, js)
+	return _b.String()
+}
+
+func WriteBase(_buffer io.StringWriter, body string, title string, js string) {
 
 	companyName := "深圳思品科技有限公司"
 
@@ -23,5 +30,4 @@ func Base(body string, title string, js string) string {
 	_buffer.WriteString((js))
 	_buffer.WriteString("\n  </body>\n</html>")
 
-	return _buffer.String()
 }

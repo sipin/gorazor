@@ -3,10 +3,17 @@ package cases
 import (
 	"bytes"
 	"github.com/sipin/gorazor/gorazor"
+	"io"
+	"strings"
 )
 
 func Layout(body string, title string, side string) string {
-	var _buffer bytes.Buffer
+	var _b strings.Builder
+	WriteLayout(&_b, body, title, side)
+	return _b.String()
+}
+
+func WriteLayout(_buffer io.StringWriter, body string, title string, side string) {
 	_buffer.WriteString("\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\" />")
 	_buffer.WriteString(gorazor.HTMLEscape(title))
 	_buffer.WriteString("\n</head>\n<body>\n<div>")
@@ -15,5 +22,4 @@ func Layout(body string, title string, side string) string {
 	_buffer.WriteString(gorazor.HTMLEscape(side))
 	_buffer.WriteString("</div>\n</body>\n</html>")
 
-	return _buffer.String()
 }
