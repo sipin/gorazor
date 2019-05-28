@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// GorazorNamespace is alias to "github.com/sipin/gorazor/gorazor"
 var GorazorNamespace = `"github.com/sipin/gorazor/gorazor"`
 
 //------------------------------ Compiler ------------------------------ //
@@ -33,11 +34,13 @@ func getValStr(e interface{}) string {
 	}
 }
 
+// Part represent gorazor template parts
 type Part struct {
 	ptype int
 	value string
 }
 
+// Compiler generate go code for gorazor template
 type Compiler struct {
 	ast      *Ast
 	buf      string //the final result
@@ -51,23 +54,23 @@ type Compiler struct {
 	file     string
 }
 
-func (self *Compiler) addPart(part Part) {
-	if len(self.parts) == 0 {
-		self.parts = append(self.parts, part)
+func (cp *Compiler) addPart(part Part) {
+	if len(cp.parts) == 0 {
+		cp.parts = append(cp.parts, part)
 		return
 	}
-	last := &self.parts[len(self.parts)-1]
+	last := &cp.parts[len(cp.parts)-1]
 	if last.ptype == part.ptype {
 		last.value += part.value
 	} else {
-		self.parts = append(self.parts, part)
+		cp.parts = append(cp.parts, part)
 	}
 }
 
-func (self *Compiler) genPart() {
+func (cp *Compiler) genPart() {
 	res := ""
 
-	for _, p := range self.parts {
+	for _, p := range cp.parts {
 		if p.ptype == CMKP && p.value != "" {
 			// do some escapings
 			for strings.HasSuffix(p.value, "\n") {
@@ -83,12 +86,12 @@ func (self *Compiler) genPart() {
 			res += p.value
 		}
 	}
-	self.buf = res
+	cp.buf = res
 }
 
 func makeCompiler(ast *Ast, options Option, input string) *Compiler {
 	dir := filepath.Base(filepath.Dir(input))
-	file := strings.Replace(filepath.Base(input), gz_extension, "", 1)
+	file := strings.Replace(filepath.Base(input), gzExtension, "", 1)
 	if options["NameNotChange"] == nil {
 		file = Capitalize(file)
 	}
@@ -107,7 +110,6 @@ func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
 }
 
 func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
-
 	cp.addPart(Part{CMKP, getValStr(child)})
 }
 
@@ -352,7 +354,6 @@ func (cp *Compiler) processLayout() {
 	if cp.layout != "" {
 		foot += ")"
 	}
-	foot += "\n}\n"
 	cp.buf += foot
 }
 
@@ -365,19 +366,19 @@ func (cp *Compiler) visit() {
 
 	cp.imports[`"bytes"`] = true
 	head := "package " + pack + "\n import (\n"
-	for k, _ := range cp.imports {
+	for k := range cp.imports {
 		head += k + "\n"
 	}
-	head += "\n)\n func " + fun + "("
-	for idx, p := range cp.params {
-		head += p
-		if idx != len(cp.params)-1 {
-			head += ", "
-		}
-	}
-	head += ") string {\n var _buffer bytes.Buffer\n"
+
+	funcArgs := strings.Join(cp.params, ", ")
+
+	head += "\n)\n"
+	head += "func " + fun + "(" + funcArgs + ") string {\n"
+	head += "var _buffer bytes.Buffer\n"
 	cp.buf = head + cp.buf
 	cp.processLayout()
+	foot := "\n}\n"
+	cp.buf += foot
 }
 
 func run(path string, Options Option) (*Compiler, error) {

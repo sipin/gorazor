@@ -16,6 +16,7 @@ const (
 	EXP
 )
 
+// PAIRS stores the symbols that must come in pairs
 var PAIRS = map[int]int{
 	AT_STAR_OPEN:    AT_STAR_CLOSE,
 	BRACE_OPEN:      BRACE_CLOSE,
@@ -26,6 +27,7 @@ var PAIRS = map[int]int{
 	AT_COLON:        NEWLINE,
 }
 
+// Ast stores the abstract syntax tree
 type Ast struct {
 	Parent   *Ast
 	Children []interface{}
@@ -33,6 +35,7 @@ type Ast struct {
 	TagName  string
 }
 
+// ModeStr return string representation of ast mode
 func (ast *Ast) ModeStr() string {
 	switch ast.Mode {
 	case PRG:
@@ -133,16 +136,17 @@ func (ast *Ast) closest(mode int, tag string) *Ast {
 func (ast *Ast) hasNonExp() bool {
 	if ast.Mode != EXP {
 		return true
-	} else {
-		for _, c := range ast.Children {
-			if v, ok := c.(*Ast); ok {
-				if v.hasNonExp() {
-					return true
-				}
-			}
-			return false
-		}
 	}
+
+	for _, c := range ast.Children {
+		if v, ok := c.(*Ast); ok {
+			if v.hasNonExp() {
+				return true
+			}
+		}
+		return false
+	}
+
 	return false
 }
 
@@ -175,6 +179,7 @@ func (ast *Ast) debug(depth int, max int) {
 	fmt.Println("]]")
 }
 
+// Parser parse the gorazor file
 type Parser struct {
 	ast         *Ast
 	root        *Ast
@@ -243,7 +248,7 @@ func (parser *Parser) advanceUntilNot(tokenType int) []Token {
 }
 
 func (parser *Parser) advanceUntil(token Token, start, end, startEsc, endEsc int) ([]Token, error) {
-	var prev *Token = nil
+	var prev *Token
 	next := &token
 	res := []Token{}
 	nstart := 0
@@ -389,10 +394,8 @@ func (parser *Parser) handleBLK(token Token) error {
 			parser.ast.addChild(*next)
 			parser.skipToken()
 		}
-
 	case AT_STAR_OPEN:
 		parser.advanceUntil(token, AT_STAR_OPEN, AT_STAR_CLOSE, AT, AT)
-
 	case AT_COLON:
 		parser.subParse(token, MKP, true)
 
@@ -408,7 +411,7 @@ func (parser *Parser) handleBLK(token Token) error {
 		if err != nil {
 			return err
 		}
-		for idx, _ := range subTokens {
+		for idx := range subTokens {
 			if subTokens[idx].Type == AT {
 				subTokens[idx].Type = CONTENT
 			}
@@ -489,7 +492,6 @@ func (parser *Parser) handleEXP(token Token) error {
 		if (prev != nil && prev.Type == AT) || (next != nil && next.Type == IDENTIFIER) {
 			parser.ast = parser.ast.Parent
 		}
-
 	case BRACE_OPEN:
 		prev := parser.prevToken(0)
 		//todo: Is this really neccessary?
@@ -499,7 +501,6 @@ func (parser *Parser) handleEXP(token Token) error {
 			parser.deferToken(token)
 			parser.ast = parser.ast.beget(BLK, "")
 		}
-
 	case PERIOD:
 		next := parser.peekToken(0)
 		if next != nil && (next.Type == IDENTIFIER || next.Type == KEYWORD ||
@@ -521,6 +522,7 @@ func (parser *Parser) handleEXP(token Token) error {
 	return nil
 }
 
+// Run execute the parser
 func (parser *Parser) Run() error {
 	curr := Token{"UNDEF", "UNDEF", UNDEF, 0, 0}
 	parser.root = parser.ast
