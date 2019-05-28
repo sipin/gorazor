@@ -18,11 +18,15 @@ func Argsbug(totalMessage int, u *User) string {
 
 func WriteArgsbug(_buffer io.StringWriter, totalMessage int, u *User) {
 
-	messages := []string{}
+	_body := func(_buffer io.StringWriter) {
 
-	_buffer.WriteString("\n\n<p>")
-	_buffer.WriteString(gorazor.HTMLEscape(gorazor.Itoa(args(messages...))))
-	_buffer.WriteString("</p>")
+		messages := []string{}
+
+		_buffer.WriteString("\n\n<p>")
+		_buffer.WriteString(gorazor.HTMLEscape(gorazor.Itoa(args(messages...))))
+		_buffer.WriteString("</p>")
+
+	}
 
 	return layout.Args(_buffer.String())
 }

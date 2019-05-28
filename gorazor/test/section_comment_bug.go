@@ -14,13 +14,16 @@ func Section_comment_bug() string {
 }
 
 func WriteSection_comment_bug(_buffer io.StringWriter) {
-	_buffer.WriteString("\n\n<a>\n    <!-- comment -->\n</a>")
 
-	side := func() string {
-		var _buffer bytes.Buffer
+	_body := func(_buffer io.StringWriter) {
+		_buffer.WriteString("\n\n<a>\n    <!-- comment -->\n</a>")
+
+	}
+
+	side := func(_buffer io.StringWriter) {
 
 		_buffer.WriteString("<!-- comment -->\n    plain text")
-		return _buffer.String()
+
 	}
 
 	return layout.Base(_buffer.String(), side())

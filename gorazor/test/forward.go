@@ -15,8 +15,12 @@ func Forward(content string, err string) string {
 
 func WriteForward(_buffer io.StringWriter, content string, err string) {
 
-	//hello word
-	/* hello this */
+	_body := func(_buffer io.StringWriter) {
+
+		//hello word
+		/* hello this */
+
+	}
 
 	return layout.Base(_buffer.String(), "", "")
 }

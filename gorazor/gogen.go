@@ -283,19 +283,29 @@ func (cp *Compiler) visitAst(ast *Ast) {
 	}
 }
 
+func (cp *Compiler) hasLayout() bool {
+	return cp.layout != ""
+}
+
 // TODO, this is dirty now
 func (cp *Compiler) processLayout() {
 	lines := strings.SplitN(cp.buf, "\n", -1)
 	out := ""
 	sections := []string{}
 	scope := 0
+	hasBodyClosed := false
+
 	for _, l := range lines {
 		l = strings.TrimSpace(l)
 		if strings.HasPrefix(l, "section") && strings.HasSuffix(l, "{") {
+			if hasBodyClosed == false {
+				hasBodyClosed = true
+				out += "\n}\n"
+			}
+
 			name := l
 			name = strings.TrimSpace(name[7 : len(name)-1])
-			out += "\n " + name + " := func() string {\n"
-			out += "var _buffer bytes.Buffer\n"
+			out += "\n " + name + " := func(_buffer io.StringWriter) {\n"
 			scope = 1
 			sections = append(sections, name)
 		} else if scope > 0 {
@@ -305,7 +315,7 @@ func (cp *Compiler) processLayout() {
 				scope--
 			}
 			if scope == 0 {
-				out += "return _buffer.String()\n}\n"
+				out += "\n}\n"
 				scope = 0
 			} else {
 				out += l + "\n"
@@ -314,10 +324,17 @@ func (cp *Compiler) processLayout() {
 			out += l + "\n"
 		}
 	}
+
+	if cp.hasLayout() && hasBodyClosed == false {
+		hasBodyClosed = true
+		out += "\n}\n"
+	}
+
 	cp.buf = out
+
 	foot := ""
 
-	if cp.layout != "" {
+	if cp.hasLayout() {
 		foot += "\nreturn "
 		parts := strings.SplitN(cp.layout, "/", -1)
 		base := Capitalize(parts[len(parts)-1])
@@ -394,6 +411,9 @@ func (cp *Compiler) visit() {
 	`, fun, funcArgs, fun, strings.Join(args, ", "))
 
 	head += "func Write" + fun + "(_buffer io.StringWriter, " + funcArgs + ") {\n"
+	if cp.hasLayout() {
+		head += "\n_body := func(_buffer io.StringWriter) {\n"
+	}
 
 	cp.buf = head + cp.buf
 	cp.processLayout()

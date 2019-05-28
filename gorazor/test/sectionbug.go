@@ -17,8 +17,11 @@ func Sectionbug() string {
 
 func WriteSectionbug(_buffer io.StringWriter) {
 
-	js := func() string {
-		var _buffer bytes.Buffer
+	_body := func(_buffer io.StringWriter) {
+
+	}
+
+	js := func(_buffer io.StringWriter) {
 		for _, jsFile := range ctx.GetJS() {
 
 			_buffer.WriteString("<script src=\"")
@@ -26,7 +29,7 @@ func WriteSectionbug(_buffer io.StringWriter) {
 			_buffer.WriteString("\"></script>")
 
 		}
-		return _buffer.String()
+
 	}
 
 	return layout.Base(_buffer.String(), js())
