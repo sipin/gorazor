@@ -1,0 +1,15 @@
+- [ ] Add version
+  - [ ] codegen header
+  - [ ] version output
+- [ ] Define new layout syntax
+- [ ] Line number support
+- [ ] html compact mode option
+- [ ] Codegen options
+  - [ ] gen string args override
+- [ ] Better error msg
+- [ ] Performance Optimize
+  - [ ] Setup benchmark
+  - [ ] zero alloc
+  - [ ] Unsafe write?
+- [ ] VS Code plugin
+- [ ] Quick Start guide
