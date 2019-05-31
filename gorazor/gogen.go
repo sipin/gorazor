@@ -138,17 +138,16 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 				v = s.Name.Name + " " + v
 			}
 			parts := strings.SplitN(v, "/", -1)
-			if len(parts) >= 2 && parts[len(parts)-2] == "layout" {
+			if len(parts) >= 1 && parts[len(parts)-1] == "layout" {
 				cp.layout = strings.Replace(v, "\"", "", -1)
-				dir := strings.Join(parts[0:len(parts)-1], "/") + "\""
-				cp.imports[dir] = true
-			} else {
-				cp.imports[v] = true
 			}
+
+			cp.imports[v] = true
 		}
 	}
 
 	lines := strings.SplitN(first, "\n", -1)
+	var layoutFunc string
 	for _, l := range lines {
 		l = strings.TrimSpace(l)
 		if strings.HasPrefix(l, "var") {
@@ -156,14 +155,28 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 			if strings.HasSuffix(l, "gorazor.Widget") {
 				cp.imports[GorazorNamespace] = true
 				cp.params = append(cp.params, vname[:len(vname)-14]+"gorazor.Widget")
+			} else if strings.HasPrefix(vname, "layout") {
+				funcName := strings.SplitN(vname, ".", -1)
+				layoutFunc = funcName[len(funcName)-1]
 			} else {
 				cp.params = append(cp.params, vname)
 			}
 		}
 	}
 	if cp.layout != "" {
-		path := cp.layout + ".gohtml"
-		if exists(path) && len(LayoutArgs(path)) == 0 {
+		path := cp.layout + "/" + layoutFunc + ".gohtml"
+		if !exists(path) {
+			layoutFunc = strings.ToLower(layoutFunc[0:1]) + layoutFunc[1:]
+			path = cp.layout + "/" + layoutFunc + ".gohtml"
+		}
+
+		cp.layout = cp.layout + "/" + layoutFunc
+
+		if !exists(path) {
+			panic("Can't find layout: " + cp.layout)
+		}
+
+		if len(LayoutArgs(path)) == 0 {
 			//TODO, bad for performance
 			_cp, err := run(path, cp.options)
 			if err != nil {
@@ -281,6 +294,10 @@ func (cp *Compiler) visitAst(ast *Ast) {
 			cp.visitAst(c.(*Ast))
 		}
 	}
+}
+
+func (cp *Compiler) isLayout() bool {
+	return cp.dir == "layout"
 }
 
 func (cp *Compiler) hasLayout() bool {
