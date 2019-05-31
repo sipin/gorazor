@@ -1,7 +1,10 @@
 - [ ] Add version
   - [ ] codegen header
   - [ ] version output
+- [ ] Add namespace sub fix support
 - [ ] Define new layout syntax
+  - [ ] Update readme
+  - [ ] Decide layout import path discovery
 - [ ] Line number support
 - [ ] html compact mode option
 - [ ] Codegen options
@@ -13,3 +16,4 @@
   - [ ] Unsafe write?
 - [ ] VS Code plugin
 - [ ] Quick Start guide
+- [ ] Dynamic compile?
