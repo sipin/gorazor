@@ -78,6 +78,9 @@ func (cp *Compiler) genPart() {
 			}
 			if p.value != "" {
 				p.value = fmt.Sprintf("%#v", p.value)
+				if p.value == "(title)" {
+					println(p.value)
+				}
 				res += "_buffer.WriteString(" + p.value + ")\n"
 			}
 		} else if p.ptype == CBLK {
@@ -138,7 +141,8 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 				v = s.Name.Name + " " + v
 			}
 			parts := strings.SplitN(v, "/", -1)
-			if len(parts) >= 1 && parts[len(parts)-1] == "layout" {
+
+			if len(parts) >= 1 && parts[len(parts)-1] == `layout"` {
 				cp.layout = strings.Replace(v, "\"", "", -1)
 			}
 
@@ -171,7 +175,7 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 		}
 
 		cp.layout = cp.layout + "/" + layoutFunc
-
+		println(path)
 		if !exists(path) {
 			panic("Can't find layout: " + cp.layout)
 		}
@@ -358,7 +362,7 @@ func (cp *Compiler) processLayout() {
 		foot += "layout." + base + "("
 		foot += "_buffer.String()"
 	} else if len(sections) > 0 {
-		fmt.Println("expect layout for sections")
+		fmt.Println("expect layout for sections: " + cp.file)
 		os.Exit(1)
 	}
 

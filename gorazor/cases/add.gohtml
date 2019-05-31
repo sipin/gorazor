@@ -1,8 +1,8 @@
 @{
 	import (
-		"cases/layout/base"
+		"cases/layout"
 	)
-
+	var layout *layout.base
 	var content string
 	var err string
 }
@@ -27,12 +27,12 @@
 	内容:
 	<input type='text' class="form-control" name="content" value="@content"/>
 	</div>
-	
+
 	<div class="row">
 	开始时间:
 	<input type='text' class="datetimepicker form-control" name="startTime"/>
 	</div>
-	
+
 	<div class="row">
 	结束时间:
 	<input type='text' class="datetimepicker form-control" name="endTime"/>
@@ -45,7 +45,7 @@
 		<option>wuvist</option>
 	</select>
 	</div>
-	
+
 	<div class="row">
 	<input style="float:right" type="submit" value="保存" class="btn btn-primary"/>
 	</div>
