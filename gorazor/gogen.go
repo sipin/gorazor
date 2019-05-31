@@ -400,9 +400,10 @@ func (cp *Compiler) visit() {
 		args = append(args, arg)
 	}
 
-	head += "\n)\n"
+	head += "\n)"
 
-	head += fmt.Sprintf(`func %s(%s) string {
+	head += fmt.Sprintf(`
+	func %s(%s) string {
 		var _b strings.Builder
 		Write%s(&_b, %s)
 		return _b.String()
