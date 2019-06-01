@@ -1,10 +1,10 @@
 - [X] Add version
   - [X] codegen header
   - [X] version output
-- [ ] Add namespace sub fix support
-- [ ] Define new layout syntax
-  - [ ] Update readme
-  - [ ] Decide layout import path discovery
+- [ ] Add namespace prefix fix support
+- [X] Define new layout syntax
+  - [X] Update readme
+  - [X] Decide layout import path discovery
 - [ ] Line number support
 - [ ] html compact mode option
 - [ ] Codegen options
