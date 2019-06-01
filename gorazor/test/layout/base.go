@@ -39,7 +39,20 @@ func WriteBase(_buffer io.StringWriter, body func(_buffer io.StringWriter), titl
 	_buffer.WriteString((helper.Menu()))
 	_buffer.WriteString("\n        </div>\n        <div class=\"col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main\">\n          ")
 	body(_buffer)
-	_buffer.WriteString("\n        </div>\n      </div>\n    </div>\n\t<script src=\"/js/jquery.min.js\"></script>\n\t<script src=\"/js/bootstrap.min.js\"></script>\n\t")
+	_buffer.WriteString("\n        </div>\n      </div>\n    </div>\n    ")
+	if js == nil {
+		_buffer.WriteString("<script src=\"/js/jquery.min.js\"></script>")
+
+		_buffer.WriteString("<div id=\"footer\">@Copyright 2019</div>")
+
+	} else {
+
+		_buffer.WriteString("<div id=\"footer\">")
+		js(_buffer)
+		_buffer.WriteString("</div>")
+
+	}
+	_buffer.WriteString("\n\t<script src=\"/js/bootstrap.min.js\"></script>\n\t")
 	js(_buffer)
 	_buffer.WriteString("\n  </body>\n</html>")
 

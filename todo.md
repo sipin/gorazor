@@ -9,7 +9,8 @@
 - [ ] html compact mode option
 - [ ] Codegen options
   - [ ] gen string args override
-- [ ] Better error msg
+- [ ] Return error during rendering?
+- [ ] Better error msg during codegen
 - [ ] Performance Optimize
   - [ ] Setup benchmark
   - [ ] zero alloc

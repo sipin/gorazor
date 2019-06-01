@@ -59,7 +59,12 @@
         </div>
       </div>
     </div>
-	<script src="/js/jquery.min.js"></script>
+    @if js == "" {
+	    <script src="/js/jquery.min.js"></script>
+      <div id="footer">@@Copyright 2019</div>
+    } else {
+      <div id="footer">@js</div>
+    }
 	<script src="/js/bootstrap.min.js"></script>
 	@js
   </body>

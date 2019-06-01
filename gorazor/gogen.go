@@ -42,16 +42,17 @@ type Part struct {
 
 // Compiler generate go code for gorazor template
 type Compiler struct {
-	ast      *Ast
-	buf      string //the final result
-	layout   string
-	firstBLK int
-	params   []string
-	parts    []Part
-	imports  map[string]bool
-	options  Option
-	dir      string
-	file     string
+	ast        *Ast
+	buf        string //the final result
+	layout     string
+	firstBLK   int
+	params     []string
+	paramNames []string
+	parts      []Part
+	imports    map[string]bool
+	options    Option
+	dir        string
+	file       string
 }
 
 func (cp *Compiler) addPart(part Part) {
@@ -81,9 +82,29 @@ func (cp *Compiler) isLayoutSectionPart(p Part) (is bool, val string) {
 	}
 
 	val = p.value[21 : len(p.value)-3]
-	for _, p := range cp.params {
-		if strings.HasPrefix(p, val+" string") {
+	for _, p := range cp.paramNames {
+		if val == p {
 			return true, val
+		}
+	}
+
+	return
+}
+
+func (cp *Compiler) isLayoutSectionTest(p Part) (is bool, val string) {
+	if !cp.isLayout() {
+		return
+	}
+
+	line := strings.TrimSpace(p.value)
+	line = strings.ReplaceAll(line, " ", "")
+
+	for _, p := range cp.paramNames {
+		if line == "if"+p+`==""{` {
+			return true, "if " + p + " == nil {\n"
+		}
+		if line == "if"+p+`!=""{\n` {
+			return true, "if " + p + " != nil {\n"
 		}
 	}
 
@@ -104,7 +125,11 @@ func (cp *Compiler) genPart() {
 				res += "_buffer.WriteString(" + p.value + ")\n"
 			}
 		} else if p.ptype == CBLK {
-			res += p.value + "\n"
+			if ok, val := cp.isLayoutSectionTest(p); ok {
+				res += val
+			} else {
+				res += p.value + "\n"
+			}
 		} else if ok, val := cp.isLayoutSectionPart(p); ok {
 			res += val + "(_buffer)\n"
 		} else {
@@ -186,6 +211,8 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 				layoutFunc = funcName[len(funcName)-1]
 			} else {
 				cp.params = append(cp.params, vname)
+				name := strings.SplitN(vname, " ", 2)[0]
+				cp.paramNames = append(cp.paramNames, name)
 			}
 		}
 	}
