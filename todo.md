@@ -1,6 +1,6 @@
-- [ ] Add version
+- [X] Add version
   - [ ] codegen header
-  - [ ] version output
+  - [X] version output
 - [ ] Add namespace sub fix support
 - [ ] Define new layout syntax
   - [ ] Update readme

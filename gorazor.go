@@ -17,9 +17,15 @@ func usage() {
 func main() {
 	flag.Usage = usage
 	isDebug := flag.Bool("debug", false, "use debug mode")
+	version := flag.Bool("version", false, "show gorazor version info")
 	nameNotChange := flag.Bool("nameNotChange", false, "do not change name of the template")
 
 	flag.Parse()
+
+	if *version {
+		fmt.Println("gorazor version: " + gorazor.VERSION)
+		os.Exit(0)
+	}
 
 	options := gorazor.Option{}
 
