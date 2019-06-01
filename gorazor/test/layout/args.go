@@ -10,7 +10,12 @@ import (
 
 func Args(objs ...*models.Widget) string {
 	var _b strings.Builder
-	WriteArgs(&_b, objs)
+
+	_objs := func(_buffer io.StringWriter) {
+		_buffer.WriteString(objs)
+	}
+
+	WriteArgs(_b, _objs)
 	return _b.String()
 }
 

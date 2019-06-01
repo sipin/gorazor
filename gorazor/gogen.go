@@ -67,6 +67,29 @@ func (cp *Compiler) addPart(part Part) {
 	}
 }
 
+func (cp *Compiler) isLayoutSectionPart(p Part) (is bool, val string) {
+	if !cp.isLayout() {
+		return
+	}
+
+	if !strings.HasPrefix(p.value, "_buffer.WriteString((") {
+		return
+	}
+
+	if !strings.HasSuffix(p.value, "))\n") {
+		return
+	}
+
+	val = p.value[21 : len(p.value)-3]
+	for _, p := range cp.params {
+		if strings.HasPrefix(p, val+" string") {
+			return true, val
+		}
+	}
+
+	return
+}
+
 func (cp *Compiler) genPart() {
 	res := ""
 
@@ -82,6 +105,8 @@ func (cp *Compiler) genPart() {
 			}
 		} else if p.ptype == CBLK {
 			res += p.value + "\n"
+		} else if ok, val := cp.isLayoutSectionPart(p); ok {
+			res += val + "(_buffer)\n"
 		} else {
 			res += p.value
 		}
@@ -390,6 +415,33 @@ func (cp *Compiler) processLayout() {
 	cp.buf += foot
 }
 
+func (cp *Compiler) getLayoutOverload() string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf(`
+	func %s(%s) string {
+		var _b strings.Builder
+
+	`, cp.file, strings.Join(cp.params, ", ")))
+	var funcNames []string
+	for _, arg := range cp.params {
+		vname := strings.SplitN(arg, " ", 2)[0]
+		b.WriteString(fmt.Sprintf(`
+		_%s := func(_buffer io.StringWriter) {
+			_buffer.WriteString(%s)
+		}
+		`, vname, vname))
+		funcNames = append(funcNames, "_"+vname)
+	}
+
+	b.WriteString(fmt.Sprintf(`
+		Write%s(_b, %s)
+		return _b.String()
+	}
+
+	`, cp.file, strings.Join(funcNames, ", ")))
+	return b.String()
+}
+
 func (cp *Compiler) visit() {
 	cp.visitAst(cp.ast)
 	cp.genPart()
@@ -415,7 +467,13 @@ func (cp *Compiler) visit() {
 
 	head += "\n)"
 
-	head += fmt.Sprintf(`
+	if cp.isLayout() {
+		head += cp.getLayoutOverload()
+
+		head += "func Write" + fun + "(_buffer io.StringWriter, " +
+			strings.ReplaceAll(funcArgs, " string", " func(_buffer io.StringWriter)") + ") {\n"
+	} else {
+		head += fmt.Sprintf(`
 	func %s(%s) string {
 		var _b strings.Builder
 		Write%s(&_b, %s)
@@ -424,7 +482,9 @@ func (cp *Compiler) visit() {
 
 	`, fun, funcArgs, fun, strings.Join(args, ", "))
 
-	head += "func Write" + fun + "(_buffer io.StringWriter, " + funcArgs + ") {\n"
+		head += "func Write" + fun + "(_buffer io.StringWriter, " + funcArgs + ") {\n"
+	}
+
 	if cp.hasLayout() {
 		head += "\n_body := func(_buffer io.StringWriter) {\n"
 	}
