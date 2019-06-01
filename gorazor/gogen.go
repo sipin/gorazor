@@ -97,7 +97,7 @@ func (cp *Compiler) isLayoutSectionTest(p Part) (is bool, val string) {
 	}
 
 	line := strings.TrimSpace(p.value)
-	line = strings.ReplaceAll(line, " ", "")
+	line = strings.Replace(line, " ", "", -1)
 
 	for _, p := range cp.paramNames {
 		if line == "if"+p+`==""{` {
@@ -495,7 +495,7 @@ func (cp *Compiler) visit() {
 		head += cp.getLayoutOverload()
 
 		head += "func Render" + fun + "(_buffer io.StringWriter, " +
-			strings.ReplaceAll(funcArgs, " string", " func(_buffer io.StringWriter)") + ") {\n"
+			strings.Replace(funcArgs, " string", " func(_buffer io.StringWriter)", -1) + ") {\n"
 	} else {
 		head += fmt.Sprintf(`
 	func %s(%s) string {
