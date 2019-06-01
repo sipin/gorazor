@@ -8,11 +8,11 @@ import (
 
 func Quote() string {
 	var _b strings.Builder
-	WriteQuote(&_b)
+	RenderQuote(&_b)
 	return _b.String()
 }
 
-func WriteQuote(_buffer io.StringWriter) {
+func RenderQuote(_buffer io.StringWriter) {
 	_buffer.WriteString("<html>'text'</html>")
 
 }

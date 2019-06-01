@@ -8,10 +8,10 @@ import (
 
 func Blk() string {
 	var _b strings.Builder
-	WriteBlk(&_b)
+	RenderBlk(&_b)
 	return _b.String()
 }
 
-func WriteBlk(_buffer io.StringWriter) {
+func RenderBlk(_buffer io.StringWriter) {
 
 }

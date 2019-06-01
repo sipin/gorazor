@@ -12,11 +12,11 @@ import (
 
 func Scope(obj *models.Widget) string {
 	var _b strings.Builder
-	WriteScope(&_b, obj)
+	RenderScope(&_b, obj)
 	return _b.String()
 }
 
-func WriteScope(_buffer io.StringWriter, obj *models.Widget) {
+func RenderScope(_buffer io.StringWriter, obj *models.Widget) {
 
 	data, dmType := dm.GetData(obj.PlaceHolder)
 

@@ -12,11 +12,11 @@ import (
 
 func Home(totalMessage int, u *User) string {
 	var _b strings.Builder
-	WriteHome(&_b, totalMessage, u)
+	RenderHome(&_b, totalMessage, u)
 	return _b.String()
 }
 
-func WriteHome(_buffer io.StringWriter, totalMessage int, u *User) {
+func RenderHome(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	_body := func(_buffer io.StringWriter) {
 		_buffer.WriteString((helper.Header()))

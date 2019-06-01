@@ -11,11 +11,11 @@ import (
 
 func Edit(u *models.User) string {
 	var _b strings.Builder
-	WriteEdit(&_b, u)
+	RenderEdit(&_b, u)
 	return _b.String()
 }
 
-func WriteEdit(_buffer io.StringWriter, u *models.User) {
+func RenderEdit(_buffer io.StringWriter, u *models.User) {
 
 	_body := func(_buffer io.StringWriter) {
 		_buffer.WriteString("\n<div style=\"width: 500px\">\n<form role=\"form\">\n  <div class=\"form-group\">\n    <label for=\"exampleInputEmail1\">名字</label>\n    <input type=\"email\" class=\"form-control\" id=\"exampleInputEmail1\" placeholder=\"Enter email\" value=\"")

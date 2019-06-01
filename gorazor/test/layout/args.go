@@ -15,11 +15,11 @@ func Args(objs ...*models.Widget) string {
 		_buffer.WriteString(objs)
 	}
 
-	WriteArgs(_b, _objs)
+	RenderArgs(_b, _objs)
 	return _b.String()
 }
 
-func WriteArgs(_buffer io.StringWriter, objs ...*models.Widget) {
+func RenderArgs(_buffer io.StringWriter, objs ...*models.Widget) {
 
 	size := strconv.Itoa(12 / len(objs))
 

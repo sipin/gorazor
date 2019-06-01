@@ -9,11 +9,11 @@ import (
 
 func Badtag(w *gorazor.Widget) string {
 	var _b strings.Builder
-	WriteBadtag(&_b, w)
+	RenderBadtag(&_b, w)
 	return _b.String()
 }
 
-func WriteBadtag(_buffer io.StringWriter, w *gorazor.Widget) {
+func RenderBadtag(_buffer io.StringWriter, w *gorazor.Widget) {
 	if w.ErrorMsg != "" {
 
 		_buffer.WriteString("<div class=\"form-group has-error\">\n\t<div class=\"alert alert-danger\">")

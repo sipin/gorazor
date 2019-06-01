@@ -9,11 +9,11 @@ import (
 
 func Email() string {
 	var _b strings.Builder
-	WriteEmail(&_b)
+	RenderEmail(&_b)
 	return _b.String()
 }
 
-func WriteEmail(_buffer io.StringWriter) {
+func RenderEmail(_buffer io.StringWriter) {
 	_buffer.WriteString("<span>rememberingsteve@apple.com ")
 	_buffer.WriteString(gorazor.HTMLEscape(username))
 	_buffer.WriteString("</span>")

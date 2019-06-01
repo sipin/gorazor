@@ -8,10 +8,10 @@ import (
 
 func Codeblock() string {
 	var _b strings.Builder
-	WriteCodeblock(&_b)
+	RenderCodeblock(&_b)
 	return _b.String()
 }
 
-func WriteCodeblock(_buffer io.StringWriter) {
+func RenderCodeblock(_buffer io.StringWriter) {
 
 }

@@ -8,11 +8,11 @@ import (
 
 func Bug34() string {
 	var _b strings.Builder
-	WriteBug34(&_b)
+	RenderBug34(&_b)
 	return _b.String()
 }
 
-func WriteBug34(_buffer io.StringWriter) {
+func RenderBug34(_buffer io.StringWriter) {
 	_buffer.WriteString("value=\\\"<?= h(aabasdf\\Admin\\Document::$asdf) ?>\\\"/>\\n")
 
 }

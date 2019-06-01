@@ -11,11 +11,11 @@ import (
 
 func Sectionbug() string {
 	var _b strings.Builder
-	WriteSectionbug(&_b)
+	RenderSectionbug(&_b)
 	return _b.String()
 }
 
-func WriteSectionbug(_buffer io.StringWriter) {
+func RenderSectionbug(_buffer io.StringWriter) {
 
 	_body := func(_buffer io.StringWriter) {
 

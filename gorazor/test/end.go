@@ -12,11 +12,11 @@ import (
 
 func End(totalMessage int, u *User) string {
 	var _b strings.Builder
-	WriteEnd(&_b, totalMessage, u)
+	RenderEnd(&_b, totalMessage, u)
 	return _b.String()
 }
 
-func WriteEnd(_buffer io.StringWriter, totalMessage int, u *User) {
+func RenderEnd(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	_body := func(_buffer io.StringWriter) {
 		_buffer.WriteString((helper.Header()))

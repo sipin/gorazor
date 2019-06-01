@@ -8,11 +8,11 @@ import (
 
 func Header() string {
 	var _b strings.Builder
-	WriteHeader(&_b)
+	RenderHeader(&_b)
 	return _b.String()
 }
 
-func WriteHeader(_buffer io.StringWriter) {
+func RenderHeader(_buffer io.StringWriter) {
 	_buffer.WriteString("<div>Page Header</div>")
 
 }

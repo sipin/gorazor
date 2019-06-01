@@ -8,10 +8,10 @@ import (
 
 func Var(totalMessage int) string {
 	var _b strings.Builder
-	WriteVar(&_b, totalMessage)
+	RenderVar(&_b, totalMessage)
 	return _b.String()
 }
 
-func WriteVar(_buffer io.StringWriter, totalMessage int) {
+func RenderVar(_buffer io.StringWriter, totalMessage int) {
 
 }

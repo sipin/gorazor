@@ -10,11 +10,11 @@ import (
 
 func Add(content string, err string) string {
 	var _b strings.Builder
-	WriteAdd(&_b, content, err)
+	RenderAdd(&_b, content, err)
 	return _b.String()
 }
 
-func WriteAdd(_buffer io.StringWriter, content string, err string) {
+func RenderAdd(_buffer io.StringWriter, content string, err string) {
 
 	_body := func(_buffer io.StringWriter) {
 		_buffer.WriteString("\n\n<link rel=\"stylesheet\" href=\"/css/bootstrap-datetimepicker.css\">\n\n<style>\n.row {\n\tmargin-top: 10px;\n}\n</style>\n\n<h2>日程登记</h2>\n\n<div class=\"container-fluid\">\n\t<form method=\"POST\" action=\"\">\n\t<div class=\"row\" >\n\t\t<p class=\"bg-danger\">")

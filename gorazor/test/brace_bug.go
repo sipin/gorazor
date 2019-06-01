@@ -8,11 +8,11 @@ import (
 
 func Brace_bug() string {
 	var _b strings.Builder
-	WriteBrace_bug(&_b)
+	RenderBrace_bug(&_b)
 	return _b.String()
 }
 
-func WriteBrace_bug(_buffer io.StringWriter) {
+func RenderBrace_bug(_buffer io.StringWriter) {
 
 	isActive := func(name string) {
 		if active == name {

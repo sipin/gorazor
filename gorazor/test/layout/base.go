@@ -23,11 +23,11 @@ func Base(body string, title string, js string) string {
 		_buffer.WriteString(js)
 	}
 
-	WriteBase(_b, _body, _title, _js)
+	RenderBase(_b, _body, _title, _js)
 	return _b.String()
 }
 
-func WriteBase(_buffer io.StringWriter, body func(_buffer io.StringWriter), title func(_buffer io.StringWriter), js func(_buffer io.StringWriter)) {
+func RenderBase(_buffer io.StringWriter, body func(_buffer io.StringWriter), title func(_buffer io.StringWriter), js func(_buffer io.StringWriter)) {
 
 	companyName := "深圳思品科技有限公司"
 

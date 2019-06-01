@@ -11,11 +11,11 @@ import (
 
 func Index(users []*models.User, total int, limit int, offset int) string {
 	var _b strings.Builder
-	WriteIndex(&_b, users, total, limit, offset)
+	RenderIndex(&_b, users, total, limit, offset)
 	return _b.String()
 }
 
-func WriteIndex(_buffer io.StringWriter, users []*models.User, total int, limit int, offset int) {
+func RenderIndex(_buffer io.StringWriter, users []*models.User, total int, limit int, offset int) {
 
 	_body := func(_buffer io.StringWriter) {
 		_buffer.WriteString("\n\n<h2 class=\"sub-header\">用户总数：")

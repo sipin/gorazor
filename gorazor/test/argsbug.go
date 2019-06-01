@@ -12,11 +12,11 @@ import (
 
 func Argsbug(totalMessage int, u *User) string {
 	var _b strings.Builder
-	WriteArgsbug(&_b, totalMessage, u)
+	RenderArgsbug(&_b, totalMessage, u)
 	return _b.String()
 }
 
-func WriteArgsbug(_buffer io.StringWriter, totalMessage int, u *User) {
+func RenderArgsbug(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	messages := []string{}
 

@@ -10,11 +10,11 @@ import (
 
 func Msg(u *User) string {
 	var _b strings.Builder
-	WriteMsg(&_b, u)
+	RenderMsg(&_b, u)
 	return _b.String()
 }
 
-func WriteMsg(_buffer io.StringWriter, u *User) {
+func RenderMsg(_buffer io.StringWriter, u *User) {
 
 	getName := func(u *User) string {
 		return "(" + u.Name + ")"

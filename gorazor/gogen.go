@@ -463,7 +463,7 @@ func (cp *Compiler) getLayoutOverload() string {
 	}
 
 	b.WriteString(fmt.Sprintf(`
-		Write%s(_b, %s)
+		Render%s(_b, %s)
 		return _b.String()
 	}
 
@@ -494,19 +494,19 @@ func (cp *Compiler) visit() {
 	if cp.isLayout() {
 		head += cp.getLayoutOverload()
 
-		head += "func Write" + fun + "(_buffer io.StringWriter, " +
+		head += "func Render" + fun + "(_buffer io.StringWriter, " +
 			strings.ReplaceAll(funcArgs, " string", " func(_buffer io.StringWriter)") + ") {\n"
 	} else {
 		head += fmt.Sprintf(`
 	func %s(%s) string {
 		var _b strings.Builder
-		Write%s(&_b, %s)
+		Render%s(&_b, %s)
 		return _b.String()
 	}
 
 	`, fun, funcArgs, fun, strings.Join(cp.paramNames, ", "))
 
-		head += "func Write" + fun + "(_buffer io.StringWriter, " + funcArgs + ") {\n"
+		head += "func Render" + fun + "(_buffer io.StringWriter, " + funcArgs + ") {\n"
 	}
 
 	if cp.hasLayout() {
