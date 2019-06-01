@@ -2,9 +2,9 @@ package cases
 
 import (
 	"bytes"
+	"cases/layout"
 	"io"
 	"strings"
-	"tpl/layout"
 )
 
 func Section_comment_bug() string {
@@ -26,5 +26,5 @@ func WriteSection_comment_bug(_buffer io.StringWriter) {
 
 	}
 
-	return layout.Base(_buffer.String(), side())
+	return layout.Base(_buffer, body, nil, nil)
 }

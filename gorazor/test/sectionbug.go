@@ -2,11 +2,11 @@ package cases
 
 import (
 	"bytes"
+	"cases/layout"
 	"github.com/sipin/gorazor/gorazor"
 	"io"
 	"kp/models"
 	"strings"
-	"tpl/admin/layout"
 )
 
 func Sectionbug() string {
@@ -32,5 +32,5 @@ func WriteSectionbug(_buffer io.StringWriter) {
 
 	}
 
-	return layout.Base(_buffer.String(), js())
+	return layout.Base(_buffer, body, nil, js)
 }

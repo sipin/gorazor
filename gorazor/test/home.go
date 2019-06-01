@@ -110,5 +110,5 @@ func WriteHome(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	}
 
-	return layout.Base(_buffer.String(), title(), "")
+	return layout.Base(_buffer, body, title, nil)
 }

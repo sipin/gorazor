@@ -46,5 +46,5 @@ func WriteIndex(_buffer io.StringWriter, users []*models.User, total int, limit 
 
 	}
 
-	return layout.Base(_buffer.String(), title(), js())
+	return layout.Base(_buffer, body, title, js)
 }

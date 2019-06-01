@@ -22,5 +22,5 @@ func WriteForward(_buffer io.StringWriter, content string, err string) {
 
 	}
 
-	return layout.Base(_buffer.String(), "", "")
+	return layout.Base(_buffer, body, nil, nil)
 }

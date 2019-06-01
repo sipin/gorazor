@@ -2,7 +2,7 @@ package cases
 
 import (
 	"bytes"
-	"cases/layout"
+	"cases/layout/args"
 	"github.com/sipin/gorazor/gorazor"
 	"io"
 	. "kp/models"
@@ -18,15 +18,10 @@ func Argsbug(totalMessage int, u *User) string {
 
 func WriteArgsbug(_buffer io.StringWriter, totalMessage int, u *User) {
 
-	_body := func(_buffer io.StringWriter) {
+	messages := []string{}
 
-		messages := []string{}
+	_buffer.WriteString("\n\n<p>")
+	_buffer.WriteString(gorazor.HTMLEscape(gorazor.Itoa(args(messages...))))
+	_buffer.WriteString("</p>")
 
-		_buffer.WriteString("\n\n<p>")
-		_buffer.WriteString(gorazor.HTMLEscape(gorazor.Itoa(args(messages...))))
-		_buffer.WriteString("</p>")
-
-	}
-
-	return layout.Args(_buffer.String())
 }

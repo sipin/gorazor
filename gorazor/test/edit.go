@@ -2,11 +2,11 @@ package cases
 
 import (
 	"bytes"
+	"cases/layout"
 	"github.com/sipin/gorazor/gorazor"
 	"io"
 	"kp/models"
 	"strings"
-	"tpl/admin/layout"
 )
 
 func Edit(u *models.User) string {
@@ -32,5 +32,5 @@ func WriteEdit(_buffer io.StringWriter, u *models.User) {
 
 	}
 
-	return layout.Base(_buffer.String(), title())
+	return layout.Base(_buffer, body, title, nil)
 }
