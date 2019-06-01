@@ -451,15 +451,15 @@ func (cp *Compiler) getLayoutOverload() string {
 		var _b strings.Builder
 
 	`, cp.file, strings.Join(cp.params, ", ")))
+
 	var funcNames []string
-	for _, arg := range cp.params {
-		vname := strings.SplitN(arg, " ", 2)[0]
+	for _, name := range cp.paramNames {
 		b.WriteString(fmt.Sprintf(`
 		_%s := func(_buffer io.StringWriter) {
 			_buffer.WriteString(%s)
 		}
-		`, vname, vname))
-		funcNames = append(funcNames, "_"+vname)
+		`, name, name))
+		funcNames = append(funcNames, "_"+name)
 	}
 
 	b.WriteString(fmt.Sprintf(`
@@ -488,11 +488,6 @@ func (cp *Compiler) visit() {
 	}
 
 	funcArgs := strings.Join(cp.params, ", ")
-	var args []string
-	for _, p := range cp.params {
-		arg := strings.Split(p, " ")[0]
-		args = append(args, arg)
-	}
 
 	head += "\n)"
 
@@ -509,7 +504,7 @@ func (cp *Compiler) visit() {
 		return _b.String()
 	}
 
-	`, fun, funcArgs, fun, strings.Join(args, ", "))
+	`, fun, funcArgs, fun, strings.Join(cp.paramNames, ", "))
 
 		head += "func Write" + fun + "(_buffer io.StringWriter, " + funcArgs + ") {\n"
 	}
