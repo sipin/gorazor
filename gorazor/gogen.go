@@ -206,6 +206,8 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 			if strings.HasSuffix(l, "gorazor.Widget") {
 				cp.imports[GorazorNamespace] = true
 				cp.params = append(cp.params, vname[:len(vname)-14]+"gorazor.Widget")
+				name := strings.SplitN(vname, " ", 2)[0]
+				cp.paramNames = append(cp.paramNames, name)
 			} else if strings.HasPrefix(vname, "layout") {
 				funcName := strings.SplitN(vname, ".", -1)
 				layoutFunc = funcName[len(funcName)-1]
