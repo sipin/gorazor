@@ -22,6 +22,14 @@ const (
 	CSTAT
 )
 
+var execDir string
+
+func init() {
+	// make sure running in source directory
+	_, filename, _, _ := runtime.Caller(0)
+	execDir = path.Dir(filename) + "/"
+}
+
 func getValStr(e interface{}) string {
 	switch v := e.(type) {
 	case *Ast:
@@ -140,14 +148,6 @@ func (cp *Compiler) genPart() {
 		}
 	}
 	cp.buf = res
-}
-
-var execDir string
-
-func init() {
-	// make sure running in source directory
-	_, filename, _, _ := runtime.Caller(0)
-	execDir = path.Dir(filename)
 }
 
 func makeCompiler(ast *Ast, options Option, input string) *Compiler {

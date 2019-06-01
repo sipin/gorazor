@@ -11,6 +11,9 @@
   - [ ] gen string args override
 - [ ] Return error during rendering?
 - [ ] Better error msg during codegen
+- [ ] Improve test
+  - [ ] More test case files
+  - [ ] Add code coverage
 - [ ] Performance Optimize
   - [ ] Setup benchmark
   - [ ] zero alloc
