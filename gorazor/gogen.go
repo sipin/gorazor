@@ -78,9 +78,6 @@ func (cp *Compiler) genPart() {
 			}
 			if p.value != "" {
 				p.value = fmt.Sprintf("%#v", p.value)
-				if p.value == "(title)" {
-					println(p.value)
-				}
 				res += "_buffer.WriteString(" + p.value + ")\n"
 			}
 		} else if p.ptype == CBLK {
@@ -175,9 +172,8 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 		}
 
 		cp.layout = cp.layout + "/" + layoutFunc
-		println(path)
 		if !exists(path) {
-			panic("Can't find layout: " + cp.layout)
+			panic("Can't find layout: " + cp.layout + " [" + cp.file + "]")
 		}
 
 		if len(LayoutArgs(path)) == 0 {
@@ -372,11 +368,7 @@ func (cp *Compiler) processLayout() {
 			foot += ", " + sec + "()"
 		}
 	} else {
-		for idx, arg := range args {
-			//body has been done
-			if idx == 0 {
-				continue
-			}
+		for _, arg := range args[1:] {
 			arg = strings.Replace(arg, "string", "", -1)
 			arg = strings.TrimSpace(arg)
 			found := false
