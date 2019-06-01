@@ -1,10 +1,10 @@
-# GoRazor
+# gorazor
 
 [![Build Status](https://travis-ci.org/sipin/gorazor.svg?branch=master)](https://travis-ci.org/sipin/gorazor)
 [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
 [![LICENSE](https://img.shields.io/badge/license-Anti%20996-blue.svg)](https://github.com/996icu/996.ICU/blob/master/LICENSE)
 
-GoRazor is the Go port of the razor view engine originated from [asp.net in 2011](http://weblogs.asp.net/scottgu/archive/2010/07/02/introducing-razor.aspx). In summary, GoRazor's:
+gorazor is the Go port of the razor view engine originated from [asp.net in 2011](http://weblogs.asp.net/scottgu/archive/2010/07/02/introducing-razor.aspx). In summary, gorazor's:
 
 * Concise syntax, no delimiter like `<?`, `<%`, or `{{`.
   * Original [Razor Syntax](http://www.asp.net/web-pages/tutorials/basics/2-introduction-to-asp-net-web-programming-using-the-razor-syntax) & [quick reference](http://haacked.com/archive/2011/01/06/razor-syntax-quick-reference.aspx/) for asp.net.
@@ -20,13 +20,15 @@ GoRazor is the Go port of the razor view engine originated from [asp.net in 2011
 
 # Usage
 
-Install:
+gorazor supports `go 1.10` and above, for go version **below 1.10**, you may use [gorazor classic version](https://github.com/sipin/gorazor/releases/tag/v1.0).
+
+## Install
 
 ```sh
 go get github.com/sipin/gorazor
 ```
 
-Usage:
+## Usage
 
 `gorazor template_folder output_folder` or
 `gorazor template_file output_file`
@@ -160,7 +162,7 @@ So, using a helper template is similar to:
 
 ```
 
-GoRazor won't HTML escape the output of `helper.XXX`.
+gorazor won't HTML escape the output of `helper.XXX`.
 
 Please use [example](https://github.com/sipin/gorazor/blob/master/examples/tpl/home.gohtml) for reference.
 
@@ -287,7 +289,7 @@ Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor
 
 ### Sublime Text 2/3
 
-**Syntax highlight** Search & install `GoRazor` via Package Control.
+**Syntax highlight** Search & install `gorazor` via Package Control.
 
 ![syntax highlight](https://lh4.googleusercontent.com/-_mhaTNt04aU/U7kaSbSXCMI/AAAAAAAAH48/06DintuZPVE/w875-h770-p/Screen+Shot+2014-07-06+at+2.17.49+PM.png)
 
@@ -309,9 +311,9 @@ Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor
 
 # Credits
 
-The very [first version](https://github.com/sipin/gorazor/releases/tag/vash) of GoRazor is essentially a hack of razor's port in javascript: [vash](https://github.com/kirbysayshi/vash), thus requires node's to run.
+The very [first version](https://github.com/sipin/gorazor/releases/tag/vash) of gorazor is essentially a hack of razor's port in javascript: [vash](https://github.com/kirbysayshi/vash), thus requires node's to run.
 
-GoRazor has been though several rounds of refactoring and it has completely rewritten in pure Go. Nonetheless, THANK YOU [@kirbysayshi](https://github.com/kirbysayshi) for Vash! Without Vash, GoRazor may never start.
+gorazor has been though several rounds of refactoring and it has completely rewritten in pure Go. Nonetheless, THANK YOU [@kirbysayshi](https://github.com/kirbysayshi) for Vash! Without Vash, gorazor may never start.
 
 # LICENSE
 
