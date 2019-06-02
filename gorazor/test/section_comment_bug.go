@@ -24,11 +24,11 @@ func RenderSection_comment_bug(_buffer io.StringWriter) {
 
 	}
 
-	side := func(_buffer io.StringWriter) {
+	_side := func(_buffer io.StringWriter) {
 
 		_buffer.WriteString("<!-- comment -->\n    plain text")
 
 	}
 
-	return layout.Base(_buffer, body, nil, nil)
+	return layout.Base(_buffer, _body, nil, nil)
 }

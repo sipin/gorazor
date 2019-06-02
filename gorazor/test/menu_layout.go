@@ -43,11 +43,11 @@ func RenderMenu_layout(_buffer io.StringWriter, body func(_buffer io.StringWrite
 
 	}
 
-	title := func(_buffer io.StringWriter) {
+	_title := func(_buffer io.StringWriter) {
 
 		_buffer.WriteString(gorazor.HTMLEscape(title))
 
 	}
 
-	return layout.Base(_buffer, body, title, nil)
+	return layout.Base(_buffer, _body, _title, nil)
 }

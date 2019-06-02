@@ -102,7 +102,7 @@ func RenderHome(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	}
 
-	title := func(_buffer io.StringWriter) {
+	_title := func(_buffer io.StringWriter) {
 
 		_buffer.WriteString("<title>")
 		_buffer.WriteString(gorazor.HTMLEscape(u.Name))
@@ -110,9 +110,9 @@ func RenderHome(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	}
 
-	side := func(_buffer io.StringWriter) {
+	_side := func(_buffer io.StringWriter) {
 
 	}
 
-	return layout.Base(_buffer, body, title, nil)
+	return layout.Base(_buffer, _body, _title, nil)
 }

@@ -395,7 +395,7 @@ func (cp *Compiler) processLayout() {
 
 			name := l
 			name = strings.TrimSpace(name[7 : len(name)-1])
-			out += "\n " + name + " := func(_buffer io.StringWriter) {\n"
+			out += "\n _" + name + " := func(_buffer io.StringWriter) {\n"
 			scope = 1
 			sections = append(sections, name)
 		} else if scope > 0 {
@@ -429,7 +429,7 @@ func (cp *Compiler) processLayout() {
 		parts := strings.SplitN(cp.layout, "/", -1)
 		base := Capitalize(parts[len(parts)-1])
 		foot += "layout." + base + "("
-		foot += "_buffer, body"
+		foot += "_buffer, _body"
 	} else if len(sections) > 0 {
 		fmt.Println("expect layout for sections: " + cp.file)
 		os.Exit(1)
@@ -448,7 +448,7 @@ func (cp *Compiler) processLayout() {
 			for _, sec := range sections {
 				if sec == arg {
 					found = true
-					foot += ", " + sec
+					foot += ", _" + sec
 					break
 				}
 			}

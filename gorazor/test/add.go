@@ -29,13 +29,13 @@ func RenderAdd(_buffer io.StringWriter, content string, err string) {
 
 	}
 
-	title := func(_buffer io.StringWriter) {
+	_title := func(_buffer io.StringWriter) {
 
 		_buffer.WriteString("管理后台 - 添加日程")
 
 	}
 
-	js := func(_buffer io.StringWriter) {
+	_js := func(_buffer io.StringWriter) {
 
 		_buffer.WriteString("<script src=\"/js/moment.js\"></script>")
 
@@ -45,5 +45,5 @@ func RenderAdd(_buffer io.StringWriter, content string, err string) {
 
 	}
 
-	return layout.Base(_buffer, body, title, js)
+	return layout.Base(_buffer, _body, _title, _js)
 }

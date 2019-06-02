@@ -30,11 +30,11 @@ func RenderEdit(_buffer io.StringWriter, u *models.User) {
 
 	}
 
-	title := func(_buffer io.StringWriter) {
+	_title := func(_buffer io.StringWriter) {
 
 		_buffer.WriteString("用户管理")
 
 	}
 
-	return layout.Base(_buffer, body, title, nil)
+	return layout.Base(_buffer, _body, _title, nil)
 }

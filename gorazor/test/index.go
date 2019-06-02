@@ -40,15 +40,15 @@ func RenderIndex(_buffer io.StringWriter, users []*models.User, total int, limit
 
 	}
 
-	js := func(_buffer io.StringWriter) {
+	_js := func(_buffer io.StringWriter) {
 
 	}
 
-	title := func(_buffer io.StringWriter) {
+	_title := func(_buffer io.StringWriter) {
 
 		_buffer.WriteString("用户管理")
 
 	}
 
-	return layout.Base(_buffer, body, title, js)
+	return layout.Base(_buffer, _body, _title, _js)
 }

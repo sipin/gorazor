@@ -25,7 +25,7 @@ func RenderSectionbug(_buffer io.StringWriter) {
 
 	}
 
-	js := func(_buffer io.StringWriter) {
+	_js := func(_buffer io.StringWriter) {
 		for _, jsFile := range ctx.GetJS() {
 
 			_buffer.WriteString("<script src=\"")
@@ -36,5 +36,5 @@ func RenderSectionbug(_buffer io.StringWriter) {
 
 	}
 
-	return layout.Base(_buffer, body, nil, js)
+	return layout.Base(_buffer, _body, nil, _js)
 }
