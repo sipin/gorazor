@@ -55,6 +55,7 @@ type Compiler struct {
 	inputPath  string
 	ast        *Ast
 	buf        string //the final result
+	isLayout   bool
 	layout     string
 	firstBLK   int
 	params     []string
@@ -80,7 +81,7 @@ func (cp *Compiler) addPart(part Part) {
 }
 
 func (cp *Compiler) isLayoutSectionPart(p Part) (is bool, val string) {
-	if !cp.isLayout() {
+	if !cp.isLayout {
 		return
 	}
 
@@ -103,7 +104,7 @@ func (cp *Compiler) isLayoutSectionPart(p Part) (is bool, val string) {
 }
 
 func (cp *Compiler) isLayoutSectionTest(p Part) (is bool, val string) {
-	if !cp.isLayout() {
+	if !cp.isLayout {
 		return
 	}
 
@@ -165,6 +166,10 @@ func makeCompiler(ast *Ast, options Option, input string) *Compiler {
 		options: options,
 		dir:     dir,
 		file:    file,
+	}
+
+	if dir == "layout" {
+		cp.isLayout = true
 	}
 
 	cp.inputPath = strings.Replace(input, "\\", "/", -1)
@@ -232,6 +237,8 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 				name := strings.SplitN(vname, " ", 2)[0]
 				cp.paramNames = append(cp.paramNames, name)
 			}
+		} else if strings.HasPrefix(l, "isLayout") {
+			cp.isLayout = strings.HasSuffix(l, "true")
 		}
 	}
 	if cp.layout != "" {
@@ -364,10 +371,6 @@ func (cp *Compiler) visitAst(ast *Ast) {
 			cp.visitAst(c.(*Ast))
 		}
 	}
-}
-
-func (cp *Compiler) isLayout() bool {
-	return cp.dir == "layout"
 }
 
 func (cp *Compiler) hasLayout() bool {
@@ -513,7 +516,7 @@ func (cp *Compiler) visit() {
 
 	head += "\n)"
 
-	if cp.isLayout() {
+	if cp.isLayout {
 		head += cp.getLayoutOverload()
 
 		head += "func Render" + fun + "(_buffer io.StringWriter, " +
