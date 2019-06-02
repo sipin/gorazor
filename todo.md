@@ -5,6 +5,8 @@
 - [X] Define new layout syntax
   - [X] Update readme
   - [X] Decide layout import path discovery
+  - [ ] Implement `layout := XXX`
+  - [ ] Implement `islayout := true`
 - [ ] Line number support
 - [ ] html compact mode option
 - [ ] Codegen options
