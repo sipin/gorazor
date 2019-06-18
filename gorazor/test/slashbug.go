@@ -5,7 +5,6 @@
 package cases
 
 import (
-	"bytes"
 	"io"
 	"strconv"
 	"strings"

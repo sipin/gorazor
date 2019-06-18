@@ -497,7 +497,6 @@ func (cp *Compiler) visit() {
 	pack := cp.dir
 	fun := cp.file
 
-	cp.imports[`"bytes"`] = true
 	cp.imports[`"io"`] = true
 	cp.imports[`"strings"`] = true
 

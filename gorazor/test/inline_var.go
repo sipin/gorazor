@@ -5,7 +5,6 @@
 package cases
 
 import (
-	"bytes"
 	"github.com/sipin/gorazor/gorazor"
 	"github.com/sunfmin/gorazortests/models"
 	"io"

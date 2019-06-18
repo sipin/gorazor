@@ -5,7 +5,6 @@
 package layout
 
 import (
-	"bytes"
 	"github.com/sipin/gorazor/gorazor"
 	"io"
 	"strings"

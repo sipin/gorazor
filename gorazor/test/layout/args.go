@@ -5,7 +5,6 @@
 package layout
 
 import (
-	"bytes"
 	"io"
 	"strconv"
 	"strings"

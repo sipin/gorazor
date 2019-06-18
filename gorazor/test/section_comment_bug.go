@@ -5,7 +5,6 @@
 package cases
 
 import (
-	"bytes"
 	"cases/layout"
 	"io"
 	"strings"

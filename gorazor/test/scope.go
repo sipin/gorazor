@@ -5,7 +5,6 @@
 package cases
 
 import (
-	"bytes"
 	"dm"
 	"github.com/sipin/gorazor/gorazor"
 	"io"
