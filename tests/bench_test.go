@@ -51,9 +51,10 @@ func benchmarkRazorQuickTemplate(b *testing.B, rowsCount int) {
 
 	b.RunParallel(func(pb *testing.PB) {
 		bb := quicktemplate.AcquireByteBuffer()
-		q := &quickStringWriter{bb: bb}
+		var q quickStringWriter
+		q.bb = bb
 		for pb.Next() {
-			tpl.RenderIndex(q, rows)
+			tpl.RenderIndex(&q, rows)
 			bb.Reset()
 		}
 		quicktemplate.ReleaseByteBuffer(bb)
@@ -74,7 +75,7 @@ type quickStringWriter struct {
 	bb *quicktemplate.ByteBuffer
 }
 
-func (q *quickStringWriter) WriteString(s string) (int, error) {
+func (q *quickStringWriter) WriteString(s string) (i int, e error) {
 	return q.bb.Write(unsafeStrToBytes(s))
 }
 

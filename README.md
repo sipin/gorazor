@@ -20,31 +20,35 @@ gorazor is the Go port of the razor view engine originated from [asp.net in 2011
 
 # Performance comparison with html/template and quicktemplate
 
-`gorazor` is about **10X** times faster than [html/template](https://golang.org/pkg/html/template/) when using standard `strings.Builder` for template writing; i.e. **2X** slower than [quicktemplate](https://github.com/valyala/quicktemplate)
+`gorazor` is about **20X** times faster than [html/template](https://golang.org/pkg/html/template/) when using standard `strings.Builder` for template writing.
+
+When using `quicktemplate`'s `ByteBuffer` and `unsafeStrToBytes` method to for template writing, `gorazor`'s performance is comparable to [quicktemplate](https://github.com/valyala/quicktemplate), if not faster.
 
 Benchmark results:
 ```bash
-$ go test -bench='Benchmark(Razor|Quick|HTML)Template' -benchmem github.com/valyala/quicktemplate/tests github.com/sipin/gorazor/tests
-
+$ go test -bench='Benchmark(Razor|RazorQuick|Quick|HTML)Template' -benchmem github.com/valyala/quicktemplate/tests github.com/sipin/gorazor/tests
 goos: windows
 goarch: amd64
 pkg: github.com/valyala/quicktemplate/tests
-BenchmarkQuickTemplate1-8       30000000                50.7 ns/op             0 B/op          0 allocs/op
-BenchmarkQuickTemplate10-8      10000000               199 ns/op               0 B/op          0 allocs/op
-BenchmarkQuickTemplate100-8      1000000              1772 ns/op               0 B/op          0 allocs/op
-BenchmarkHTMLTemplate1-8         2000000               999 ns/op             608 B/op         21 allocs/op
-BenchmarkHTMLTemplate10-8         300000              4943 ns/op            2834 B/op        111 allocs/op
-BenchmarkHTMLTemplate100-8         30000             48696 ns/op           28056 B/op       1146 allocs/op
+BenchmarkQuickTemplate1-8       30000000                50.6 ns/op             0 B/op          0 allocs/op
+BenchmarkQuickTemplate10-8       5000000               312 ns/op               0 B/op          0 allocs/op
+BenchmarkQuickTemplate100-8       500000              2661 ns/op               0 B/op          0 allocs/op
+BenchmarkHTMLTemplate1-8         1000000              1433 ns/op             608 B/op         21 allocs/op
+BenchmarkHTMLTemplate10-8         200000              7085 ns/op            2834 B/op        111 allocs/op
+BenchmarkHTMLTemplate100-8         20000             69906 ns/op           28058 B/op       1146 allocs/op
 PASS
-ok      github.com/valyala/quicktemplate/tests  12.322s
+ok      github.com/valyala/quicktemplate/tests  10.134s
 goos: windows
 goarch: amd64
 pkg: github.com/sipin/gorazor/tests
-BenchmarkRazorTemplate1-8       10000000               135 ns/op             256 B/op          5 allocs/op
-BenchmarkRazorTemplate10-8       3000000               506 ns/op             672 B/op         18 allocs/op
-BenchmarkRazorTemplate100-8       300000              5112 ns/op            6420 B/op        201 allocs/op
+BenchmarkRazorTemplate1-8               20000000               117 ns/op             240 B/op          4 allocs/op
+BenchmarkRazorTemplate10-8               5000000               362 ns/op             592 B/op         13 allocs/op
+BenchmarkRazorTemplate100-8               500000              3160 ns/op            5256 B/op        106 allocs/op
+BenchmarkRazorQuickTemplate1-8          30000000                49.8 ns/op            16 B/op          1 allocs/op
+BenchmarkRazorQuickTemplate10-8          5000000               254 ns/op             112 B/op          9 allocs/op
+BenchmarkRazorQuickTemplate100-8          500000              2555 ns/op            1192 B/op         99 allocs/op
 PASS
-ok      github.com/sipin/gorazor/tests  5.410s
+ok      github.com/sipin/gorazor/tests  11.109s
 ```
 
 # Usage
