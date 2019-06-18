@@ -55,6 +55,13 @@ func FormatBuffer(code string) string {
 
 // HTMLEscape wraps template.HTMLEscapeString
 func HTMLEscape(m interface{}) string {
+	switch v := m.(type) {
+	case int:
+		return strconv.Itoa(v)
+	case string:
+		return template.HTMLEscapeString(v)
+	}
+
 	s := fmt.Sprint(m)
 	return template.HTMLEscapeString(s)
 }
