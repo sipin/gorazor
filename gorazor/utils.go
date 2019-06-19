@@ -66,6 +66,16 @@ func HTMLEscape(m interface{}) string {
 	return template.HTMLEscapeString(s)
 }
 
+// HTMLEscapeInt strconv.Itoa
+func HTMLEscapeInt(m int) string {
+	return strconv.Itoa(m)
+}
+
+// HTMLEscapeStr is alias to template.HTMLEscapeString
+func HTMLEscapeStr(m string) string {
+	return template.HTMLEscapeString(m)
+}
+
 // Itoa wraps strconv.Itoa
 func Itoa(obj int) string {
 	return strconv.Itoa(obj)
