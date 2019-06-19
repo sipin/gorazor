@@ -16,7 +16,7 @@ import (
 	"golang.org/x/tools/go/loader"
 )
 
-func main() {
+func main3() {
 	fset := token.NewFileSet()
 
 	content, err := ioutil.ReadFile("../tpl/g.go")
@@ -143,7 +143,7 @@ func printProgram(prog *loader.Program) {
 	fmt.Printf("all: %s\n", names)
 }
 
-func main1() {
+func main() {
 
 	filename := "../tpl/g.go"
 	fset := token.NewFileSet()
@@ -152,6 +152,15 @@ func main1() {
 		fmt.Println("Error parsing file: " + filename)
 		os.Exit(255)
 	}
+
+	info := types.Info{Types: make(map[ast.Expr]types.TypeAndValue)}
+
+	conf := types.Config{Importer: importer.Default()}
+
+	_, err = conf.Check("mypkg", fset, []*ast.File{node}, &info)
+	// if err != nil {
+	// 	println(err.Error())
+	// }
 
 	// traverse all tokens
 	ast.Inspect(node, func(n ast.Node) bool {
@@ -162,7 +171,8 @@ func main1() {
 			case *ast.SelectorExpr:
 				// if t2.X == "gorazor" && strings.HasPrefix(t2.Sel.Name, "HTMLEscape") {
 				if strings.HasPrefix(t2.Sel.Name, "HTMLEscape") {
-					fmt.Println(t.Args[0])
+					typ := info.Types[t.Args[0]]
+					fmt.Println(t.Args[0], typ.Type.String())
 				}
 			}
 
