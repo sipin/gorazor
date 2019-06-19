@@ -155,12 +155,13 @@ func main() {
 
 	info := types.Info{Types: make(map[ast.Expr]types.TypeAndValue)}
 
-	conf := types.Config{Importer: importer.Default()}
+	// conf := types.Config{Importer: importer.Default()}
+	conf := types.Config{Importer: importer.For("source", nil)}
 
 	_, err = conf.Check("mypkg", fset, []*ast.File{node}, &info)
-	// if err != nil {
-	// 	println(err.Error())
-	// }
+	if err != nil {
+		println("Type check error: " + err.Error())
+	}
 
 	// traverse all tokens
 	ast.Inspect(node, func(n ast.Node) bool {
@@ -169,10 +170,12 @@ func main() {
 		case *ast.CallExpr:
 			switch t2 := t.Fun.(type) {
 			case *ast.SelectorExpr:
-				// if t2.X == "gorazor" && strings.HasPrefix(t2.Sel.Name, "HTMLEscape") {
-				if strings.HasPrefix(t2.Sel.Name, "HTMLEscape") {
+				if t2.Sel.Name == "HTMLEscape" && t2.X.(*ast.Ident).String() == "gorazor" {
 					typ := info.Types[t.Args[0]]
-					fmt.Println(t.Args[0], typ.Type.String())
+					if typ.Type != nil {
+						fmt.Println(t)
+						fmt.Println(t.Args[0], typ.Type.String())
+					}
 				}
 			}
 

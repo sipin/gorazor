@@ -23,9 +23,9 @@ func RenderIndex(_buffer io.StringWriter, rows []data.BenchRow) {
 		if row.Print {
 
 			_buffer.WriteString("<li>ID=")
-			_buffer.WriteString(gorazor.HTMLEscape(row.ID))
+			_buffer.WriteString(gorazor.HTMLEscInt(row.ID))
 			_buffer.WriteString(", Message=")
-			_buffer.WriteString(gorazor.HTMLEscape(row.Message))
+			_buffer.WriteString(gorazor.HTMLEscStr(row.Message))
 			_buffer.WriteString("</li>")
 
 		}

@@ -592,5 +592,8 @@ func generate(path string, output string, Options Option) error {
 		panic(err)
 	}
 
-	return ioutil.WriteFile(output, []byte(FormatBuffer(cp.buf)), 0644)
+	code := FormatBuffer(cp.buf)
+	_, code = optimize(output, cp.dir, code)
+
+	return ioutil.WriteFile(output, []byte(code), 0644)
 }
