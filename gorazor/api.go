@@ -46,7 +46,7 @@ func GenFolder(indir string, outdir string, options Option) (err error) {
 	visit := func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
 			//Just do file with exstension .gohtml
-			if !strings.HasSuffix(path, goExtension) {
+			if !strings.HasSuffix(path, gzExtension) {
 				return nil
 			}
 			filename := filepath.Base(path)
@@ -79,7 +79,8 @@ func GenFolder(indir string, outdir string, options Option) (err error) {
 		go fun(paths[w], result)
 	}
 	for i := 0; i < len(paths); i++ {
-		<-result
+		res := <-result
+		fmt.Printf(res)
 	}
 
 	return
