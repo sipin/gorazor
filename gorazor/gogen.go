@@ -240,6 +240,10 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 			}
 		} else if strings.HasPrefix(l, "isLayout") {
 			cp.isLayout = strings.HasSuffix(l, "true")
+		} else if strings.HasPrefix(l, "layout:=") || strings.HasPrefix(l, "layout :=") {
+			vname := strings.TrimSpace(strings.Split(l, ":=")[1])
+			funcName := strings.SplitN(vname, ".", -1)
+			layoutFunc = funcName[len(funcName)-1]
 		}
 	}
 	if cp.layout != "" {
