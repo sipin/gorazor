@@ -30,25 +30,25 @@ $ go test -bench='Benchmark(Razor|RazorQuick|Quick|HTML)Template' -benchmem gith
 goos: windows
 goarch: amd64
 pkg: github.com/valyala/quicktemplate/tests
-BenchmarkQuickTemplate1-8       30000000                50.6 ns/op             0 B/op          0 allocs/op
-BenchmarkQuickTemplate10-8       5000000               312 ns/op               0 B/op          0 allocs/op
-BenchmarkQuickTemplate100-8       500000              2661 ns/op               0 B/op          0 allocs/op
-BenchmarkHTMLTemplate1-8         1000000              1433 ns/op             608 B/op         21 allocs/op
-BenchmarkHTMLTemplate10-8         200000              7085 ns/op            2834 B/op        111 allocs/op
-BenchmarkHTMLTemplate100-8         20000             69906 ns/op           28058 B/op       1146 allocs/op
+BenchmarkQuickTemplate1-8       30000000                37.5 ns/op             0 B/op          0 allocs/op
+BenchmarkQuickTemplate10-8      10000000               146 ns/op               0 B/op          0 allocs/op
+BenchmarkQuickTemplate100-8      1000000              1355 ns/op               0 B/op          0 allocs/op
+BenchmarkHTMLTemplate1-8         2000000               708 ns/op             608 B/op         21 allocs/op
+BenchmarkHTMLTemplate10-8         500000              3587 ns/op            2834 B/op        111 allocs/op
+BenchmarkHTMLTemplate100-8         50000             34619 ns/op           28055 B/op       1146 allocs/op
 PASS
-ok      github.com/valyala/quicktemplate/tests  10.134s
+ok      github.com/valyala/quicktemplate/tests  10.452s
 goos: windows
 goarch: amd64
 pkg: github.com/sipin/gorazor/tests
-BenchmarkRazorTemplate1-8               20000000               117 ns/op             240 B/op          4 allocs/op
-BenchmarkRazorTemplate10-8               5000000               362 ns/op             592 B/op         13 allocs/op
-BenchmarkRazorTemplate100-8               500000              3160 ns/op            5256 B/op        106 allocs/op
-BenchmarkRazorQuickTemplate1-8          30000000                49.8 ns/op            16 B/op          1 allocs/op
-BenchmarkRazorQuickTemplate10-8          5000000               254 ns/op             112 B/op          9 allocs/op
-BenchmarkRazorQuickTemplate100-8          500000              2555 ns/op            1192 B/op         99 allocs/op
+BenchmarkRazorTemplate1-8               20000000                80.4 ns/op           480 B/op          4 allocs/op
+BenchmarkRazorTemplate10-8              10000000               188 ns/op             992 B/op          5 allocs/op
+BenchmarkRazorTemplate100-8              1000000              1693 ns/op           10208 B/op          9 allocs/op
+BenchmarkRazorQuickTemplate1-8          100000000               19.7 ns/op             0 B/op          0 allocs/op
+BenchmarkRazorQuickTemplate10-8         20000000                80.1 ns/op             0 B/op          0 allocs/op
+BenchmarkRazorQuickTemplate100-8         2000000               746 ns/op               0 B/op          0 allocs/op
 PASS
-ok      github.com/sipin/gorazor/tests  11.109s
+ok      github.com/sipin/gorazor/tests  11.654s
 ```
 
 # Usage

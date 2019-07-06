@@ -5,10 +5,11 @@
 package tpl
 
 import (
-	"github.com/sipin/gorazor/gorazor"
-	"github.com/sipin/gorazor/tests/data"
 	"io"
 	"strings"
+
+	"github.com/sipin/gorazor/gorazor"
+	"github.com/sipin/gorazor/tests/data"
 )
 
 func Index(rows []data.BenchRow) string {
@@ -18,18 +19,20 @@ func Index(rows []data.BenchRow) string {
 }
 
 func RenderIndex(_buffer io.StringWriter, rows []data.BenchRow) {
-	_buffer.WriteString("\n<html>\n\t<head><title>test</title></head>\n\t<body>\n\t\t<ul>\n\t\t")
+	_buffer.WriteString("<html>\n\t<head><title>test</title></head>\n\t<body>\n\t\t<ul>\n\t\t\n\t\t\t")
 	for _, row := range rows {
 		if row.Print {
 
-			_buffer.WriteString("<li>ID=")
+			_buffer.WriteString("\n\t\t\t\t<li>ID=")
 			_buffer.WriteString(gorazor.HTMLEscInt(row.ID))
 			_buffer.WriteString(", Message=")
 			_buffer.WriteString(gorazor.HTMLEscStr(row.Message))
-			_buffer.WriteString("</li>")
+			_buffer.WriteString("</li>\n\t\t\t\n\t\t\n\t\t")
 
+		} else {
+			_buffer.WriteString("\t\n\t\t\n\t\t\t")
 		}
 	}
-	_buffer.WriteString("\n\t\t</ul>\n\t</body>\n</html")
+	_buffer.WriteString("</ul>\n\t</body>\n</html>\n")
 
 }

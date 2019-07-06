@@ -2,16 +2,17 @@
     import "github.com/sipin/gorazor/tests/data"
 
     var rows []data.BenchRow
-}
-<html>
+}<html>
 	<head><title>test</title></head>
 	<body>
 		<ul>
 		@for _, row := range rows {
 			if row.Print {
+				
 				<li>ID=@row.ID, Message=@row.Message</li>
+
             }
 		}
 		</ul>
 	</body>
-</html
+</html>

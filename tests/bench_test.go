@@ -1,16 +1,42 @@
 package tests
 
 import (
+	"bytes"
 	"fmt"
+	"log"
 	"reflect"
 	"strings"
 	"testing"
+	"text/template"
 	"unsafe"
 
 	"github.com/sipin/gorazor/tests/data"
 	"github.com/sipin/gorazor/tests/tpl"
 	"github.com/valyala/quicktemplate"
 )
+
+var htmltpl = template.Must(template.ParseFiles("tpl/bench.tpl"))
+
+func init() {
+	// make sure that both template engines generate the same result
+	rows := getBenchRows(3)
+
+	bb1 := &quicktemplate.ByteBuffer{}
+	if err := htmltpl.Execute(bb1, rows); err != nil {
+		log.Fatalf("unexpected error: %s", err)
+	}
+
+	bb := quicktemplate.AcquireByteBuffer()
+	q := &quickStringWriter{}
+	q.bb = bb
+	tpl.RenderIndex(q, rows)
+
+	if !bytes.Equal(bb1.B, bb.B) {
+		log.Fatalf("results mismatch:\n%q\n%q", bb1, bb)
+		quicktemplate.ReleaseByteBuffer(bb)
+	}
+	quicktemplate.ReleaseByteBuffer(bb)
+}
 
 func BenchmarkRazorTemplate1(b *testing.B) {
 	benchmarkRazorTemplate(b, 1)
