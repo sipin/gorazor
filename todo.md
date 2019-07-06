@@ -17,10 +17,17 @@
   - [X] Add bench test with quicktemplate
   - [ ] More test case files
   - [ ] Add code coverage
+  - [ ] Test cases for QuickMode
 - [ ] Performance Optimize
   - [X] Setup benchmark
   - [X] zero alloc
+  - [ ] Auto convert helper func to writer
   - [ ] Unsafe write?
+- [ ] Refactor
+  - [X] Put utils in independent namespace
+  - [ ] cmd options into struct
+  - [ ] refactor lexer, keep line number
 - [ ] VS Code plugin
 - [ ] Quick Start guide
 - [ ] Dynamic compile?
+- [ ] Support webassembly
