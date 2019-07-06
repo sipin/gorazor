@@ -21,7 +21,7 @@ func Base_layout(body string, title string) string {
 		_buffer.WriteString(title)
 	}
 
-	RenderBase_layout(_b, _body, _title)
+	RenderBase_layout(&_b, _body, _title)
 	return _b.String()
 }
 

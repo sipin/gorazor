@@ -44,5 +44,5 @@ func RenderAdd(_buffer io.StringWriter, content string, err string) {
 
 	}
 
-	return layout.Base(_buffer, _body, _title, _js)
+	layout.RenderBase(_buffer, _body, _title, _js)
 }

@@ -25,5 +25,5 @@ func RenderForward(_buffer io.StringWriter, content string, err string) {
 
 	}
 
-	return layout.Base(_buffer, _body, nil, nil)
+	layout.RenderBase(_buffer, _body, nil, nil)
 }

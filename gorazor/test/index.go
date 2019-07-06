@@ -49,5 +49,5 @@ func RenderIndex(_buffer io.StringWriter, users []*models.User, total int, limit
 
 	}
 
-	return layout.Base(_buffer, _body, _title, _js)
+	layout.RenderBase(_buffer, _body, _title, _js)
 }

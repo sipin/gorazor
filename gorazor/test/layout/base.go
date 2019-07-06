@@ -26,7 +26,7 @@ func Base(body string, title string, js string) string {
 		_buffer.WriteString(js)
 	}
 
-	RenderBase(_b, _body, _title, _js)
+	RenderBase(&_b, _body, _title, _js)
 	return _b.String()
 }
 

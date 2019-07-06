@@ -35,5 +35,5 @@ func RenderEdit(_buffer io.StringWriter, u *models.User) {
 
 	}
 
-	return layout.Base(_buffer, _body, _title, nil)
+	layout.RenderBase(_buffer, _body, _title, nil)
 }

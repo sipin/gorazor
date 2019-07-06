@@ -29,5 +29,5 @@ func RenderSection_comment_bug(_buffer io.StringWriter) {
 
 	}
 
-	return layout.Base(_buffer, _body, nil, nil)
+	layout.RenderBase(_buffer, _body, nil, nil)
 }

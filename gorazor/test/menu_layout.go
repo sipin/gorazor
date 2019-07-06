@@ -27,7 +27,7 @@ func Menu_layout(body string, title string, menu string) string {
 		_buffer.WriteString(menu)
 	}
 
-	RenderMenu_layout(_b, _body, _title, _menu)
+	RenderMenu_layout(&_b, _body, _title, _menu)
 	return _b.String()
 }
 
@@ -48,5 +48,5 @@ func RenderMenu_layout(_buffer io.StringWriter, body func(_buffer io.StringWrite
 
 	}
 
-	return layout.Base(_buffer, _body, _title, nil)
+	layout.RenderBase(_buffer, _body, _title, nil)
 }

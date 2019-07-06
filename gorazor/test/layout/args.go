@@ -18,7 +18,7 @@ func Args(objs ...*models.Widget) string {
 		_buffer.WriteString(objs)
 	}
 
-	RenderArgs(_b, _objs)
+	RenderArgs(&_b, _objs)
 	return _b.String()
 }
 

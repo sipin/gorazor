@@ -35,5 +35,5 @@ func RenderSectionbug(_buffer io.StringWriter) {
 
 	}
 
-	return layout.Base(_buffer, _body, nil, _js)
+	layout.RenderBase(_buffer, _body, nil, _js)
 }

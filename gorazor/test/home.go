@@ -113,5 +113,5 @@ func RenderHome(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	}
 
-	return layout.Base(_buffer, _body, _title, nil)
+	layout.RenderBase(_buffer, _body, _title, nil)
 }
