@@ -435,10 +435,10 @@ func (cp *Compiler) processLayout() {
 	foot := ""
 
 	if cp.hasLayout() {
-		foot += "\nreturn "
+		foot += "\n"
 		parts := strings.SplitN(cp.layout, "/", -1)
 		base := Capitalize(parts[len(parts)-1])
-		foot += "layout." + base + "("
+		foot += "layout.Render" + base + "("
 		foot += "_buffer, _body"
 	} else if len(sections) > 0 {
 		fmt.Println("expect layout for sections: " + cp.file)
@@ -492,7 +492,7 @@ func (cp *Compiler) getLayoutOverload() string {
 	}
 
 	b.WriteString(fmt.Sprintf(`
-		Render%s(_b, %s)
+		Render%s(&_b, %s)
 		return _b.String()
 	}
 
