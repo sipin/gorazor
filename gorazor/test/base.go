@@ -5,7 +5,7 @@
 package cases
 
 import (
-	"github.com/sipin/gorazor/gorazor"
+	"github.com/sipin/gorazor/pkg/gorazor"
 	"io"
 	"strings"
 	"tpl/admin/helper"
