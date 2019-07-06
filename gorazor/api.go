@@ -80,7 +80,7 @@ func GenFolder(indir string, outdir string, options Option) (err error) {
 	}
 	for i := 0; i < len(paths); i++ {
 		res := <-result
-		fmt.Printf(res)
+		fmt.Println(res)
 	}
 
 	return
