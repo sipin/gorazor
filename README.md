@@ -65,14 +65,26 @@ go get github.com/sipin/gorazor
 
 ## Usage
 
-`gorazor template_folder output_folder` or
-`gorazor template_file output_file`
+* `gorazor template_folder output_folder`
+* `gorazor template_file output_file`
+
+## Examples
+
+[Examples] gives examples using layout / helper etc.
+
+When using layout, you may need to set `-prefix` parameter, like:
 
 ```bash
-new/modify      ->   generate corresponding Go file, make new directory if necessary
-remove/rename   ->   remove/rename corresponding Go file or directory
-```
+git clone https://github.com/sipin/gorazor/
+cd gorazor
+go build
 
+# -prefix parameter here tells gorazor the current folder is the base path for github.com/sipin/gorazor
+# So that, when importing "github.com/sipin/gorazor/examples/tpl/layout" in example/tpl/home.gohtml
+# gorazor will know how to find the layout/helper files
+./gorazor -prefix github.com/sipin/gorazor ./examples/tpl ./examples/tpl
+go run example/main.go
+```
 
 # Syntax
 
