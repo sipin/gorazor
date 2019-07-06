@@ -14,7 +14,12 @@ import (
 
 // GorazorNamespace is alias to "github.com/sipin/gorazor/gorazor"
 var GorazorNamespace = `"github.com/sipin/gorazor/gorazor"`
+
+// TemplateNamespacePrefix record the namespace prefix for executing folder
 var TemplateNamespacePrefix = ""
+
+// QuickMode enabled to skip template optimization
+var QuickMode = false
 
 //------------------------------ Compiler ------------------------------ //
 const (
@@ -607,7 +612,9 @@ func generate(path string, output string, Options Option) error {
 	}
 
 	code := FormatBuffer(cp.buf)
-	_, code = optimize(output, cp.dir, code)
+	if !QuickMode {
+		_, code = optimize(output, cp.dir, code)
+	}
 
 	return ioutil.WriteFile(output, []byte(code), 0644)
 }

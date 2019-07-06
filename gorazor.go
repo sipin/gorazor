@@ -18,6 +18,7 @@ func main() {
 	flag.Usage = usage
 	isDebug := flag.Bool("debug", false, "use debug mode")
 	version := flag.Bool("version", false, "show gorazor version info")
+	quick := flag.Bool("q", false, "enable quick mode; skip template render optimzation")
 	namespacePrefix := flag.String("prefix", "", "tpl namespace prefix")
 	nameNotChange := flag.Bool("nameNotChange", false, "do not change name of the template")
 
@@ -49,6 +50,7 @@ func main() {
 	}
 
 	gorazor.TemplateNamespacePrefix = *namespacePrefix
+	gorazor.QuickMode = *quick
 
 	if stat.IsDir() {
 		fmt.Printf("gorazor processing dir: %s -> %s\n", input, output)

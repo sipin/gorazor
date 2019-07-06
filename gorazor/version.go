@@ -1,4 +1,4 @@
 package gorazor
 
 // VERSION specify version of gorazor
-var VERSION string = "2.0"
+var VERSION = "2.0.1"
