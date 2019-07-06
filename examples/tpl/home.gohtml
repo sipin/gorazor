@@ -1,11 +1,12 @@
 @{
 	import (
-		. "kp/models"
-		"tpl/helper"
-		"tpl/layout/base"
+		"github.com/sipin/gorazor/examples/models"
+		"github.com/sipin/gorazor/examples/tpl/helper"
+		"github.com/sipin/gorazor/examples/tpl/layout"
 	)
+	var layout *layout.Base
 	var totalMessage int
-	var u *User
+	var u *models.User
 }
 
 
@@ -57,5 +58,5 @@
 }
 
 @section side {
-	
+
 }
