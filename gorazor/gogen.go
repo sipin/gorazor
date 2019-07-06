@@ -12,8 +12,8 @@ import (
 	"strings"
 )
 
-// GorazorNamespace is alias to "github.com/sipin/gorazor/gorazor"
-var GorazorNamespace = `"github.com/sipin/gorazor/gorazor"`
+// GorazorNamespace defines util pkg namespace used in template
+var GorazorNamespace = `"github.com/sipin/gorazor/pkg/gorazor"`
 
 // TemplateNamespacePrefix record the namespace prefix for executing folder
 var TemplateNamespacePrefix = ""
