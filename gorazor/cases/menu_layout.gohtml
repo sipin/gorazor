@@ -1,0 +1,22 @@
+@{
+	import (
+		"cases/layout"
+		"kp/models"
+	)
+
+    var layout *layout.base
+	isLayout := true
+
+    var body string
+    var title string
+	var menu string
+}
+
+<div id="body">
+    <div id="menu">@menu</div>
+    <div id="content">@body</div>
+</div>
+
+@section title {
+    @title
+}

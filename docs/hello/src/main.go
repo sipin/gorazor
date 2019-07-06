@@ -1,7 +1,7 @@
 package main
 
 import (
-	"tpl"
+	"github.com/sipin/gorazor/docs/hello/src/tpl"
 
 	"fmt"
 	"net/http"
@@ -9,7 +9,7 @@ import (
 
 func main() {
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, tpl.Index)
+		fmt.Fprintf(w, tpl.Index())
 	})
 
 	http.ListenAndServe(":8080", nil)

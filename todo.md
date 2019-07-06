@@ -1,0 +1,26 @@
+- [X] Add version
+  - [X] codegen header
+  - [X] version output
+- [X] Add namespace prefix fix support
+- [X] Define new layout syntax
+  - [X] Update readme
+  - [X] Decide layout import path discovery
+  - [X] Implement `layout := XXX`
+  - [X] Implement `islayout := true`
+- [ ] Line number support
+- [ ] html compact mode option
+- [ ] Codegen options
+  - [ ] gen string args override
+- [ ] Return error during rendering?
+- [ ] Better error msg during codegen
+- [ ] Improve test
+  - [X] Add bench test with quicktemplate
+  - [ ] More test case files
+  - [ ] Add code coverage
+- [ ] Performance Optimize
+  - [X] Setup benchmark
+  - [X] zero alloc
+  - [ ] Unsafe write?
+- [ ] VS Code plugin
+- [ ] Quick Start guide
+- [ ] Dynamic compile?

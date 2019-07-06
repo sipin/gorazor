@@ -1,7 +1,7 @@
 language: go
 go:
-  - 1.7
-  - 1.12.4
+  - "1.12.1"
+  - "1.12.6"
 
 install:
   - go get github.com/sipin/gorazor

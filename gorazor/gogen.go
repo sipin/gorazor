@@ -6,12 +6,15 @@ import (
 	"go/token"
 	"io/ioutil"
 	"os"
+	"path"
 	"path/filepath"
+	"runtime"
 	"strings"
 )
 
 // GorazorNamespace is alias to "github.com/sipin/gorazor/gorazor"
 var GorazorNamespace = `"github.com/sipin/gorazor/gorazor"`
+var TemplateNamespacePrefix = ""
 
 //------------------------------ Compiler ------------------------------ //
 const (
@@ -19,6 +22,14 @@ const (
 	CBLK
 	CSTAT
 )
+
+var execDir string
+
+func init() {
+	// make sure running in source directory
+	_, filename, _, _ := runtime.Caller(0)
+	execDir = path.Dir(filename) + "/"
+}
 
 func getValStr(e interface{}) string {
 	switch v := e.(type) {
@@ -42,16 +53,19 @@ type Part struct {
 
 // Compiler generate go code for gorazor template
 type Compiler struct {
-	ast      *Ast
-	buf      string //the final result
-	layout   string
-	firstBLK int
-	params   []string
-	parts    []Part
-	imports  map[string]bool
-	options  Option
-	dir      string
-	file     string
+	inputPath  string
+	ast        *Ast
+	buf        string //the final result
+	isLayout   bool
+	layout     string
+	firstBLK   int
+	params     []string
+	paramNames []string
+	parts      []Part
+	imports    map[string]bool
+	options    Option
+	dir        string
+	file       string
 }
 
 func (cp *Compiler) addPart(part Part) {
@@ -65,6 +79,49 @@ func (cp *Compiler) addPart(part Part) {
 	} else {
 		cp.parts = append(cp.parts, part)
 	}
+}
+
+func (cp *Compiler) isLayoutSectionPart(p Part) (is bool, val string) {
+	if !cp.isLayout {
+		return
+	}
+
+	if !strings.HasPrefix(p.value, "_buffer.WriteString((") {
+		return
+	}
+
+	if !strings.HasSuffix(p.value, "))\n") {
+		return
+	}
+
+	val = p.value[21 : len(p.value)-3]
+	for _, p := range cp.paramNames {
+		if val == p {
+			return true, val
+		}
+	}
+
+	return
+}
+
+func (cp *Compiler) isLayoutSectionTest(p Part) (is bool, val string) {
+	if !cp.isLayout {
+		return
+	}
+
+	line := strings.TrimSpace(p.value)
+	line = strings.Replace(line, " ", "", -1)
+
+	for _, p := range cp.paramNames {
+		if line == "if"+p+`==""{` {
+			return true, "if " + p + " == nil {\n"
+		}
+		if line == "if"+p+`!=""{\n` {
+			return true, "if " + p + " != nil {\n"
+		}
+	}
+
+	return
 }
 
 func (cp *Compiler) genPart() {
@@ -81,7 +138,13 @@ func (cp *Compiler) genPart() {
 				res += "_buffer.WriteString(" + p.value + ")\n"
 			}
 		} else if p.ptype == CBLK {
-			res += p.value + "\n"
+			if ok, val := cp.isLayoutSectionTest(p); ok {
+				res += val
+			} else {
+				res += p.value + "\n"
+			}
+		} else if ok, val := cp.isLayoutSectionPart(p); ok {
+			res += val + "(_buffer)\n"
 		} else {
 			res += p.value
 		}
@@ -95,7 +158,9 @@ func makeCompiler(ast *Ast, options Option, input string) *Compiler {
 	if options["NameNotChange"] == nil {
 		file = Capitalize(file)
 	}
-	return &Compiler{ast: ast, buf: "",
+	cp := &Compiler{
+		ast:    ast,
+		buf:    "",
 		layout: "", firstBLK: 0,
 		params: []string{}, parts: []Part{},
 		imports: map[string]bool{},
@@ -103,6 +168,13 @@ func makeCompiler(ast *Ast, options Option, input string) *Compiler {
 		dir:     dir,
 		file:    file,
 	}
+
+	if dir == "layout" {
+		cp.isLayout = true
+	}
+
+	cp.inputPath = strings.Replace(input, "\\", "/", -1)
+	return cp
 }
 
 func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
@@ -138,17 +210,17 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 				v = s.Name.Name + " " + v
 			}
 			parts := strings.SplitN(v, "/", -1)
-			if len(parts) >= 2 && parts[len(parts)-2] == "layout" {
+
+			if len(parts) >= 1 && parts[len(parts)-1] == `layout"` {
 				cp.layout = strings.Replace(v, "\"", "", -1)
-				dir := strings.Join(parts[0:len(parts)-1], "/") + "\""
-				cp.imports[dir] = true
-			} else {
-				cp.imports[v] = true
 			}
+
+			cp.imports[v] = true
 		}
 	}
 
 	lines := strings.SplitN(first, "\n", -1)
+	var layoutFunc string
 	for _, l := range lines {
 		l = strings.TrimSpace(l)
 		if strings.HasPrefix(l, "var") {
@@ -156,14 +228,46 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 			if strings.HasSuffix(l, "gorazor.Widget") {
 				cp.imports[GorazorNamespace] = true
 				cp.params = append(cp.params, vname[:len(vname)-14]+"gorazor.Widget")
+				name := strings.SplitN(vname, " ", 2)[0]
+				cp.paramNames = append(cp.paramNames, name)
+			} else if strings.HasPrefix(vname, "layout") {
+				funcName := strings.SplitN(vname, ".", -1)
+				layoutFunc = funcName[len(funcName)-1]
 			} else {
 				cp.params = append(cp.params, vname)
+				name := strings.SplitN(vname, " ", 2)[0]
+				cp.paramNames = append(cp.paramNames, name)
 			}
+		} else if strings.HasPrefix(l, "isLayout") {
+			cp.isLayout = strings.HasSuffix(l, "true")
+		} else if strings.HasPrefix(l, "layout:=") || strings.HasPrefix(l, "layout :=") {
+			vname := strings.TrimSpace(strings.Split(l, ":=")[1])
+			funcName := strings.SplitN(vname, ".", -1)
+			layoutFunc = funcName[len(funcName)-1]
 		}
 	}
 	if cp.layout != "" {
-		path := cp.layout + ".gohtml"
-		if exists(path) && len(LayoutArgs(path)) == 0 {
+		path := cp.layout + "/" + layoutFunc + ".gohtml"
+
+		if !exists(path) && TemplateNamespacePrefix != "" {
+			path = path[len(TemplateNamespacePrefix)+1:]
+		}
+
+		if !exists(path) {
+			layoutFunc = strings.ToLower(layoutFunc[0:1]) + layoutFunc[1:]
+			path = cp.layout + "/" + layoutFunc + ".gohtml"
+
+			if !exists(path) && TemplateNamespacePrefix != "" {
+				path = path[len(TemplateNamespacePrefix)+1:]
+			}
+		}
+
+		cp.layout = cp.layout + "/" + layoutFunc
+		if !exists(path) {
+			panic("Can't find layout: " + cp.layout + " [" + cp.file + "]")
+		}
+
+		if len(LayoutArgs(path)) == 0 {
 			//TODO, bad for performance
 			_cp, err := run(path, cp.options)
 			if err != nil {
@@ -283,19 +387,29 @@ func (cp *Compiler) visitAst(ast *Ast) {
 	}
 }
 
+func (cp *Compiler) hasLayout() bool {
+	return cp.layout != ""
+}
+
 // TODO, this is dirty now
 func (cp *Compiler) processLayout() {
 	lines := strings.SplitN(cp.buf, "\n", -1)
 	out := ""
 	sections := []string{}
 	scope := 0
+	hasBodyClosed := false
+
 	for _, l := range lines {
 		l = strings.TrimSpace(l)
 		if strings.HasPrefix(l, "section") && strings.HasSuffix(l, "{") {
+			if hasBodyClosed == false {
+				hasBodyClosed = true
+				out += "\n}\n"
+			}
+
 			name := l
 			name = strings.TrimSpace(name[7 : len(name)-1])
-			out += "\n " + name + " := func() string {\n"
-			out += "var _buffer bytes.Buffer\n"
+			out += "\n _" + name + " := func(_buffer io.StringWriter) {\n"
 			scope = 1
 			sections = append(sections, name)
 		} else if scope > 0 {
@@ -305,7 +419,7 @@ func (cp *Compiler) processLayout() {
 				scope--
 			}
 			if scope == 0 {
-				out += "return _buffer.String()\n}\n"
+				out += "\n}\n"
 				scope = 0
 			} else {
 				out += l + "\n"
@@ -314,40 +428,46 @@ func (cp *Compiler) processLayout() {
 			out += l + "\n"
 		}
 	}
+
+	if cp.hasLayout() && hasBodyClosed == false {
+		hasBodyClosed = true
+		out += "\n}\n"
+	}
+
 	cp.buf = out
-	foot := "\nreturn "
-	if cp.layout != "" {
+
+	foot := ""
+
+	if cp.hasLayout() {
+		foot += "\n"
 		parts := strings.SplitN(cp.layout, "/", -1)
 		base := Capitalize(parts[len(parts)-1])
-		foot += "layout." + base + "("
+		foot += "layout.Render" + base + "("
+		foot += "_buffer, _body"
 	} else if len(sections) > 0 {
-		fmt.Println("expect layout for sections")
+		fmt.Println("expect layout for sections: " + cp.file)
 		os.Exit(1)
 	}
-	foot += "_buffer.String()"
+
 	args := LayoutArgs(cp.layout)
 	if len(args) == 0 {
 		for _, sec := range sections {
 			foot += ", " + sec + "()"
 		}
 	} else {
-		for idx, arg := range args {
-			//body has been done
-			if idx == 0 {
-				continue
-			}
+		for _, arg := range args[1:] {
 			arg = strings.Replace(arg, "string", "", -1)
 			arg = strings.TrimSpace(arg)
 			found := false
 			for _, sec := range sections {
 				if sec == arg {
 					found = true
-					foot += ", " + sec + "()"
+					foot += ", _" + sec
 					break
 				}
 			}
 			if !found {
-				foot += ", " + `""`
+				foot += ", " + `nil`
 			}
 		}
 	}
@@ -357,6 +477,33 @@ func (cp *Compiler) processLayout() {
 	cp.buf += foot
 }
 
+func (cp *Compiler) getLayoutOverload() string {
+	var b strings.Builder
+	b.WriteString(fmt.Sprintf(`
+	func %s(%s) string {
+		var _b strings.Builder
+
+	`, cp.file, strings.Join(cp.params, ", ")))
+
+	var funcNames []string
+	for _, name := range cp.paramNames {
+		b.WriteString(fmt.Sprintf(`
+		_%s := func(_buffer io.StringWriter) {
+			_buffer.WriteString(%s)
+		}
+		`, name, name))
+		funcNames = append(funcNames, "_"+name)
+	}
+
+	b.WriteString(fmt.Sprintf(`
+		Render%s(&_b, %s)
+		return _b.String()
+	}
+
+	`, cp.file, strings.Join(funcNames, ", ")))
+	return b.String()
+}
+
 func (cp *Compiler) visit() {
 	cp.visitAst(cp.ast)
 	cp.genPart()
@@ -364,17 +511,46 @@ func (cp *Compiler) visit() {
 	pack := cp.dir
 	fun := cp.file
 
-	cp.imports[`"bytes"`] = true
-	head := "package " + pack + "\n import (\n"
+	cp.imports[`"io"`] = true
+	cp.imports[`"strings"`] = true
+
+	head := fmt.Sprintf(`// This file is generated by gorazor %s
+// DON'T modified manually
+// Should edit source file and re-generate: %s
+
+`, VERSION, strings.Replace(cp.inputPath, execDir, "", -1))
+
+	head += "package " + pack + "\n import (\n"
 	for k := range cp.imports {
 		head += k + "\n"
 	}
 
 	funcArgs := strings.Join(cp.params, ", ")
 
-	head += "\n)\n"
-	head += "func " + fun + "(" + funcArgs + ") string {\n"
-	head += "var _buffer bytes.Buffer\n"
+	head += "\n)"
+
+	if cp.isLayout {
+		head += cp.getLayoutOverload()
+
+		head += "func Render" + fun + "(_buffer io.StringWriter, " +
+			strings.Replace(funcArgs, " string", " func(_buffer io.StringWriter)", -1) + ") {\n"
+	} else {
+		head += fmt.Sprintf(`
+	func %s(%s) string {
+		var _b strings.Builder
+		Render%s(&_b, %s)
+		return _b.String()
+	}
+
+	`, fun, funcArgs, fun, strings.Join(cp.paramNames, ", "))
+
+		head += "func Render" + fun + "(_buffer io.StringWriter, " + funcArgs + ") {\n"
+	}
+
+	if cp.hasLayout() {
+		head += "\n_body := func(_buffer io.StringWriter) {\n"
+	}
+
 	cp.buf = head + cp.buf
 	cp.processLayout()
 	foot := "\n}\n"
@@ -430,5 +606,8 @@ func generate(path string, output string, Options Option) error {
 		panic(err)
 	}
 
-	return ioutil.WriteFile(output, []byte(FormatBuffer(cp.buf)), 0644)
+	code := FormatBuffer(cp.buf)
+	_, code = optimize(output, cp.dir, code)
+
+	return ioutil.WriteFile(output, []byte(code), 0644)
 }
