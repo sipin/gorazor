@@ -24,80 +24,6 @@ func RenderHome(_buffer io.StringWriter, totalMessage int, u *models.User) {
 	_body := func(_buffer io.StringWriter) {
 		_buffer.WriteString((helper.Header()))
 		_buffer.WriteString((helper.Msg(u)))
-		for i := 0; i < 2; i++ {
-			if totalMessage > 0 {
-				if totalMessage == 1 {
-
-					_buffer.WriteString("<p>")
-					_buffer.WriteString(gorazor.HTMLEscStr(u.Name))
-					_buffer.WriteString(" has 1 message</p>")
-
-				} else {
-
-					_buffer.WriteString("<p>")
-					_buffer.WriteString(gorazor.HTMLEscStr(u.Name))
-					_buffer.WriteString(" has ")
-					_buffer.WriteString(gorazor.HTMLEscStr(gorazor.Itoa(totalMessage)))
-					_buffer.WriteString(" messages</p>")
-
-				}
-			} else {
-
-				_buffer.WriteString("<p>")
-				_buffer.WriteString(gorazor.HTMLEscStr(u.Name))
-				_buffer.WriteString(" has no messages</p>")
-
-			}
-		}
-
-		for i := 0; i < 2; i++ {
-			if totalMessage > 0 {
-				if totalMessage == 1 {
-
-					_buffer.WriteString("<p>")
-					_buffer.WriteString(gorazor.HTMLEscStr(u.Name))
-					_buffer.WriteString(" has 1 message</p>")
-
-				} else {
-
-					_buffer.WriteString("<p>")
-					_buffer.WriteString(gorazor.HTMLEscStr(u.Name))
-					_buffer.WriteString(" has ")
-					_buffer.WriteString(gorazor.HTMLEscStr(gorazor.Itoa(totalMessage)))
-					_buffer.WriteString(" messages</p>")
-
-				}
-			} else {
-
-				_buffer.WriteString("<p>")
-				_buffer.WriteString(gorazor.HTMLEscStr(u.Name))
-				_buffer.WriteString(" has no messages</p>")
-
-			}
-		}
-
-		switch totalMessage {
-		case 1:
-
-			_buffer.WriteString("<p>")
-			_buffer.WriteString(gorazor.HTMLEscStr(u.Name))
-			_buffer.WriteString(" has 1  message</p>")
-
-		case 2:
-
-			_buffer.WriteString("<p>")
-			_buffer.WriteString(gorazor.HTMLEscStr(u.Name))
-			_buffer.WriteString(" has 2 messages</p>")
-
-		default:
-
-			_buffer.WriteString("<p>")
-			_buffer.WriteString(gorazor.HTMLEscStr(u.Name))
-			_buffer.WriteString(" has no messages</p>")
-
-		}
-
-		_buffer.WriteString((helper.Footer()))
 
 	}
 
@@ -110,6 +36,28 @@ func RenderHome(_buffer io.StringWriter, totalMessage int, u *models.User) {
 	}
 
 	_side := func(_buffer io.StringWriter) {
+		switch totalMessage {
+		case 0:
+
+			_buffer.WriteString("<p>")
+			_buffer.WriteString(gorazor.HTMLEscStr(u.Name))
+			_buffer.WriteString(" has no message</p>")
+
+		case 1:
+
+			_buffer.WriteString("<p>")
+			_buffer.WriteString(gorazor.HTMLEscStr(u.Name))
+			_buffer.WriteString(" has 1 messages</p>")
+
+		default:
+
+			_buffer.WriteString("<p>")
+			_buffer.WriteString(gorazor.HTMLEscStr(u.Name))
+			_buffer.WriteString(" has ")
+			_buffer.WriteString(gorazor.HTMLEscInt(totalMessage))
+			_buffer.WriteString(" messages</p>")
+
+		}
 
 	}
 

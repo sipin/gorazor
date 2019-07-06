@@ -16,6 +16,6 @@ func Header() string {
 }
 
 func RenderHeader(_buffer io.StringWriter) {
-	_buffer.WriteString("<div>Page Header</div>")
+	_buffer.WriteString("<div>Welcome</div>")
 
 }

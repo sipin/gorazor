@@ -31,10 +31,10 @@ func Base(body string, title string, side string) string {
 func RenderBase(_buffer io.StringWriter, body func(_buffer io.StringWriter), title func(_buffer io.StringWriter), side func(_buffer io.StringWriter)) {
 	_buffer.WriteString("\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\" />")
 	title(_buffer)
-	_buffer.WriteString("\n</head>\n<body>\n<div>")
+	_buffer.WriteString("\n</head>\n<body>\n<div style=\"width: 960px\">\n\t<div style=\"float: left; width: 460px\">")
 	body(_buffer)
-	_buffer.WriteString("</div>\n<div>")
+	_buffer.WriteString("</div>\n\t<div style=\"float: right; width: 200px\">")
 	side(_buffer)
-	_buffer.WriteString("</div>\n</body>\n</html>")
+	_buffer.WriteString("</div>\n</div>\n</body>\n</html>")
 
 }
