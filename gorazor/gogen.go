@@ -14,6 +14,7 @@ import (
 
 // GorazorNamespace is alias to "github.com/sipin/gorazor/gorazor"
 var GorazorNamespace = `"github.com/sipin/gorazor/gorazor"`
+var TemplateNamespacePrefix = ""
 
 //------------------------------ Compiler ------------------------------ //
 const (
@@ -243,9 +244,18 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 	}
 	if cp.layout != "" {
 		path := cp.layout + "/" + layoutFunc + ".gohtml"
+
+		if !exists(path) && TemplateNamespacePrefix != "" {
+			path = path[len(TemplateNamespacePrefix)+1:]
+		}
+
 		if !exists(path) {
 			layoutFunc = strings.ToLower(layoutFunc[0:1]) + layoutFunc[1:]
 			path = cp.layout + "/" + layoutFunc + ".gohtml"
+
+			if !exists(path) && TemplateNamespacePrefix != "" {
+				path = path[len(TemplateNamespacePrefix)+1:]
+			}
 		}
 
 		cp.layout = cp.layout + "/" + layoutFunc

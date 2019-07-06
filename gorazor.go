@@ -18,6 +18,7 @@ func main() {
 	flag.Usage = usage
 	isDebug := flag.Bool("debug", false, "use debug mode")
 	version := flag.Bool("version", false, "show gorazor version info")
+	namespacePrefix := flag.String("prefix", "", "tpl namespace prefix")
 	nameNotChange := flag.Bool("nameNotChange", false, "do not change name of the template")
 
 	flag.Parse()
@@ -46,6 +47,8 @@ func main() {
 		fmt.Println(err)
 		os.Exit(1)
 	}
+
+	gorazor.TemplateNamespacePrefix = *namespacePrefix
 
 	if stat.IsDir() {
 		fmt.Printf("gorazor processing dir: %s -> %s\n", input, output)

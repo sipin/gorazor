@@ -1,7 +1,7 @@
 - [X] Add version
   - [X] codegen header
   - [X] version output
-- [ ] Add namespace prefix fix support
+- [X] Add namespace prefix fix support
 - [X] Define new layout syntax
   - [X] Update readme
   - [X] Decide layout import path discovery
