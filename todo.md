@@ -5,8 +5,8 @@
 - [X] Define new layout syntax
   - [X] Update readme
   - [X] Decide layout import path discovery
-  - [ ] Implement `layout := XXX`
-  - [ ] Implement `islayout := true`
+  - [X] Implement `layout := XXX`
+  - [X] Implement `islayout := true`
 - [ ] Line number support
 - [ ] html compact mode option
 - [ ] Codegen options
@@ -14,11 +14,12 @@
 - [ ] Return error during rendering?
 - [ ] Better error msg during codegen
 - [ ] Improve test
+  - [X] Add bench test with quicktemplate
   - [ ] More test case files
   - [ ] Add code coverage
 - [ ] Performance Optimize
-  - [ ] Setup benchmark
-  - [ ] zero alloc
+  - [X] Setup benchmark
+  - [X] zero alloc
   - [ ] Unsafe write?
 - [ ] VS Code plugin
 - [ ] Quick Start guide
