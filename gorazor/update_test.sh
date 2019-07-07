@@ -8,3 +8,5 @@ for file in test/_*.go
 do
 	mv -f "$file" "${file/\/_//}"
 done
+
+cp -f test_opt_gen/*.go test_opt/
