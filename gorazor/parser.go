@@ -101,20 +101,6 @@ func (ast *Ast) popChild() {
 	ast.Children = ast.Children[:l-1]
 }
 
-func (ast *Ast) root() *Ast {
-	p := ast
-	pp := ast.Parent
-	for {
-		if p == pp || pp == nil {
-			return p
-		}
-		b := pp
-		pp = p.Parent
-		p = b
-	}
-	return nil
-}
-
 func (ast *Ast) beget(mode int, tag string) *Ast {
 	child := &Ast{nil, []interface{}{}, mode, tag}
 	ast.addChild(child)
@@ -225,7 +211,6 @@ func regMatch(reg string, text string) (string, error) {
 	regc, err := regexp.Compile(reg)
 	if err != nil {
 		panic(err)
-		return "", err
 	}
 	found := regc.FindStringIndex(text)
 	if found != nil {
