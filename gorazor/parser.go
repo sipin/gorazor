@@ -343,7 +343,7 @@ func (parser *Parser) handleMKP(token Token) error {
 			}
 		}
 
-	case TEXT_TAG_OPEN, HTML_TAG_OPEN:
+	case TextareaTagOpen, HTML_TAG_OPEN:
 		tagName, _ := regMatch(`(?i)(^<([^\/ >]+))`, token.Text)
 		tagName = strings.Replace(tagName, "<", "", -1)
 		//TODO
@@ -356,7 +356,7 @@ func (parser *Parser) handleMKP(token Token) error {
 			parser.ast.addChild(token)
 		}
 
-	case TEXT_TAG_CLOSE, HTML_TAG_CLOSE:
+	case TextareaTagClose, HTML_TAG_CLOSE:
 		tagName, _ := regMatch(`(?i)^<\/([^>]+)`, token.Text)
 		tagName = strings.Replace(tagName, "</", "", -1)
 		//TODO
@@ -399,7 +399,7 @@ func (parser *Parser) handleBLK(token Token) error {
 	case AT_COLON:
 		parser.subParse(token, MKP, true)
 
-	case TEXT_TAG_OPEN, TEXT_TAG_CLOSE, HTML_TAG_OPEN, HTML_TAG_CLOSE, COMMENT_TAG_OPEN, COMMENT_TAG_CLOSE:
+	case TextareaTagOpen, TextareaTagClose, HTML_TAG_OPEN, HTML_TAG_CLOSE, COMMENT_TAG_OPEN, COMMENT_TAG_CLOSE:
 		parser.ast = parser.ast.beget(MKP, "")
 		parser.deferToken(token)
 
