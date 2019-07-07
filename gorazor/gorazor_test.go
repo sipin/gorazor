@@ -103,6 +103,7 @@ func TestGenerate(t *testing.T) {
 		}
 		return nil
 	}
+	QuickMode = true
 	err := filepath.Walk(casedir, visit)
 	if err != nil {
 		t.Error("walk")

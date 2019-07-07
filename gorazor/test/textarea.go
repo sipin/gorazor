@@ -18,9 +18,9 @@ func Textarea(count int) string {
 
 func RenderTextarea(_buffer io.StringWriter, count int) {
 	_buffer.WriteString("\n<html>\n<body>\n<textarea rows=\"4\" cols=\"50\">\n        At w3schools.com ")
-	_buffer.WriteString(gorazor.HTMLEscInt(count))
+	_buffer.WriteString(gorazor.HTMLEscape(count))
 	_buffer.WriteString(" you will learn how to make a website.\n  We offer free tutorials in all web development technologies.\n\n\n\n  At w3schools.com ")
-	_buffer.WriteString(gorazor.HTMLEscInt(count))
+	_buffer.WriteString(gorazor.HTMLEscape(count))
 	_buffer.WriteString(" you will learn\n  how to make a website.\n  We offer free tutorials in all web development technologies.\n\n</body>\n</html>")
 
 }

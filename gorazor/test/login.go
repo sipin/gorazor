@@ -21,7 +21,7 @@ func RenderLogin(_buffer io.StringWriter, msg string) {
 	if msg != "" {
 
 		_buffer.WriteString("<div class=\"alert alert-danger\">")
-		_buffer.WriteString(gorazor.HTMLEscStr(msg))
+		_buffer.WriteString(gorazor.HTMLEscape(msg))
 		_buffer.WriteString("</div>")
 
 	}
