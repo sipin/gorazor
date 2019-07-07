@@ -13,11 +13,11 @@
   - [ ] gen string args override
 - [ ] Return error during rendering?
 - [ ] Better error msg during codegen
-- [ ] Improve test
+- [X] Improve test
   - [X] Add bench test with quicktemplate
-  - [ ] More test case files
-  - [ ] Add code coverage
-  - [ ] Test cases for QuickMode
+  - [X] More test case files
+  - [X] Make code coverage 90%+
+  - [X] Test cases for QuickMode
 - [ ] Performance Optimize
   - [X] Setup benchmark
   - [X] zero alloc
