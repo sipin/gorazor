@@ -6,6 +6,7 @@
 
 gorazor is the Go port of the razor view engine originated from [asp.net in 2011](http://weblogs.asp.net/scottgu/archive/2010/07/02/introducing-razor.aspx). In summary, gorazor's:
 
+* Extremely Fast. Templates are converted into Go code and then compiled with optimization.
 * Concise syntax, no delimiter like `<?`, `<%`, or `{{`.
   * Original [Razor Syntax](http://www.asp.net/web-pages/tutorials/basics/2-introduction-to-asp-net-web-programming-using-the-razor-syntax) & [quick reference](http://haacked.com/archive/2011/01/06/razor-syntax-quick-reference.aspx/) for asp.net.
 * Able to mix go code in view template
@@ -383,6 +384,4 @@ gorazor has been though several rounds of refactoring and it has completely rewr
 
 # Todo
 
-* Add default html widgets
-* Add more usage examples
-* Generate more function overloads, like accept additional buffer parameter for write
+[Todo](https://github.com/sipin/gorazor/blob/master/todo.md)
