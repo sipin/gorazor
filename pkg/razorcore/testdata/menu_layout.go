@@ -32,6 +32,7 @@ func Menu_layout(body string, title string, menu string) string {
 	return _b.String()
 }
 
+// RenderMenu_layout render cases/menu_layout.gohtml
 func RenderMenu_layout(_buffer io.StringWriter, body func(_buffer io.StringWriter), title func(_buffer io.StringWriter), menu func(_buffer io.StringWriter)) {
 
 	_body := func(_buffer io.StringWriter) {

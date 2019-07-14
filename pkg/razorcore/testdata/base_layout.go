@@ -26,6 +26,7 @@ func Base_layout(body string, title string) string {
 	return _b.String()
 }
 
+// RenderBase_layout render cases/base_layout.gohtml
 func RenderBase_layout(_buffer io.StringWriter, body func(_buffer io.StringWriter), title func(_buffer io.StringWriter)) {
 	_buffer.WriteString("\n<html>\n    <head>\n        <title>")
 	_buffer.WriteString(gorazor.HTMLEscape(title))

@@ -31,6 +31,7 @@ func Base(body string, title string, js string) string {
 	return _b.String()
 }
 
+// RenderBase render cases/layout/base.gohtml
 func RenderBase(_buffer io.StringWriter, body func(_buffer io.StringWriter), title func(_buffer io.StringWriter), js func(_buffer io.StringWriter)) {
 
 	companyName := "深圳思品科技有限公司"

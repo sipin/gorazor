@@ -539,6 +539,9 @@ func (cp *Compiler) visit() {
 
 	if cp.isLayout {
 		head += cp.getLayoutOverload()
+		head += fmt.Sprintf(`
+	// Render%s render %s
+	`, fun, cp.tplPath)
 
 		head += "func Render" + fun + "(_buffer io.StringWriter, " +
 			strings.Replace(funcArgs, " string", " func(_buffer io.StringWriter)", -1) + ") {\n"

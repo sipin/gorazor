@@ -23,6 +23,7 @@ func Args(objs ...*models.Widget) string {
 	return _b.String()
 }
 
+// RenderArgs render cases/layout/args.gohtml
 func RenderArgs(_buffer io.StringWriter, objs ...*models.Widget) {
 
 	size := strconv.Itoa(12 / len(objs))
