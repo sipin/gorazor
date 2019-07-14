@@ -62,7 +62,7 @@ ok      github.com/sipin/gorazor/tests  19.921s
 
 gorazor supports `go 1.10` and above, for go version **below 1.10**, you may use [gorazor classic version](https://github.com/sipin/gorazor/releases/tag/v1.0).
 
-`go 1.12` are recommneded for better compiler optimization.
+`go 1.12` are recommneded for better **compiler optimization**.
 
 ## Install
 
