@@ -478,7 +478,7 @@ func (parser *Parser) handleEXP(token Token) error {
 		}
 	case BRACE_OPEN:
 		prev := parser.prevToken(0)
-		//todo: Is this really neccessary?
+		//todo: Is this really necessary?
 		if prev.Type == IDENTIFIER {
 			parser.ast.addChild(token)
 		} else {
