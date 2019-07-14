@@ -12,12 +12,14 @@ import (
 	"strings"
 )
 
+// Edit_layout_declare generates cases/edit_layout_declare.gohtml
 func Edit_layout_declare(u *models.User) string {
 	var _b strings.Builder
 	RenderEdit_layout_declare(&_b, u)
 	return _b.String()
 }
 
+// RenderEdit_layout_declare render cases/edit_layout_declare.gohtml
 func RenderEdit_layout_declare(_buffer io.StringWriter, u *models.User) {
 
 	_body := func(_buffer io.StringWriter) {

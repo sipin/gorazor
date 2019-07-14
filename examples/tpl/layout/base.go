@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// Base generates examples/tpl/layout/base.gohtml
 func Base(body string, title string, side string) string {
 	var _b strings.Builder
 

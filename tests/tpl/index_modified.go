@@ -11,12 +11,14 @@ import (
 	"github.com/sipin/gorazor/tests/data"
 )
 
+// IndexModified generates tests/tpl/index.gohtml
 func IndexModified(rows []data.BenchRow) string {
 	var _b strings.Builder
 	RenderIndex(&_b, rows)
 	return _b.String()
 }
 
+// RenderIndexModified render tests/tpl/index.gohtml
 func RenderIndexModified(_buffer io.StringWriter, rows []data.BenchRow) {
 	_buffer.WriteString("<html>\n\t<head><title>test</title></head>\n\t<body>\n\t\t<ul>\n\t\t\n\t\t\t")
 	for _, row := range rows {

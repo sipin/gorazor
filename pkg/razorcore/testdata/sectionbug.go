@@ -12,12 +12,14 @@ import (
 	"strings"
 )
 
+// Sectionbug generates cases/sectionbug.gohtml
 func Sectionbug() string {
 	var _b strings.Builder
 	RenderSectionbug(&_b)
 	return _b.String()
 }
 
+// RenderSectionbug render cases/sectionbug.gohtml
 func RenderSectionbug(_buffer io.StringWriter) {
 
 	_body := func(_buffer io.StringWriter) {

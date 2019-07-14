@@ -10,12 +10,14 @@ import (
 	"strings"
 )
 
+// Layout generates cases/layout.gohtml
 func Layout(body string, title string, side string) string {
 	var _b strings.Builder
 	RenderLayout(&_b, body, title, side)
 	return _b.String()
 }
 
+// RenderLayout render cases/layout.gohtml
 func RenderLayout(_buffer io.StringWriter, body string, title string, side string) {
 	_buffer.WriteString("\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\" />")
 	_buffer.WriteString(gorazor.HTMLEscape(title))

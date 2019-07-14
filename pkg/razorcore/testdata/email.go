@@ -10,12 +10,14 @@ import (
 	"strings"
 )
 
+// Email generates cases/email.gohtml
 func Email() string {
 	var _b strings.Builder
 	RenderEmail(&_b)
 	return _b.String()
 }
 
+// RenderEmail render cases/email.gohtml
 func RenderEmail(_buffer io.StringWriter) {
 	_buffer.WriteString("<span>rememberingsteve@apple.com ")
 	_buffer.WriteString(gorazor.HTMLEscape(username))

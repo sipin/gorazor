@@ -11,12 +11,14 @@ import (
 	"time"
 )
 
+// Index generates docs/hello/tpl/index.gohtml
 func Index() string {
 	var _b strings.Builder
 	RenderIndex(&_b)
 	return _b.String()
 }
 
+// RenderIndex render docs/hello/tpl/index.gohtml
 func RenderIndex(_buffer io.StringWriter) {
 	_buffer.WriteString("\n\n<p>This is Index</p>")
 

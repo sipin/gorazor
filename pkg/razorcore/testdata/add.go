@@ -11,12 +11,14 @@ import (
 	"strings"
 )
 
+// Add generates cases/add.gohtml
 func Add(content string, err string) string {
 	var _b strings.Builder
 	RenderAdd(&_b, content, err)
 	return _b.String()
 }
 
+// RenderAdd render cases/add.gohtml
 func RenderAdd(_buffer io.StringWriter, content string, err string) {
 
 	_body := func(_buffer io.StringWriter) {

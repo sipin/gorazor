@@ -12,12 +12,14 @@ import (
 	"strings"
 )
 
+// Index generates cases/index.gohtml
 func Index(users []*models.User, total int, limit int, offset int) string {
 	var _b strings.Builder
 	RenderIndex(&_b, users, total, limit, offset)
 	return _b.String()
 }
 
+// RenderIndex render cases/index.gohtml
 func RenderIndex(_buffer io.StringWriter, users []*models.User, total int, limit int, offset int) {
 
 	_body := func(_buffer io.StringWriter) {

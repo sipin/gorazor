@@ -13,12 +13,14 @@ import (
 	. "zfw/tplhelper"
 )
 
+// Scope generates cases/scope.gohtml
 func Scope(obj *models.Widget) string {
 	var _b strings.Builder
 	RenderScope(&_b, obj)
 	return _b.String()
 }
 
+// RenderScope render cases/scope.gohtml
 func RenderScope(_buffer io.StringWriter, obj *models.Widget) {
 
 	data, dmType := dm.GetData(obj.PlaceHolder)

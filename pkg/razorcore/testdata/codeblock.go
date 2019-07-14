@@ -9,12 +9,14 @@ import (
 	"strings"
 )
 
+// Codeblock generates cases/codeblock.gohtml
 func Codeblock() string {
 	var _b strings.Builder
 	RenderCodeblock(&_b)
 	return _b.String()
 }
 
+// RenderCodeblock render cases/codeblock.gohtml
 func RenderCodeblock(_buffer io.StringWriter) {
 
 }

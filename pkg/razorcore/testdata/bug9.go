@@ -10,12 +10,14 @@ import (
 	"strings"
 )
 
+// Bug9 generates cases/bug9.gohtml
 func Bug9(l *Locale) string {
 	var _b strings.Builder
 	RenderBug9(&_b, l)
 	return _b.String()
 }
 
+// RenderBug9 render cases/bug9.gohtml
 func RenderBug9(_buffer io.StringWriter, l *Locale) {
 	_buffer.WriteString("\n<span>")
 	_buffer.WriteString(gorazor.HTMLEscape(l.T(`for`)))

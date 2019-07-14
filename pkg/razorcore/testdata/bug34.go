@@ -9,12 +9,14 @@ import (
 	"strings"
 )
 
+// Bug34 generates cases/bug34.gohtml
 func Bug34() string {
 	var _b strings.Builder
 	RenderBug34(&_b)
 	return _b.String()
 }
 
+// RenderBug34 render cases/bug34.gohtml
 func RenderBug34(_buffer io.StringWriter) {
 	_buffer.WriteString("value=\\\"<?= h(aabasdf\\Admin\\Document::$asdf) ?>\\\"/>\\n")
 

@@ -10,12 +10,14 @@ import (
 	"strings"
 )
 
+// Textarea generates cases_opt/textarea.gohtml
 func Textarea(count int) string {
 	var _b strings.Builder
 	RenderTextarea(&_b, count)
 	return _b.String()
 }
 
+// RenderTextarea render cases_opt/textarea.gohtml
 func RenderTextarea(_buffer io.StringWriter, count int) {
 	_buffer.WriteString("\n<html>\n<body>\n<textarea rows=\"4\" cols=\"50\">\n        At w3schools.com ")
 	_buffer.WriteString(gorazor.HTMLEscInt(count))

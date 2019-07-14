@@ -11,6 +11,7 @@ import (
 	"tpl/admin/helper"
 )
 
+// Base generates cases/layout/base.gohtml
 func Base(body string, title string, js string) string {
 	var _b strings.Builder
 

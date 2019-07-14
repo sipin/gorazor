@@ -9,12 +9,14 @@ import (
 	"strings"
 )
 
+// Var generates cases/var.gohtml
 func Var(totalMessage int) string {
 	var _b strings.Builder
 	RenderVar(&_b, totalMessage)
 	return _b.String()
 }
 
+// RenderVar render cases/var.gohtml
 func RenderVar(_buffer io.StringWriter, totalMessage int) {
 
 }

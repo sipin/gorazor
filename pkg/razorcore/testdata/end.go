@@ -13,12 +13,14 @@ import (
 	"tpl/helper"
 )
 
+// End generates cases/end.gohtml
 func End(totalMessage int, u *User) string {
 	var _b strings.Builder
 	RenderEnd(&_b, totalMessage, u)
 	return _b.String()
 }
 
+// RenderEnd render cases/end.gohtml
 func RenderEnd(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	_body := func(_buffer io.StringWriter) {

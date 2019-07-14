@@ -9,12 +9,14 @@ import (
 	"strings"
 )
 
+// Footer generates examples/tpl/helper/footer.gohtml
 func Footer() string {
 	var _b strings.Builder
 	RenderFooter(&_b)
 	return _b.String()
 }
 
+// RenderFooter render examples/tpl/helper/footer.gohtml
 func RenderFooter(_buffer io.StringWriter) {
 	_buffer.WriteString("<div>copyright 2014</div>")
 

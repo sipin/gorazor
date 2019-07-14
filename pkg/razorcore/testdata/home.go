@@ -13,12 +13,14 @@ import (
 	"tpl/helper"
 )
 
+// Home generates cases/home.gohtml
 func Home(totalMessage int, u *User) string {
 	var _b strings.Builder
 	RenderHome(&_b, totalMessage, u)
 	return _b.String()
 }
 
+// RenderHome render cases/home.gohtml
 func RenderHome(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	_body := func(_buffer io.StringWriter) {

@@ -12,12 +12,14 @@ import (
 	"strings"
 )
 
+// Edit generates cases/edit.gohtml
 func Edit(u *models.User) string {
 	var _b strings.Builder
 	RenderEdit(&_b, u)
 	return _b.String()
 }
 
+// RenderEdit render cases/edit.gohtml
 func RenderEdit(_buffer io.StringWriter, u *models.User) {
 
 	_body := func(_buffer io.StringWriter) {

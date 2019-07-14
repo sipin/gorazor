@@ -10,12 +10,14 @@ import (
 	"strings"
 )
 
+// Forward generates cases/forward.gohtml
 func Forward(content string, err string) string {
 	var _b strings.Builder
 	RenderForward(&_b, content, err)
 	return _b.String()
 }
 
+// RenderForward render cases/forward.gohtml
 func RenderForward(_buffer io.StringWriter, content string, err string) {
 
 	_body := func(_buffer io.StringWriter) {

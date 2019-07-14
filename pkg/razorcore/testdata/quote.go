@@ -9,12 +9,14 @@ import (
 	"strings"
 )
 
+// Quote generates cases/quote.gohtml
 func Quote() string {
 	var _b strings.Builder
 	RenderQuote(&_b)
 	return _b.String()
 }
 
+// RenderQuote render cases/quote.gohtml
 func RenderQuote(_buffer io.StringWriter) {
 	_buffer.WriteString("<html>'text'</html>")
 

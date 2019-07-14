@@ -14,12 +14,14 @@ import (
 	"this"
 )
 
+// Import generates cases/import.gohtml
 func Import() string {
 	var _b strings.Builder
 	RenderImport(&_b)
 	return _b.String()
 }
 
+// RenderImport render cases/import.gohtml
 func RenderImport(_buffer io.StringWriter) {
 	_buffer.WriteString("\n\n\n<p>hello</p>")
 

@@ -10,6 +10,7 @@ import (
 	"strings"
 )
 
+// Base_layout generates cases/base_layout.gohtml
 func Base_layout(body string, title string) string {
 	var _b strings.Builder
 

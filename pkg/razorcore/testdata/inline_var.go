@@ -11,12 +11,14 @@ import (
 	"strings"
 )
 
+// Inline_var generates cases/inline_var.gohtml
 func Inline_var() string {
 	var _b strings.Builder
 	RenderInline_var(&_b)
 	return _b.String()
 }
 
+// RenderInline_var render cases/inline_var.gohtml
 func RenderInline_var(_buffer io.StringWriter) {
 	_buffer.WriteString("\n\n<body>")
 	_buffer.WriteString(gorazor.HTMLEscape(Hello("Felix Sun", "h1", 30, &models.Author{"Van", 20}, 10)))

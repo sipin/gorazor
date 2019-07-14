@@ -12,12 +12,14 @@ import (
 	. "zfw/tplhelper"
 )
 
+// Scopebug generates cases/scopebug.gohtml
 func Scopebug(obj *models.Widget) string {
 	var _b strings.Builder
 	RenderScopebug(&_b, obj)
 	return _b.String()
 }
 
+// RenderScopebug render cases/scopebug.gohtml
 func RenderScopebug(_buffer io.StringWriter, obj *models.Widget) {
 
 	if 1 == 2 {

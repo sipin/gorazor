@@ -11,12 +11,14 @@ import (
 	"tpl/admin/helper"
 )
 
+// Base generates cases/base.gohtml
 func Base(body string, title string) string {
 	var _b strings.Builder
 	RenderBase(&_b, body, title)
 	return _b.String()
 }
 
+// RenderBase render cases/base.gohtml
 func RenderBase(_buffer io.StringWriter, body string, title string) {
 	_buffer.WriteString("\n<!DOCTYPE html>\n<html>\n<head>\n\t<meta charset=\"utf-8\" />\n    <meta http-equiv=\"X-UA-Compatible\" content=\"IE=edge\">\n    <meta name=\"viewport\" content=\"width=device-width, initial-scale=1\">\n\t<link rel=\"stylesheet\" href=\"/css/bootstrap.min.css\">\n\t<link rel=\"stylesheet\" href=\"/css/dashboard.css\">\n    <!-- HTML5 shim and Respond.js IE8 support of HTML5 elements and media queries -->\n    <!--[if lt IE 9]>\n      <script src=\"https://oss.maxcdn.com/libs/html5shiv/3.7.0/html5shiv.js\"></script>\n      <script src=\"https://oss.maxcdn.com/libs/respond.js/1.4.2/respond.min.js\"></script>\n    <![endif]-->\n\t<title>")
 	_buffer.WriteString(gorazor.HTMLEscape(title))

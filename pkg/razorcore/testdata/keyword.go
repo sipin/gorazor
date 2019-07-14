@@ -10,12 +10,14 @@ import (
 	"strings"
 )
 
+// Keyword generates cases/keyword.gohtml
 func Keyword() string {
 	var _b strings.Builder
 	RenderKeyword(&_b)
 	return _b.String()
 }
 
+// RenderKeyword render cases/keyword.gohtml
 func RenderKeyword(_buffer io.StringWriter) {
 	_buffer.WriteString("BLK(<span>rememberingsteve@apple.com ")
 	_buffer.WriteString(gorazor.HTMLEscape(username))

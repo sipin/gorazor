@@ -12,6 +12,7 @@ import (
 	"strings"
 )
 
+// Menu_layout generates cases/menu_layout.gohtml
 func Menu_layout(body string, title string, menu string) string {
 	var _b strings.Builder
 

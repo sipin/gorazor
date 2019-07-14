@@ -11,12 +11,14 @@ import (
 	"strings"
 )
 
+// Msg generates examples/tpl/helper/msg.gohtml
 func Msg(u *models.User) string {
 	var _b strings.Builder
 	RenderMsg(&_b, u)
 	return _b.String()
 }
 
+// RenderMsg render examples/tpl/helper/msg.gohtml
 func RenderMsg(_buffer io.StringWriter, u *models.User) {
 
 	username := u.Name

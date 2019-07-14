@@ -11,6 +11,7 @@ import (
 	"zfw/models"
 )
 
+// Args generates cases/layout/args.gohtml
 func Args(objs ...*models.Widget) string {
 	var _b strings.Builder
 

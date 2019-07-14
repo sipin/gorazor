@@ -9,12 +9,14 @@ import (
 	"strings"
 )
 
+// Blk generates cases/blk.gohtml
 func Blk() string {
 	var _b strings.Builder
 	RenderBlk(&_b)
 	return _b.String()
 }
 
+// RenderBlk render cases/blk.gohtml
 func RenderBlk(_buffer io.StringWriter) {
 
 }

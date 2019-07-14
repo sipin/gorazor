@@ -13,12 +13,14 @@ import (
 	"tpl/helper"
 )
 
+// Argsbug generates cases/argsbug.gohtml
 func Argsbug(totalMessage int, u *User) string {
 	var _b strings.Builder
 	RenderArgsbug(&_b, totalMessage, u)
 	return _b.String()
 }
 
+// RenderArgsbug render cases/argsbug.gohtml
 func RenderArgsbug(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	messages := []string{}

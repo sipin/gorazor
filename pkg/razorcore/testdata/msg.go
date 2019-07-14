@@ -11,12 +11,14 @@ import (
 	"strings"
 )
 
+// Msg generates cases/msg.gohtml
 func Msg(u *User) string {
 	var _b strings.Builder
 	RenderMsg(&_b, u)
 	return _b.String()
 }
 
+// RenderMsg render cases/msg.gohtml
 func RenderMsg(_buffer io.StringWriter, u *User) {
 
 	getName := func(u *User) string {

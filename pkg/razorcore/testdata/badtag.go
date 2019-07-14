@@ -10,12 +10,14 @@ import (
 	"strings"
 )
 
+// Badtag generates cases/badtag.gohtml
 func Badtag(w *gorazor.Widget) string {
 	var _b strings.Builder
 	RenderBadtag(&_b, w)
 	return _b.String()
 }
 
+// RenderBadtag render cases/badtag.gohtml
 func RenderBadtag(_buffer io.StringWriter, w *gorazor.Widget) {
 	if w.ErrorMsg != "" {
 
