@@ -1,4 +1,4 @@
-package gorazor
+package razorcore
 
 // Widget represent an HTML input widget
 // Currently not in used

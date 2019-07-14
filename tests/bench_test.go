@@ -29,7 +29,7 @@ func init() {
 	bb := quicktemplate.AcquireByteBuffer()
 	q := &quickStringWriter{}
 	q.bb = bb
-	tpl.RenderIndex(q, rows)
+	tpl.RenderIndexModified(q, rows)
 
 	if !bytes.Equal(bb1.B, bb.B) {
 		log.Fatalf("results mismatch:\n%q\n%q", bb1, bb)
@@ -73,6 +73,33 @@ func BenchmarkRazorQuickTemplate100(b *testing.B) {
 }
 
 func benchmarkRazorQuickTemplate(b *testing.B, rowsCount int) {
+	rows := getBenchRows(rowsCount)
+
+	b.RunParallel(func(pb *testing.PB) {
+		bb := quicktemplate.AcquireByteBuffer()
+		var q quickStringWriter
+		q.bb = bb
+		for pb.Next() {
+			tpl.RenderIndexModified(&q, rows)
+			bb.Reset()
+		}
+		quicktemplate.ReleaseByteBuffer(bb)
+	})
+}
+
+func BenchmarkRazorQuickTemplateOriginal1(b *testing.B) {
+	benchmarkRazorQuickTemplateOriginal(b, 1)
+}
+
+func BenchmarkRazorQuickTemplateOriginal10(b *testing.B) {
+	benchmarkRazorQuickTemplateOriginal(b, 10)
+}
+
+func BenchmarkRazorQuickTemplateOriginal100(b *testing.B) {
+	benchmarkRazorQuickTemplateOriginal(b, 100)
+}
+
+func benchmarkRazorQuickTemplateOriginal(b *testing.B, rowsCount int) {
 	rows := getBenchRows(rowsCount)
 
 	b.RunParallel(func(pb *testing.PB) {

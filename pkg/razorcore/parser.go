@@ -1,4 +1,4 @@
-package gorazor
+package razorcore
 
 import (
 	"errors"
@@ -99,20 +99,6 @@ func (ast *Ast) popChild() {
 		return
 	}
 	ast.Children = ast.Children[:l-1]
-}
-
-func (ast *Ast) root() *Ast {
-	p := ast
-	pp := ast.Parent
-	for {
-		if p == pp || pp == nil {
-			return p
-		}
-		b := pp
-		pp = p.Parent
-		p = b
-	}
-	return nil
 }
 
 func (ast *Ast) beget(mode int, tag string) *Ast {
@@ -225,7 +211,6 @@ func regMatch(reg string, text string) (string, error) {
 	regc, err := regexp.Compile(reg)
 	if err != nil {
 		panic(err)
-		return "", err
 	}
 	found := regc.FindStringIndex(text)
 	if found != nil {
@@ -343,7 +328,7 @@ func (parser *Parser) handleMKP(token Token) error {
 			}
 		}
 
-	case TEXT_TAG_OPEN, HTML_TAG_OPEN:
+	case TextareaTagOpen, HTML_TAG_OPEN:
 		tagName, _ := regMatch(`(?i)(^<([^\/ >]+))`, token.Text)
 		tagName = strings.Replace(tagName, "<", "", -1)
 		//TODO
@@ -356,7 +341,7 @@ func (parser *Parser) handleMKP(token Token) error {
 			parser.ast.addChild(token)
 		}
 
-	case TEXT_TAG_CLOSE, HTML_TAG_CLOSE:
+	case TextareaTagClose, HTML_TAG_CLOSE:
 		tagName, _ := regMatch(`(?i)^<\/([^>]+)`, token.Text)
 		tagName = strings.Replace(tagName, "</", "", -1)
 		//TODO
@@ -399,7 +384,7 @@ func (parser *Parser) handleBLK(token Token) error {
 	case AT_COLON:
 		parser.subParse(token, MKP, true)
 
-	case TEXT_TAG_OPEN, TEXT_TAG_CLOSE, HTML_TAG_OPEN, HTML_TAG_CLOSE, COMMENT_TAG_OPEN, COMMENT_TAG_CLOSE:
+	case TextareaTagOpen, TextareaTagClose, HTML_TAG_OPEN, HTML_TAG_CLOSE, COMMENT_TAG_OPEN, COMMENT_TAG_CLOSE:
 		parser.ast = parser.ast.beget(MKP, "")
 		parser.deferToken(token)
 

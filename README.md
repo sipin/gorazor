@@ -19,7 +19,7 @@ gorazor is the Go port of the razor view engine originated from [asp.net in 2011
 * Embedding templates support
 * Layout/Section support
 
-# Performance comparison with html/template and quicktemplate
+# Extremely Fast Performance
 
 `gorazor` is about **20X** times faster than [html/template](https://golang.org/pkg/html/template/) when using standard `strings.Builder` for template writing.
 
@@ -31,32 +31,38 @@ $ go test -bench='Benchmark(Razor|RazorQuick|Quick|HTML)Template' -benchmem gith
 goos: windows
 goarch: amd64
 pkg: github.com/valyala/quicktemplate/tests
-BenchmarkQuickTemplate1-8       30000000                37.5 ns/op             0 B/op          0 allocs/op
-BenchmarkQuickTemplate10-8      10000000               146 ns/op               0 B/op          0 allocs/op
-BenchmarkQuickTemplate100-8      1000000              1355 ns/op               0 B/op          0 allocs/op
-BenchmarkHTMLTemplate1-8         2000000               708 ns/op             608 B/op         21 allocs/op
-BenchmarkHTMLTemplate10-8         500000              3587 ns/op            2834 B/op        111 allocs/op
-BenchmarkHTMLTemplate100-8         50000             34619 ns/op           28055 B/op       1146 allocs/op
+BenchmarkQuickTemplate1-8       50000000                35.6 ns/op             0 B/op          0 allocs/op
+BenchmarkQuickTemplate10-8      10000000               152 ns/op               0 B/op          0 allocs/op
+BenchmarkQuickTemplate100-8      1000000              1460 ns/op               0 B/op          0 allocs/op
+BenchmarkHTMLTemplate1-8         2000000               712 ns/op             608 B/op         21 allocs/op
+BenchmarkHTMLTemplate10-8         500000              3586 ns/op            2834 B/op        111 allocs/op
+BenchmarkHTMLTemplate100-8         50000             35180 ns/op           28055 B/op       1146 allocs/op
 PASS
-ok      github.com/valyala/quicktemplate/tests  10.452s
+ok      github.com/valyala/quicktemplate/tests  11.360s
 goos: windows
 goarch: amd64
 pkg: github.com/sipin/gorazor/tests
-BenchmarkRazorTemplate1-8               20000000                80.4 ns/op           480 B/op          4 allocs/op
-BenchmarkRazorTemplate10-8              10000000               188 ns/op             992 B/op          5 allocs/op
-BenchmarkRazorTemplate100-8              1000000              1693 ns/op           10208 B/op          9 allocs/op
-BenchmarkRazorQuickTemplate1-8          100000000               19.7 ns/op             0 B/op          0 allocs/op
-BenchmarkRazorQuickTemplate10-8         20000000                80.1 ns/op             0 B/op          0 allocs/op
-BenchmarkRazorQuickTemplate100-8         2000000               746 ns/op               0 B/op          0 allocs/op
+BenchmarkRazorTemplate1-8                       30000000                49.8 ns/op           224 B/op          3 allocs/op
+BenchmarkRazorTemplate10-8                      10000000               122 ns/op             480 B/op          4 allocs/op
+BenchmarkRazorTemplate100-8                      2000000               931 ns/op            4064 B/op          7 allocs/op
+BenchmarkRazorQuickTemplate1-8                  100000000               19.9 ns/op             0 B/op          0 allocs/op
+BenchmarkRazorQuickTemplate10-8                 20000000                82.5 ns/op             0 B/op          0 allocs/op
+BenchmarkRazorQuickTemplate100-8                 2000000               767 ns/op               0 B/op          0 allocs/op
+BenchmarkRazorQuickTemplateOriginal1-8          100000000               17.4 ns/op             0 B/op          0 allocs/op
+BenchmarkRazorQuickTemplateOriginal10-8         20000000                68.8 ns/op             0 B/op          0 allocs/op
+BenchmarkRazorQuickTemplateOriginal100-8         2000000               656 ns/op               0 B/op          0 allocs/op
 PASS
-ok      github.com/sipin/gorazor/tests  11.654s
+ok      github.com/sipin/gorazor/tests  19.921s
 ```
+
+* `BenchmarkRazorQuickTemplate`'s manually modified ensure **exact output** as quicktemplate for comparism.
+* `BenchmarkRazorQuickTemplateOriginal` are gorazor's default code-gen, which produce less white-space, thus faster.
 
 # Usage
 
 gorazor supports `go 1.10` and above, for go version **below 1.10**, you may use [gorazor classic version](https://github.com/sipin/gorazor/releases/tag/v1.0).
 
-`go 1.12` are recommneded for better compiler optimization.
+`go 1.12` are recommneded for better **compiler optimization**.
 
 ## Install
 

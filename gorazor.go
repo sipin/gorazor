@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/sipin/gorazor/gorazor"
+	"github.com/sipin/gorazor/pkg/razorcore"
 )
 
 func usage() {
@@ -25,11 +25,11 @@ func main() {
 	flag.Parse()
 
 	if *version {
-		fmt.Println("gorazor version: " + gorazor.VERSION)
+		fmt.Println("gorazor version: " + razorcore.VERSION)
 		os.Exit(0)
 	}
 
-	options := gorazor.Option{}
+	options := razorcore.Option{}
 
 	if *isDebug {
 		options["Debug"] = *isDebug
@@ -49,17 +49,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	gorazor.TemplateNamespacePrefix = *namespacePrefix
-	gorazor.QuickMode = *quick
+	razorcore.TemplateNamespacePrefix = *namespacePrefix
+	razorcore.QuickMode = *quick
 
 	if stat.IsDir() {
 		fmt.Printf("gorazor processing dir: %s -> %s\n", input, output)
-		err := gorazor.GenFolder(input, output, options)
+		err := razorcore.GenFolder(input, output, options)
 		if err != nil {
 			fmt.Println(err)
 		}
 	} else if stat.Mode().IsRegular() {
 		fmt.Printf("gorazor processing file: %s -> %s\n", input, output)
-		gorazor.GenFile(input, output, options)
+		razorcore.GenFile(input, output, options)
 	}
 }

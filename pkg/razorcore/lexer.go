@@ -1,4 +1,4 @@
-package gorazor
+package razorcore
 
 import (
 	"fmt"
@@ -35,8 +35,8 @@ const (
 	PERIOD
 	SINGLE_QUOTE
 	DOUBLE_QUOTE
-	TEXT_TAG_CLOSE
-	TEXT_TAG_OPEN
+	TextareaTagClose
+	TextareaTagOpen
 	COMMENT_TAG_OPEN
 	COMMENT_TAG_CLOSE
 	WHITESPACE
@@ -199,10 +199,10 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 		default:
 			if peekNext("*@", left) {
 				tok = makeToken("*@", AT_STAR_CLOSE)
-			} else if peekNext("<text>", left) {
-				tok = makeToken("<text>", TEXT_TAG_OPEN)
-			} else if peekNext("</text>", left) {
-				tok = makeToken("</text>", TEXT_TAG_CLOSE)
+			} else if peekNext("<textarea>", left) {
+				tok = makeToken("<textarea>", TextareaTagOpen)
+			} else if peekNext("</textarea>", left) {
+				tok = makeToken("</textarea>", TextareaTagClose)
 			} else if peekNext("<!--", left) {
 				tok = makeToken("<!--", COMMENT_TAG_OPEN)
 			} else if peekNext("-->", left) {

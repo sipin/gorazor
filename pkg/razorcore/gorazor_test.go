@@ -1,6 +1,7 @@
-package gorazor
+package razorcore
 
 import (
+	"fmt"
 	"io/ioutil"
 	"os"
 	"path/filepath"
@@ -9,6 +10,9 @@ import (
 )
 
 func TestCap(t *testing.T) {
+	if Capitalize("") != "" {
+		t.Error()
+	}
 	if Capitalize("hello") != "Hello" {
 		t.Error()
 	}
@@ -66,6 +70,14 @@ func TestLexer(t *testing.T) {
 	}
 }
 
+func TestDebug(t *testing.T) {
+	casedir, _ := filepath.Abs(filepath.Dir("./cases/"))
+	outdir, _ := filepath.Abs(filepath.Dir("./test/"))
+	option := Option{}
+	option["Debug"] = true
+	GenFile(casedir+"/var.gohtml", outdir+"/_var.gohtml", option)
+}
+
 func TestGenerate(t *testing.T) {
 	casedir, _ := filepath.Abs(filepath.Dir("./cases/"))
 	sap := string(filepath.Separator)
@@ -83,7 +95,22 @@ func TestGenerate(t *testing.T) {
 				os.MkdirAll(dirname, 0755)
 			}
 			option := Option{}
-			GenFile(path, log, option)
+
+			if strings.HasSuffix(path, "panic.gohtml") {
+				defer func() {
+					if r := recover(); r != nil {
+						panicMsg := fmt.Sprint(r)
+						if !strings.HasPrefix(panicMsg, "failed to format template") ||
+							!strings.Contains(panicMsg, ">>>> func Panic(totalMessage i nt) string {") {
+							t.Error("panic.gohtml test failed")
+						}
+					}
+				}()
+				GenFile(path, log, option)
+			} else {
+				GenFile(path, log, option)
+			}
+
 			if !exists(cmp) {
 				t.Error("No cmp:", cmp)
 			} else if !exists(log) {
@@ -103,6 +130,7 @@ func TestGenerate(t *testing.T) {
 		}
 		return nil
 	}
+	QuickMode = true
 	err := filepath.Walk(casedir, visit)
 	if err != nil {
 		t.Error("walk")
