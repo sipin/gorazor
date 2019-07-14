@@ -291,55 +291,59 @@ func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) err
 	return nil
 }
 
-func (parser *Parser) handleMKP(token Token) error {
+func handleTokenAt(parser *Parser, token Token) {
 	next := parser.peekToken(0)
-	//nnext := parser.peekToken(1)
+	if next == nil {
+		return
+	}
+	switch next.Type {
+	case tkParenOpen, tkIdentifier:
+		if len(parser.ast.Children) == 0 {
+			parser.ast = parser.ast.Parent
+			parser.ast.popChild() //remove empty MKP block
+		}
+		parser.ast = parser.ast.beget(EXP, "")
+
+	case tkKeyword, tkBraceOpen: //BLK
+		if len(parser.ast.Children) == 0 {
+			parser.ast = parser.ast.Parent
+			parser.ast.popChild()
+		}
+		parser.ast = parser.ast.beget(BLK, "")
+	case tkAt, tkAtColon:
+		//we want to keep the token, but remove it's special meanning
+		next.Type = tkContent
+		parser.ast.addChild(parser.nextToken())
+	default:
+		parser.ast.addChild(parser.nextToken())
+	}
+}
+
+func handelTokenTextareaTagOpen(parser *Parser, token Token) {
+	tagName, _ := regMatch(`(?i)(^<([^\/ >]+))`, token.Text)
+	tagName = strings.Replace(tagName, "<", "", -1)
+	//TODO
+	if parser.ast.TagName != "" {
+		parser.ast = parser.ast.beget(MKP, tagName)
+	} else {
+		parser.ast.TagName = tagName
+	}
+	if token.Type == tkHTMLTagOpen || parser.saveTextTag {
+		parser.ast.addChild(token)
+	}
+}
+
+func (parser *Parser) handleMKP(token Token) error {
 	switch token.Type {
 	case tkAtStarOpen:
 		_, err := parser.advanceUntil(token, tkAtStarOpen, tkAtStarClose, tkAt, tkAt)
 		if err != nil {
 			return err
 		}
-
 	case tkAt:
-		if next != nil {
-			switch next.Type {
-			case tkParenOpen, tkIdentifier:
-				if len(parser.ast.Children) == 0 {
-					parser.ast = parser.ast.Parent
-					parser.ast.popChild() //remove empty MKP block
-				}
-				parser.ast = parser.ast.beget(EXP, "")
-
-			case tkKeyword, tkBraceOpen: //BLK
-				if len(parser.ast.Children) == 0 {
-					parser.ast = parser.ast.Parent
-					parser.ast.popChild()
-				}
-				parser.ast = parser.ast.beget(BLK, "")
-
-			case tkAt, tkAtColon:
-				//we want to keep the token, but remove it's special meanning
-				next.Type = tkContent
-				parser.ast.addChild(parser.nextToken())
-			default:
-				parser.ast.addChild(parser.nextToken())
-			}
-		}
-
+		handleTokenAt(parser, token)
 	case tkTextareaTagOpen, tkHTMLTagOpen:
-		tagName, _ := regMatch(`(?i)(^<([^\/ >]+))`, token.Text)
-		tagName = strings.Replace(tagName, "<", "", -1)
-		//TODO
-		if parser.ast.TagName != "" {
-			parser.ast = parser.ast.beget(MKP, tagName)
-		} else {
-			parser.ast.TagName = tagName
-		}
-		if token.Type == tkHTMLTagOpen || parser.saveTextTag {
-			parser.ast.addChild(token)
-		}
-
+		handelTokenTextareaTagOpen(parser, token)
 	case tkTextareaTagClose, tkHTMLTagClose:
 		tagName, _ := regMatch(`(?i)^<\/([^>]+)`, token.Text)
 		tagName = strings.Replace(tagName, "</", "", -1)
@@ -366,6 +370,23 @@ func (parser *Parser) handleMKP(token Token) error {
 	return nil
 }
 
+func handleQuote(parser *Parser, token Token) error {
+	subTokens, err := parser.advanceUntil(token, token.Type,
+		PAIRS[token.Type],
+		tkBackslash,
+		tkBackslash)
+	if err != nil {
+		return err
+	}
+	for idx := range subTokens {
+		if subTokens[idx].Type == tkAt {
+			subTokens[idx].Type = tkContent
+		}
+	}
+	parser.ast.addChildren(subTokens)
+	return nil
+}
+
 func (parser *Parser) handleBLK(token Token) error {
 	next := parser.peekToken(0)
 	switch token.Type {
@@ -388,20 +409,10 @@ func (parser *Parser) handleBLK(token Token) error {
 		parser.deferToken(token)
 
 	case tkSingleQuote, tkDoubleQuote:
-		subTokens, err := parser.advanceUntil(token, token.Type,
-			PAIRS[token.Type],
-			tkBackslash,
-			tkBackslash)
+		err := handleQuote(parser, token)
 		if err != nil {
 			return err
 		}
-		for idx := range subTokens {
-			if subTokens[idx].Type == tkAt {
-				subTokens[idx].Type = tkContent
-			}
-		}
-		parser.ast.addChildren(subTokens)
-
 	case tkBraceOpen, tkParenOpen:
 		subMode := BLK
 		parser.subParse(token, subMode, false)
@@ -421,80 +432,113 @@ func (parser *Parser) handleBLK(token Token) error {
 	return nil
 }
 
+func handleExpQuote(parser *Parser, token Token) error {
+	//TODO
+	if parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP {
+		subTokens, err := parser.advanceUntil(token, token.Type,
+			PAIRS[token.Type], tkBackslash, tkBackslash)
+		if err != nil {
+			return err
+		}
+		parser.ast.addChildren(subTokens)
+	} else {
+		parser.ast = parser.ast.Parent
+		parser.deferToken(token)
+	}
+	return nil
+}
+
+func handelExpHardParenOpen(parser *Parser, token Token) error {
+	prev := parser.prevToken(0)
+	next := parser.peekToken(0)
+	err := parser.subParse(token, EXP, false)
+	if err != nil {
+		return err
+	}
+	if (prev != nil && prev.Type == tkAt) || (next != nil && next.Type == tkIdentifier) {
+		parser.ast = parser.ast.Parent
+	}
+	return nil
+}
+
+func handelExpParenOpen(parser *Parser, token Token) error {
+	prev := parser.prevToken(0)
+	next := parser.peekToken(0)
+	if token.Type == tkHardParenOpen && next.Type == tkHardParenClose {
+		// likely just [], which is not likely valid outside of EXP
+		parser.deferToken(token)
+		parser.ast = parser.ast.Parent
+		return nil
+	}
+	err := parser.subParse(token, EXP, false)
+	if err != nil {
+		return err
+	}
+	if (prev != nil && prev.Type == tkAt) || (next != nil && next.Type == tkIdentifier) {
+		parser.ast = parser.ast.Parent
+	}
+	return nil
+}
+
+func handleExpPeriod(parser *Parser, token Token) {
+	next := parser.peekToken(0)
+	if next != nil && (next.Type == tkIdentifier || next.Type == tkKeyword ||
+		next.Type == tkPeriod ||
+		(parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP)) {
+		parser.ast.addChild(token)
+	} else {
+		parser.ast = parser.ast.Parent
+		parser.deferToken(token)
+	}
+}
+
+func handleExpContent(parser *Parser, token Token) {
+	if parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP {
+		parser.ast.addChild(token)
+	} else {
+		parser.ast = parser.ast.Parent
+		parser.deferToken(token)
+	}
+}
+
+func handleExpBraceOpen(parser *Parser, token Token) {
+	prev := parser.prevToken(0)
+	//todo: Is this really necessary?
+	if prev.Type == tkIdentifier {
+		parser.ast.addChild(token)
+	} else {
+		parser.deferToken(token)
+		parser.ast = parser.ast.beget(BLK, "")
+	}
+}
 func (parser *Parser) handleEXP(token Token) error {
 	switch token.Type {
 	case tkKeyword:
 		parser.ast = parser.ast.beget(BLK, "")
 		parser.deferToken(token)
-
 	case tkWhitespace, tkLogical, tkAssignOperator, tkOperator, tkNumericContent:
-		if parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP {
-			parser.ast.addChild(token)
-		} else {
-			parser.ast = parser.ast.Parent
-			parser.deferToken(token)
-		}
+		handleExpContent(parser, token)
 	case tkIdentifier:
 		parser.ast.addChild(token)
-
 	case tkSingleQuote, tkDoubleQuote:
-		//TODO
-		if parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP {
-			subTokens, err := parser.advanceUntil(token, token.Type,
-				PAIRS[token.Type], tkBackslash, tkBackslash)
-			if err != nil {
-				return err
-			}
-			parser.ast.addChildren(subTokens)
-		} else {
-			parser.ast = parser.ast.Parent
-			parser.deferToken(token)
+		err := handleExpQuote(parser, token)
+		if err != nil {
+			return err
 		}
 	case tkHardParenOpen:
-		prev := parser.prevToken(0)
-		next := parser.peekToken(0)
-		err := parser.subParse(token, EXP, false)
+		err := handelExpHardParenOpen(parser, token)
 		if err != nil {
 			return err
-		}
-		if (prev != nil && prev.Type == tkAt) || (next != nil && next.Type == tkIdentifier) {
-			parser.ast = parser.ast.Parent
 		}
 	case tkParenOpen:
-		prev := parser.prevToken(0)
-		next := parser.peekToken(0)
-		if token.Type == tkHardParenOpen && next.Type == tkHardParenClose {
-			// likely just [], which is not likely valid outside of EXP
-			parser.deferToken(token)
-			parser.ast = parser.ast.Parent
-			break
-		}
-		err := parser.subParse(token, EXP, false)
+		err := handelExpParenOpen(parser, token)
 		if err != nil {
 			return err
 		}
-		if (prev != nil && prev.Type == tkAt) || (next != nil && next.Type == tkIdentifier) {
-			parser.ast = parser.ast.Parent
-		}
 	case tkBraceOpen:
-		prev := parser.prevToken(0)
-		//todo: Is this really necessary?
-		if prev.Type == tkIdentifier {
-			parser.ast.addChild(token)
-		} else {
-			parser.deferToken(token)
-			parser.ast = parser.ast.beget(BLK, "")
-		}
+		handleExpBraceOpen(parser, token)
 	case tkPeriod:
-		next := parser.peekToken(0)
-		if next != nil && (next.Type == tkIdentifier || next.Type == tkKeyword ||
-			next.Type == tkPeriod ||
-			(parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP)) {
-			parser.ast.addChild(token)
-		} else {
-			parser.ast = parser.ast.Parent
-			parser.deferToken(token)
-		}
+		handleExpPeriod(parser, token)
 	default:
 		if parser.ast.Parent != nil && parser.ast.Parent.Mode != EXP {
 			parser.ast = parser.ast.Parent
