@@ -437,7 +437,6 @@ func (cp *Compiler) processLayout() {
 	}
 
 	if cp.hasLayout() && hasBodyClosed == false {
-		hasBodyClosed = true
 		out += "\n}\n"
 	}
 
