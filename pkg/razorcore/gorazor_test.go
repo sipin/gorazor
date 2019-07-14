@@ -37,7 +37,7 @@ func TestLayManager(t *testing.T) {
 	}
 }
 
-func TestLexer(t *testing.T) {
+func TestLexer1(t *testing.T) {
 	text := "case do func var switch"
 	lex := &Lexer{text, Tests}
 	res, err := lex.Scan()
@@ -52,9 +52,11 @@ func TestLexer(t *testing.T) {
 			t.Error("KEYWORD", x)
 		}
 	}
-	text = "case casex do do3 func func_ var var+ "
-	lex = &Lexer{text, Tests}
-	res, err = lex.Scan()
+}
+func TestLexer2(t *testing.T) {
+	text := "case casex do do3 func func_ var var+ "
+	lex := &Lexer{text, Tests}
+	res, err := lex.Scan()
 	if err != nil {
 		t.Error(err)
 	}
