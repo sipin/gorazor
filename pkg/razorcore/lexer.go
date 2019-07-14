@@ -155,6 +155,41 @@ func makeToken(val string, tokenType int) Token {
 	return Token{val, typeStr[tokenType], tokenType, 0, 0}
 }
 
+var runeMatch = map[byte]int{
+	'\n': tkNewline,
+	' ':  tkWhitespace,
+	'\t': tkWhitespace,
+	'\f': tkWhitespace,
+	'\r': tkWhitespace,
+	'(':  tkParenOpen,
+	')':  tkParenClose,
+	'[':  tkHardParenOpen,
+	']':  tkHardParenClose,
+	'{':  tkBraceOpen,
+	'}':  tkBraceClose,
+	'"':  tkDoubleQuote,
+	'`':  tkDoubleQuote,
+	'\'': tkSingleQuote,
+	'.':  tkPeriod,
+}
+
+var peekNextMatch = map[string]int{
+	"*@":          tkAtStarClose,
+	"<textarea>":  tkTextareaTagOpen,
+	"</textarea>": tkTextareaTagClose,
+	"<!--":        tkCommentTagOpen,
+	"-->":         tkCommentTagClose,
+}
+
+func tryPeekNext(text string) (match string, tokVal int, ok bool) {
+	for k, v := range peekNextMatch {
+		if peekNext(k, text) {
+			return k, v, true
+		}
+	}
+	return
+}
+
 // Scan return gorazor doc as list for Token
 func (lexer *Lexer) Scan() ([]Token, error) {
 	toks := []Token{}
@@ -165,30 +200,10 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 	for cur < len(text) {
 		val, left := text[cur], text[cur:]
 		var tok Token
-		switch val {
-		case '\n':
-			tok = makeToken(string(val), tkNewline)
-		case ' ', '\t', '\f', '\r':
-			tok = makeToken(string(val), tkWhitespace)
-		case '(':
-			tok = makeToken(string(val), tkParenOpen)
-		case ')':
-			tok = makeToken(string(val), tkParenClose)
-		case '[':
-			tok = makeToken(string(val), tkHardParenOpen)
-		case ']':
-			tok = makeToken(string(val), tkHardParenClose)
-		case '{':
-			tok = makeToken(string(val), tkBraceOpen)
-		case '}':
-			tok = makeToken(string(val), tkBraceClose)
-		case '"', '`':
-			tok = makeToken(string(val), tkDoubleQuote)
-		case '\'':
-			tok = makeToken(string(val), tkSingleQuote)
-		case '.':
-			tok = makeToken(string(val), tkPeriod)
-		case '@':
+
+		if tokVal, ok := runeMatch[val]; ok {
+			tok = makeToken(string(val), tokVal)
+		} else if val == '@' {
 			if peekNext(string(':'), left[1:]) {
 				tok = makeToken("@:", tkAtColon)
 			} else if peekNext(string('*'), left[1:]) {
@@ -196,17 +211,9 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 			} else {
 				tok = makeToken("@", tkAt)
 			}
-		default:
-			if peekNext("*@", left) {
-				tok = makeToken("*@", tkAtStarClose)
-			} else if peekNext("<textarea>", left) {
-				tok = makeToken("<textarea>", tkTextareaTagOpen)
-			} else if peekNext("</textarea>", left) {
-				tok = makeToken("</textarea>", tkTextareaTagClose)
-			} else if peekNext("<!--", left) {
-				tok = makeToken("<!--", tkCommentTagOpen)
-			} else if peekNext("-->", left) {
-				tok = makeToken("-->", tkCommentTagClose)
+		} else {
+			if match, tokVal, ok := tryPeekNext(left); ok {
+				tok = makeToken(match, tokVal)
 			} else {
 				//try rec
 				match := false
