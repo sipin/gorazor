@@ -48,8 +48,6 @@ func FormatBuffer(code string) string {
 	}
 
 	panic("failed to format template\n\n" + string(errBuf.Bytes()))
-
-	return ""
 }
 
 // Capitalize change first character to upper

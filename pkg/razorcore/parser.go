@@ -49,7 +49,6 @@ func (ast *Ast) ModeStr() string {
 	default:
 		return "UNDEF"
 	}
-	return "UNDEF"
 }
 
 func (ast *Ast) check() {
