@@ -448,7 +448,7 @@ func handleExpQuote(parser *Parser, token Token) error {
 	return nil
 }
 
-func handelExpHardParenOpen(parser *Parser, token Token) error {
+func handleExpHardParenOpen(parser *Parser, token Token) error {
 	prev := parser.prevToken(0)
 	next := parser.peekToken(0)
 	err := parser.subParse(token, EXP, false)
@@ -461,7 +461,7 @@ func handelExpHardParenOpen(parser *Parser, token Token) error {
 	return nil
 }
 
-func handelExpParenOpen(parser *Parser, token Token) error {
+func handleExpParenOpen(parser *Parser, token Token) error {
 	prev := parser.prevToken(0)
 	next := parser.peekToken(0)
 	if token.Type == tkHardParenOpen && next.Type == tkHardParenClose {
@@ -526,12 +526,12 @@ func (parser *Parser) handleEXP(token Token) error {
 			return err
 		}
 	case tkHardParenOpen:
-		err := handelExpHardParenOpen(parser, token)
+		err := handleExpHardParenOpen(parser, token)
 		if err != nil {
 			return err
 		}
 	case tkParenOpen:
-		err := handelExpParenOpen(parser, token)
+		err := handleExpParenOpen(parser, token)
 		if err != nil {
 			return err
 		}
