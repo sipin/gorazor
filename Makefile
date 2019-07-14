@@ -1,8 +1,10 @@
+# Just script to re-gen demo/test templates
+
 hello:
-	./gorazor ./docs/hello/tpl ./docs/hello/src/tpl
+	gorazor ./docs/hello/tpl ./docs/hello/src/tpl
 
 examples:
-	./gorazor -prefix github.com/sipin/gorazor ./examples/tpl ./examples/tpl
+	gorazor -prefix github.com/sipin/gorazor ./examples/tpl ./examples/tpl
 
 bench:
-	./gorazor ./tests/tpl ./tests/tpl
+	gorazor ./tests/tpl ./tests/tpl
