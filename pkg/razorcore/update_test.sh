@@ -1,4 +1,5 @@
-#!/bin/sh
+#!/bin/bash
+
 for file in testdata/layout/_*.go
 do
 	mv -f "$file" "${file/\/_//}"
