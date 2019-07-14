@@ -1,3 +1,4 @@
+// Package gorazor name is kept for backward compatity
 package gorazor
 
 import (

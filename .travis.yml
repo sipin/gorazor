@@ -7,4 +7,4 @@ install:
   - go get github.com/sipin/gorazor
 
 script:
-  - go test -v ./pkg/gorazor/
+  - go test -v ./pkg/razorcore/

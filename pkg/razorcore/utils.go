@@ -1,4 +1,4 @@
-package gorazor
+package razorcore
 
 import (
 	"bufio"
