@@ -9,6 +9,8 @@ import (
 	"testing"
 )
 
+var testdata = "testdata"
+
 func TestCap(t *testing.T) {
 	if Capitalize("") != "" {
 		t.Error()
@@ -72,7 +74,7 @@ func TestLexer(t *testing.T) {
 
 func TestDebug(t *testing.T) {
 	casedir, _ := filepath.Abs(filepath.Dir("./cases/"))
-	outdir, _ := filepath.Abs(filepath.Dir("./test/"))
+	outdir, _ := filepath.Abs(filepath.Dir("./" + testdata + "/"))
 	option := Option{}
 	option["Debug"] = true
 	GenFile(casedir+"/var.gohtml", outdir+"/_var.gohtml", option)
@@ -88,7 +90,7 @@ func TestGenerate(t *testing.T) {
 				return nil
 			}
 			name := strings.Replace(path, ".gohtml", ".go", 1)
-			cmp := strings.Replace(name, sap+"cases"+sap, sap+"test"+sap, -1)
+			cmp := strings.Replace(name, sap+"cases"+sap, sap+testdata+sap, -1)
 			dirname := filepath.Dir(cmp)
 			log := filepath.Join(dirname, "_"+filepath.Base(cmp))
 			if !exists(dirname) {
