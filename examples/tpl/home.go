@@ -8,7 +8,7 @@ import (
 	"github.com/sipin/gorazor/examples/models"
 	"github.com/sipin/gorazor/examples/tpl/helper"
 	"github.com/sipin/gorazor/examples/tpl/layout"
-	"github.com/sipin/gorazor/gorazor/"
+	"github.com/sipin/gorazor/gorazor"
 	"io"
 	"strings"
 )

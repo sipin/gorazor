@@ -6,7 +6,7 @@ package cases
 
 import (
 	"cases/layout"
-	"github.com/sipin/gorazor/gorazor/"
+	"github.com/sipin/gorazor/gorazor"
 	"io"
 	"strings"
 )
