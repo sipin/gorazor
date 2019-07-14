@@ -9,6 +9,7 @@ import (
 	"strings"
 )
 
+// Base generates examples/tpl/layout/base.gohtml
 func Base(body string, title string, side string) string {
 	var _b strings.Builder
 
@@ -28,6 +29,7 @@ func Base(body string, title string, side string) string {
 	return _b.String()
 }
 
+// RenderBase render examples/tpl/layout/base.gohtml
 func RenderBase(_buffer io.StringWriter, body func(_buffer io.StringWriter), title func(_buffer io.StringWriter), side func(_buffer io.StringWriter)) {
 	_buffer.WriteString("\n<!DOCTYPE html>\n<html>\n<head>\n<meta charset=\"utf-8\" />")
 	title(_buffer)

@@ -11,12 +11,14 @@ import (
 	"strings"
 )
 
+// Index generates tests/tpl/index.gohtml
 func Index(rows []data.BenchRow) string {
 	var _b strings.Builder
 	RenderIndex(&_b, rows)
 	return _b.String()
 }
 
+// RenderIndex render tests/tpl/index.gohtml
 func RenderIndex(_buffer io.StringWriter, rows []data.BenchRow) {
 	_buffer.WriteString("<html>\n\t<head><title>test</title></head>\n\t<body>\n\t\t<ul>\n\t\t")
 	for _, row := range rows {

@@ -9,12 +9,14 @@ import (
 	"strings"
 )
 
+// Header generates examples/tpl/helper/header.gohtml
 func Header() string {
 	var _b strings.Builder
 	RenderHeader(&_b)
 	return _b.String()
 }
 
+// RenderHeader render examples/tpl/helper/header.gohtml
 func RenderHeader(_buffer io.StringWriter) {
 	_buffer.WriteString("<div>Welcome</div>")
 

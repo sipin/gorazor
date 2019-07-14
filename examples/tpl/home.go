@@ -13,12 +13,14 @@ import (
 	"strings"
 )
 
+// Home generates examples/tpl/home.gohtml
 func Home(totalMessage int, u *models.User) string {
 	var _b strings.Builder
 	RenderHome(&_b, totalMessage, u)
 	return _b.String()
 }
 
+// RenderHome render examples/tpl/home.gohtml
 func RenderHome(_buffer io.StringWriter, totalMessage int, u *models.User) {
 
 	_body := func(_buffer io.StringWriter) {

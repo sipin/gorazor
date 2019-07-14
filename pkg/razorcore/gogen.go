@@ -41,7 +41,7 @@ func getValStr(e interface{}) string {
 	case *Ast:
 		return v.TagName
 	case Token:
-		if !(v.Type == AT || v.Type == AT_COLON) {
+		if !(v.Type == tkAt || v.Type == tkAtColon) {
 			return v.Text
 		}
 		return ""
@@ -59,6 +59,7 @@ type Part struct {
 // Compiler generate go code for gorazor template
 type Compiler struct {
 	inputPath  string
+	tplPath    string
 	ast        *Ast
 	buf        string //the final result
 	isLayout   bool
@@ -179,6 +180,7 @@ func makeCompiler(ast *Ast, options Option, input string) *Compiler {
 	}
 
 	cp.inputPath = strings.Replace(input, "\\", "/", -1)
+	cp.tplPath = strings.Replace(cp.inputPath, execDir, "", -1)
 	return cp
 }
 
@@ -435,7 +437,6 @@ func (cp *Compiler) processLayout() {
 	}
 
 	if cp.hasLayout() && hasBodyClosed == false {
-		hasBodyClosed = true
 		out += "\n}\n"
 	}
 
@@ -485,10 +486,11 @@ func (cp *Compiler) processLayout() {
 func (cp *Compiler) getLayoutOverload() string {
 	var b strings.Builder
 	b.WriteString(fmt.Sprintf(`
+	// %s generates %s
 	func %s(%s) string {
 		var _b strings.Builder
 
-	`, cp.file, strings.Join(cp.params, ", ")))
+	`, cp.file, cp.tplPath, cp.file, strings.Join(cp.params, ", ")))
 
 	var funcNames []string
 	for _, name := range cp.paramNames {
@@ -523,7 +525,7 @@ func (cp *Compiler) visit() {
 // DON'T modified manually
 // Should edit source file and re-generate: %s
 
-`, VERSION, strings.Replace(cp.inputPath, execDir, "", -1))
+`, VERSION, cp.tplPath)
 
 	head += "package " + pack + "\n import (\n"
 	for k := range cp.imports {
@@ -536,18 +538,26 @@ func (cp *Compiler) visit() {
 
 	if cp.isLayout {
 		head += cp.getLayoutOverload()
+		head += fmt.Sprintf(`
+	// Render%s render %s
+	`, fun, cp.tplPath)
 
 		head += "func Render" + fun + "(_buffer io.StringWriter, " +
 			strings.Replace(funcArgs, " string", " func(_buffer io.StringWriter)", -1) + ") {\n"
 	} else {
 		head += fmt.Sprintf(`
+	// %s generates %s
 	func %s(%s) string {
 		var _b strings.Builder
 		Render%s(&_b, %s)
 		return _b.String()
 	}
 
-	`, fun, funcArgs, fun, strings.Join(cp.paramNames, ", "))
+	`, fun, cp.tplPath, fun, funcArgs, fun, strings.Join(cp.paramNames, ", "))
+
+		head += fmt.Sprintf(`
+	// Render%s render %s
+	`, fun, cp.tplPath)
 
 		head += "func Render" + fun + "(_buffer io.StringWriter, " + funcArgs + ") {\n"
 	}

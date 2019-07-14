@@ -10,9 +10,15 @@ import (
 	"testing"
 )
 
+var (
+	casesOpt   = "casesOpt"
+	testOpt    = "testOpt"
+	testOptGen = "testOptGen"
+)
+
 func TestGenerateOpt(t *testing.T) {
-	casedir, _ := filepath.Abs(filepath.Dir("./cases_opt/"))
-	testGenDir, _ := filepath.Abs(filepath.Dir("./test_opt_gen/"))
+	casedir, _ := filepath.Abs(filepath.Dir("./" + casesOpt + "/"))
+	testGenDir, _ := filepath.Abs(filepath.Dir("./" + testOptGen + "/"))
 	sap := string(filepath.Separator)
 
 	visit := func(path string, info os.FileInfo, err error) error {
@@ -21,8 +27,8 @@ func TestGenerateOpt(t *testing.T) {
 				return nil
 			}
 			name := strings.Replace(path, ".gohtml", ".go", 1)
-			cmp := strings.Replace(name, sap+"cases_opt"+sap, sap+"test_opt"+sap, -1)
-			log := strings.Replace(name, sap+"cases_opt"+sap, sap+"test_opt_gen"+sap, -1)
+			cmp := strings.Replace(name, sap+casesOpt+sap, sap+testOpt+sap, -1)
+			log := strings.Replace(name, sap+casesOpt+sap, sap+testOptGen+sap, -1)
 
 			if !exists(cmp) {
 				t.Error("No cmp:", cmp)
