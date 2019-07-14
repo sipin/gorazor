@@ -192,6 +192,37 @@ func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
 	cp.addPart(Part{CMKP, getValStr(child)})
 }
 
+func (cp *Compiler) settleLayout(layoutFunc string) {
+	path := cp.layout + "/" + layoutFunc + ".gohtml"
+
+	if !exists(path) && TemplateNamespacePrefix != "" {
+		path = path[len(TemplateNamespacePrefix)+1:]
+	}
+
+	if !exists(path) {
+		layoutFunc = strings.ToLower(layoutFunc[0:1]) + layoutFunc[1:]
+		path = cp.layout + "/" + layoutFunc + ".gohtml"
+
+		if !exists(path) && TemplateNamespacePrefix != "" {
+			path = path[len(TemplateNamespacePrefix)+1:]
+		}
+	}
+
+	cp.layout = cp.layout + "/" + layoutFunc
+	if !exists(path) {
+		panic("Can't find layout: " + cp.layout + " [" + cp.file + "]")
+	}
+
+	if len(LayoutArgs(path)) == 0 {
+		//TODO, bad for performance
+		_cp, err := run(path, cp.options)
+		if err != nil {
+			panic(err)
+		}
+		SetLayout(cp.layout, _cp.params)
+	}
+}
+
 // First block contains imports and parameters, specific action for layout,
 // NOTE, layout have some conventions.
 func (cp *Compiler) visitFirstBLK(blk *Ast) {
@@ -254,35 +285,22 @@ func (cp *Compiler) visitFirstBLK(blk *Ast) {
 		}
 	}
 	if cp.layout != "" {
-		path := cp.layout + "/" + layoutFunc + ".gohtml"
+		cp.settleLayout(layoutFunc)
+	}
+}
 
-		if !exists(path) && TemplateNamespacePrefix != "" {
-			path = path[len(TemplateNamespacePrefix)+1:]
-		}
-
-		if !exists(path) {
-			layoutFunc = strings.ToLower(layoutFunc[0:1]) + layoutFunc[1:]
-			path = cp.layout + "/" + layoutFunc + ".gohtml"
-
-			if !exists(path) && TemplateNamespacePrefix != "" {
-				path = path[len(TemplateNamespacePrefix)+1:]
+func (cp *Compiler) isExpNeedEscape(val string) (needEsape bool) {
+	switch {
+	case val == "helper" || val == "html" || val == "raw":
+		return false
+	case cp.dir == "layout":
+		for _, param := range cp.params {
+			if strings.HasPrefix(param, val+" ") {
+				return false
 			}
-		}
-
-		cp.layout = cp.layout + "/" + layoutFunc
-		if !exists(path) {
-			panic("Can't find layout: " + cp.layout + " [" + cp.file + "]")
-		}
-
-		if len(LayoutArgs(path)) == 0 {
-			//TODO, bad for performance
-			_cp, err := run(path, cp.options)
-			if err != nil {
-				panic(err)
-			}
-			SetLayout(cp.layout, _cp.params)
 		}
 	}
+	return true
 }
 
 func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo bool) {
@@ -290,38 +308,21 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 	end := ""
 	ppNotExp := true
 	ppChildCnt := len(parent.Children)
-	pack := cp.dir
-	htmlEsc := cp.options["htmlEscape"]
 	if parent.Parent != nil && parent.Parent.Mode == EXP {
 		ppNotExp = false
 	}
 	val := getValStr(child)
-	if htmlEsc == nil {
-		if ppNotExp && idx == 0 && isHomo {
-			needEsape := true
-			switch {
-			case val == "helper" || val == "html" || val == "raw":
-				needEsape = false
-			case pack == "layout":
-				needEsape = true
-				for _, param := range cp.params {
-					if strings.HasPrefix(param, val+" ") {
-						needEsape = false
-						break
-					}
-				}
-			}
 
-			if needEsape {
-				start += "gorazor.HTMLEscape("
-				cp.imports[GorazorNamespace] = true
-			} else {
-				start += "("
-			}
+	if ppNotExp && idx == 0 && isHomo {
+		if cp.isExpNeedEscape(val) {
+			start += "gorazor.HTMLEscape("
+			cp.imports[GorazorNamespace] = true
+		} else {
+			start += "("
 		}
-		if ppNotExp && idx == ppChildCnt-1 && isHomo {
-			end += ")"
-		}
+	}
+	if ppNotExp && idx == ppChildCnt-1 && isHomo {
+		end += ")"
 	}
 
 	if ppNotExp && idx == 0 {
@@ -331,13 +332,39 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 		end += ")\n"
 	}
 
-	v := start
 	if val == "raw" {
-		v += end
+		cp.addPart(Part{CSTAT, start + end})
 	} else {
-		v += val + end
+		cp.addPart(Part{CSTAT, start + val + end})
 	}
-	cp.addPart(Part{CSTAT, v})
+}
+
+func (cp *Compiler) visitAstBlk(ast *Ast) {
+	if cp.firstBLK == 0 {
+		cp.firstBLK = 1
+		cp.visitFirstBLK(ast)
+	} else {
+		remove := false
+		if len(ast.Children) >= 2 {
+			first := ast.Children[0]
+			last := ast.Children[len(ast.Children)-1]
+			v1, ok1 := first.(Token)
+			v2, ok2 := last.(Token)
+			if ok1 && ok2 && v1.Text == "{" && v2.Text == "}" {
+				remove = true
+			}
+		}
+		for idx, c := range ast.Children {
+			if remove && (idx == 0 || idx == len(ast.Children)-1) {
+				continue
+			}
+			if _, ok := c.(Token); ok {
+				cp.visitBLK(c, ast)
+			} else {
+				cp.visitAst(c.(*Ast))
+			}
+		}
+	}
 }
 
 func (cp *Compiler) visitAst(ast *Ast) {
@@ -352,31 +379,7 @@ func (cp *Compiler) visitAst(ast *Ast) {
 			}
 		}
 	case BLK:
-		if cp.firstBLK == 0 {
-			cp.firstBLK = 1
-			cp.visitFirstBLK(ast)
-		} else {
-			remove := false
-			if len(ast.Children) >= 2 {
-				first := ast.Children[0]
-				last := ast.Children[len(ast.Children)-1]
-				v1, ok1 := first.(Token)
-				v2, ok2 := last.(Token)
-				if ok1 && ok2 && v1.Text == "{" && v2.Text == "}" {
-					remove = true
-				}
-			}
-			for idx, c := range ast.Children {
-				if remove && (idx == 0 || idx == len(ast.Children)-1) {
-					continue
-				}
-				if _, ok := c.(Token); ok {
-					cp.visitBLK(c, ast)
-				} else {
-					cp.visitAst(c.(*Ast))
-				}
-			}
-		}
+		cp.visitAstBlk(ast)
 	case EXP:
 		cp.firstBLK = 1
 		nonExp := ast.hasNonExp()
@@ -398,7 +401,48 @@ func (cp *Compiler) hasLayout() bool {
 	return cp.layout != ""
 }
 
-// TODO, this is dirty now
+func (cp *Compiler) generateFoot(sections []string) string {
+	foot := ""
+	if cp.hasLayout() {
+		foot += "\n"
+		parts := strings.SplitN(cp.layout, "/", -1)
+		base := Capitalize(parts[len(parts)-1])
+		foot += "layout.Render" + base + "("
+		foot += "_buffer, _body"
+	} else if len(sections) > 0 {
+		fmt.Println("expect layout for sections: " + cp.file)
+		os.Exit(1)
+	}
+
+	args := LayoutArgs(cp.layout)
+	if len(args) == 0 {
+		for _, sec := range sections {
+			foot += ", " + sec + "()"
+		}
+	} else {
+		for _, arg := range args[1:] {
+			arg = strings.Replace(arg, "string", "", -1)
+			arg = strings.TrimSpace(arg)
+			found := false
+			for _, sec := range sections {
+				if sec == arg {
+					found = true
+					foot += ", _" + sec
+					break
+				}
+			}
+			if !found {
+				foot += ", " + `nil`
+			}
+		}
+	}
+	if cp.layout != "" {
+		foot += ")"
+	}
+
+	return foot
+}
+
 func (cp *Compiler) processLayout() {
 	lines := strings.SplitN(cp.buf, "\n", -1)
 	out := ""
@@ -442,44 +486,8 @@ func (cp *Compiler) processLayout() {
 
 	cp.buf = out
 
-	foot := ""
+	foot := cp.generateFoot(sections)
 
-	if cp.hasLayout() {
-		foot += "\n"
-		parts := strings.SplitN(cp.layout, "/", -1)
-		base := Capitalize(parts[len(parts)-1])
-		foot += "layout.Render" + base + "("
-		foot += "_buffer, _body"
-	} else if len(sections) > 0 {
-		fmt.Println("expect layout for sections: " + cp.file)
-		os.Exit(1)
-	}
-
-	args := LayoutArgs(cp.layout)
-	if len(args) == 0 {
-		for _, sec := range sections {
-			foot += ", " + sec + "()"
-		}
-	} else {
-		for _, arg := range args[1:] {
-			arg = strings.Replace(arg, "string", "", -1)
-			arg = strings.TrimSpace(arg)
-			found := false
-			for _, sec := range sections {
-				if sec == arg {
-					found = true
-					foot += ", _" + sec
-					break
-				}
-			}
-			if !found {
-				foot += ", " + `nil`
-			}
-		}
-	}
-	if cp.layout != "" {
-		foot += ")"
-	}
 	cp.buf += foot
 }
 
