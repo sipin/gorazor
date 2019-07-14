@@ -74,16 +74,16 @@ func rec(reg string) *regexp.Regexp {
 
 // Tests stores TokenMatch list, TokenMatch order is important
 var Tests = []TokenMatch{
-	TokenMatch{tkEmail, "EMAIL", rec(`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\b`)},
-	TokenMatch{tkHTMLTagOpen, "HTML_TAG_OPEN", rec(`(<[a-zA-Z@]+?[^>]*?["a-zA-Z]*>)`)},
-	TokenMatch{tkHTMLTagClose, "HTML_TAG_CLOSE", rec(`(</[^>@]+?>)`)},
-	TokenMatch{tkHTMLTagVoidClose, "HTML_TAG_VOID_CLOSE", rec(`(\/\s*>)`)},
-	TokenMatch{tkKeyword, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|var|with)([^\d\w])`)},
-	TokenMatch{tkIdentifier, "IDENTIFIER", rec(`([_$a-zA-Z][_$a-zA-Z0-9]*(\.\.\.)?)`)}, //need verify
-	TokenMatch{tkOperator, "OPERATOR", rec(`(==|!=|>>|<<|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
-	TokenMatch{tkEscapedQuote, "ESCAPED_QUOTE", rec(`(\\+['\"])`)},
-	TokenMatch{tkNumericContent, "NUMERIC_CONTENT", rec(`([0-9]+)`)},
-	TokenMatch{tkContent, "CONTENT", rec(`([^\s})@.]+?)`)},
+	{tkEmail, "EMAIL", rec(`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\b`)},
+	{tkHTMLTagOpen, "HTML_TAG_OPEN", rec(`(<[a-zA-Z@]+?[^>]*?["a-zA-Z]*>)`)},
+	{tkHTMLTagClose, "HTML_TAG_CLOSE", rec(`(</[^>@]+?>)`)},
+	{tkHTMLTagVoidClose, "HTML_TAG_VOID_CLOSE", rec(`(\/\s*>)`)},
+	{tkKeyword, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|var|with)([^\d\w])`)},
+	{tkIdentifier, "IDENTIFIER", rec(`([_$a-zA-Z][_$a-zA-Z0-9]*(\.\.\.)?)`)}, //need verify
+	{tkOperator, "OPERATOR", rec(`(==|!=|>>|<<|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
+	{tkEscapedQuote, "ESCAPED_QUOTE", rec(`(\\+['\"])`)},
+	{tkNumericContent, "NUMERIC_CONTENT", rec(`([0-9]+)`)},
+	{tkContent, "CONTENT", rec(`([^\s})@.]+?)`)},
 }
 
 // Token represent a token in code
