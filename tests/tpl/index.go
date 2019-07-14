@@ -5,10 +5,11 @@
 package tpl
 
 import (
-	"github.com/sipin/gorazor/pkg/gorazor"
-	"github.com/sipin/gorazor/tests/data"
 	"io"
 	"strings"
+
+	"github.com/sipin/gorazor/gorazor"
+	"github.com/sipin/gorazor/tests/data"
 )
 
 func Index(rows []data.BenchRow) string {

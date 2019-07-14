@@ -6,7 +6,7 @@ package helper
 
 import (
 	"github.com/sipin/gorazor/examples/models"
-	"github.com/sipin/gorazor/pkg/gorazor"
+	"github.com/sipin/gorazor/gorazor/"
 	"io"
 	"strings"
 )
