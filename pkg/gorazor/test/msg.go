@@ -5,7 +5,7 @@
 package cases
 
 import (
-	"github.com/sipin/gorazor/pkg/gorazor"
+	"github.com/sipin/gorazor/gorazor/"
 	"io"
 	. "kp/models"
 	"strings"

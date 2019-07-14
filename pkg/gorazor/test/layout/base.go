@@ -5,7 +5,7 @@
 package layout
 
 import (
-	"github.com/sipin/gorazor/pkg/gorazor"
+	"github.com/sipin/gorazor/gorazor/"
 	"io"
 	"strings"
 	"tpl/admin/helper"

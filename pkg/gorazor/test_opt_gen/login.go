@@ -5,7 +5,7 @@
 package cases_opt
 
 import (
-	"github.com/sipin/gorazor/pkg/gorazor"
+	"github.com/sipin/gorazor/gorazor/"
 	"io"
 	"strings"
 )

@@ -6,7 +6,7 @@ package cases
 
 import (
 	"dm"
-	"github.com/sipin/gorazor/pkg/gorazor"
+	"github.com/sipin/gorazor/gorazor/"
 	"io"
 	"strings"
 	"zfw/models"
