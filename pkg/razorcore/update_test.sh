@@ -9,4 +9,4 @@ do
 	mv -f "$file" "${file/\/_//}"
 done
 
-cp -f testOptGen/*.go testOpt/
+cp -f testoptgen/*.go testopt/

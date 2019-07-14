@@ -11,9 +11,9 @@ import (
 )
 
 var (
-	casesOpt   = "casesOpt"
-	testOpt    = "testOpt"
-	testOptGen = "testOptGen"
+	casesOpt   = "casesopt"
+	testOpt    = "testopt"
+	testOptGen = "testoptgen"
 )
 
 func TestGenerateOpt(t *testing.T) {
