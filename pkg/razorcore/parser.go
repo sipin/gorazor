@@ -18,13 +18,13 @@ const (
 
 // PAIRS stores the symbols that must come in pairs
 var PAIRS = map[int]int{
-	AT_STAR_OPEN:    AT_STAR_CLOSE,
-	BRACE_OPEN:      BRACE_CLOSE,
-	DOUBLE_QUOTE:    DOUBLE_QUOTE,
-	HARD_PAREN_OPEN: HARD_PAREN_CLOSE,
-	PAREN_OPEN:      PAREN_CLOSE,
-	SINGLE_QUOTE:    SINGLE_QUOTE,
-	AT_COLON:        NEWLINE,
+	tkAtStarOpen:    tkAtStarClose,
+	tkBraceOpen:     tkBraceClose,
+	tkDoubleQuote:   tkDoubleQuote,
+	tkHardParenOpen: tkHardParenClose,
+	tkParenOpen:     tkParenClose,
+	tkSingleQuote:   tkSingleQuote,
+	tkAtColon:       tkNewline,
 }
 
 // Ast stores the abstract syntax tree
@@ -268,7 +268,7 @@ func (parser *Parser) advanceUntil(token Token, start, end, startEsc, endEsc int
 }
 
 func (parser *Parser) subParse(token Token, modeOpen int, includeDelim bool) error {
-	subTokens, err := parser.advanceUntil(token, token.Type, PAIRS[token.Type], -1, AT)
+	subTokens, err := parser.advanceUntil(token, token.Type, PAIRS[token.Type], -1, tkAt)
 	if err != nil {
 		return err
 	}
@@ -295,39 +295,39 @@ func (parser *Parser) handleMKP(token Token) error {
 	next := parser.peekToken(0)
 	//nnext := parser.peekToken(1)
 	switch token.Type {
-	case AT_STAR_OPEN:
-		_, err := parser.advanceUntil(token, AT_STAR_OPEN, AT_STAR_CLOSE, AT, AT)
+	case tkAtStarOpen:
+		_, err := parser.advanceUntil(token, tkAtStarOpen, tkAtStarClose, tkAt, tkAt)
 		if err != nil {
 			return err
 		}
 
-	case AT:
+	case tkAt:
 		if next != nil {
 			switch next.Type {
-			case PAREN_OPEN, IDENTIFIER:
+			case tkParenOpen, tkIdentifier:
 				if len(parser.ast.Children) == 0 {
 					parser.ast = parser.ast.Parent
 					parser.ast.popChild() //remove empty MKP block
 				}
 				parser.ast = parser.ast.beget(EXP, "")
 
-			case KEYWORD, BRACE_OPEN: //BLK
+			case tkKeyword, tkBraceOpen: //BLK
 				if len(parser.ast.Children) == 0 {
 					parser.ast = parser.ast.Parent
 					parser.ast.popChild()
 				}
 				parser.ast = parser.ast.beget(BLK, "")
 
-			case AT, AT_COLON:
+			case tkAt, tkAtColon:
 				//we want to keep the token, but remove it's special meanning
-				next.Type = CONTENT
+				next.Type = tkContent
 				parser.ast.addChild(parser.nextToken())
 			default:
 				parser.ast.addChild(parser.nextToken())
 			}
 		}
 
-	case TextareaTagOpen, HTML_TAG_OPEN:
+	case tkTextareaTagOpen, tkHTMLTagOpen:
 		tagName, _ := regMatch(`(?i)(^<([^\/ >]+))`, token.Text)
 		tagName = strings.Replace(tagName, "<", "", -1)
 		//TODO
@@ -336,11 +336,11 @@ func (parser *Parser) handleMKP(token Token) error {
 		} else {
 			parser.ast.TagName = tagName
 		}
-		if token.Type == HTML_TAG_OPEN || parser.saveTextTag {
+		if token.Type == tkHTMLTagOpen || parser.saveTextTag {
 			parser.ast.addChild(token)
 		}
 
-	case TextareaTagClose, HTML_TAG_CLOSE:
+	case tkTextareaTagClose, tkHTMLTagClose:
 		tagName, _ := regMatch(`(?i)^<\/([^>]+)`, token.Text)
 		tagName = strings.Replace(tagName, "</", "", -1)
 		//TODO
@@ -348,7 +348,7 @@ func (parser *Parser) handleMKP(token Token) error {
 		if opener.TagName == tagName {
 			parser.ast = opener
 		}
-		if token.Type == HTML_TAG_CLOSE || parser.saveTextTag {
+		if token.Type == tkHTMLTagClose || parser.saveTextTag {
 			parser.ast.addChild(token)
 		}
 
@@ -357,7 +357,7 @@ func (parser *Parser) handleMKP(token Token) error {
 			parser.ast = parser.ast.Parent
 		}
 
-	case HTML_TAG_VOID_CLOSE:
+	case tkHTMLTagVoidClose:
 		parser.ast.addChild(token)
 		parser.ast = parser.ast.Parent
 	default:
@@ -369,47 +369,47 @@ func (parser *Parser) handleMKP(token Token) error {
 func (parser *Parser) handleBLK(token Token) error {
 	next := parser.peekToken(0)
 	switch token.Type {
-	case AT:
-		if next.Type != AT {
+	case tkAt:
+		if next.Type != tkAt {
 			parser.deferToken(token)
 			parser.ast = parser.ast.beget(MKP, "")
 		} else {
-			next.Type = CONTENT
+			next.Type = tkContent
 			parser.ast.addChild(*next)
 			parser.skipToken()
 		}
-	case AT_STAR_OPEN:
-		parser.advanceUntil(token, AT_STAR_OPEN, AT_STAR_CLOSE, AT, AT)
-	case AT_COLON:
+	case tkAtStarOpen:
+		parser.advanceUntil(token, tkAtStarOpen, tkAtStarClose, tkAt, tkAt)
+	case tkAtColon:
 		parser.subParse(token, MKP, true)
 
-	case TextareaTagOpen, TextareaTagClose, HTML_TAG_OPEN, HTML_TAG_CLOSE, COMMENT_TAG_OPEN, COMMENT_TAG_CLOSE:
+	case tkTextareaTagOpen, tkTextareaTagClose, tkHTMLTagOpen, tkHTMLTagClose, tkCommentTagOpen, tkCommentTagClose:
 		parser.ast = parser.ast.beget(MKP, "")
 		parser.deferToken(token)
 
-	case SINGLE_QUOTE, DOUBLE_QUOTE:
+	case tkSingleQuote, tkDoubleQuote:
 		subTokens, err := parser.advanceUntil(token, token.Type,
 			PAIRS[token.Type],
-			BACKSLASH,
-			BACKSLASH)
+			tkBackslash,
+			tkBackslash)
 		if err != nil {
 			return err
 		}
 		for idx := range subTokens {
-			if subTokens[idx].Type == AT {
-				subTokens[idx].Type = CONTENT
+			if subTokens[idx].Type == tkAt {
+				subTokens[idx].Type = tkContent
 			}
 		}
 		parser.ast.addChildren(subTokens)
 
-	case BRACE_OPEN, PAREN_OPEN:
+	case tkBraceOpen, tkParenOpen:
 		subMode := BLK
 		parser.subParse(token, subMode, false)
-		subTokens := parser.advanceUntilNot(WHITESPACE)
+		subTokens := parser.advanceUntilNot(tkWhitespace)
 		next := parser.peekToken(0)
-		if next != nil && next.Type != KEYWORD &&
-			next.Type != BRACE_OPEN &&
-			token.Type != PAREN_OPEN {
+		if next != nil && next.Type != tkKeyword &&
+			next.Type != tkBraceOpen &&
+			token.Type != tkParenOpen {
 			parser.tokens = append(parser.tokens, subTokens...)
 			parser.ast = parser.ast.Parent
 		} else {
@@ -423,25 +423,25 @@ func (parser *Parser) handleBLK(token Token) error {
 
 func (parser *Parser) handleEXP(token Token) error {
 	switch token.Type {
-	case KEYWORD:
+	case tkKeyword:
 		parser.ast = parser.ast.beget(BLK, "")
 		parser.deferToken(token)
 
-	case WHITESPACE, LOGICAL, ASSIGN_OPERATOR, OPERATOR, NUMERIC_CONTENT:
+	case tkWhitespace, tkLogical, tkAssignOperator, tkOperator, tkNumericContent:
 		if parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP {
 			parser.ast.addChild(token)
 		} else {
 			parser.ast = parser.ast.Parent
 			parser.deferToken(token)
 		}
-	case IDENTIFIER:
+	case tkIdentifier:
 		parser.ast.addChild(token)
 
-	case SINGLE_QUOTE, DOUBLE_QUOTE:
+	case tkSingleQuote, tkDoubleQuote:
 		//TODO
 		if parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP {
 			subTokens, err := parser.advanceUntil(token, token.Type,
-				PAIRS[token.Type], BACKSLASH, BACKSLASH)
+				PAIRS[token.Type], tkBackslash, tkBackslash)
 			if err != nil {
 				return err
 			}
@@ -450,20 +450,20 @@ func (parser *Parser) handleEXP(token Token) error {
 			parser.ast = parser.ast.Parent
 			parser.deferToken(token)
 		}
-	case HARD_PAREN_OPEN:
+	case tkHardParenOpen:
 		prev := parser.prevToken(0)
 		next := parser.peekToken(0)
 		err := parser.subParse(token, EXP, false)
 		if err != nil {
 			return err
 		}
-		if (prev != nil && prev.Type == AT) || (next != nil && next.Type == IDENTIFIER) {
+		if (prev != nil && prev.Type == tkAt) || (next != nil && next.Type == tkIdentifier) {
 			parser.ast = parser.ast.Parent
 		}
-	case PAREN_OPEN:
+	case tkParenOpen:
 		prev := parser.prevToken(0)
 		next := parser.peekToken(0)
-		if token.Type == HARD_PAREN_OPEN && next.Type == HARD_PAREN_CLOSE {
+		if token.Type == tkHardParenOpen && next.Type == tkHardParenClose {
 			// likely just [], which is not likely valid outside of EXP
 			parser.deferToken(token)
 			parser.ast = parser.ast.Parent
@@ -473,22 +473,22 @@ func (parser *Parser) handleEXP(token Token) error {
 		if err != nil {
 			return err
 		}
-		if (prev != nil && prev.Type == AT) || (next != nil && next.Type == IDENTIFIER) {
+		if (prev != nil && prev.Type == tkAt) || (next != nil && next.Type == tkIdentifier) {
 			parser.ast = parser.ast.Parent
 		}
-	case BRACE_OPEN:
+	case tkBraceOpen:
 		prev := parser.prevToken(0)
 		//todo: Is this really necessary?
-		if prev.Type == IDENTIFIER {
+		if prev.Type == tkIdentifier {
 			parser.ast.addChild(token)
 		} else {
 			parser.deferToken(token)
 			parser.ast = parser.ast.beget(BLK, "")
 		}
-	case PERIOD:
+	case tkPeriod:
 		next := parser.peekToken(0)
-		if next != nil && (next.Type == IDENTIFIER || next.Type == KEYWORD ||
-			next.Type == PERIOD ||
+		if next != nil && (next.Type == tkIdentifier || next.Type == tkKeyword ||
+			next.Type == tkPeriod ||
 			(parser.ast.Parent != nil && parser.ast.Parent.Mode == EXP)) {
 			parser.ast.addChild(token)
 		} else {
@@ -508,7 +508,7 @@ func (parser *Parser) handleEXP(token Token) error {
 
 // Run execute the parser
 func (parser *Parser) Run() error {
-	curr := Token{"UNDEF", "UNDEF", UNDEF, 0, 0}
+	curr := Token{"UNDEF", "UNDEF", tkUnDef, 0, 0}
 	parser.root = parser.ast
 	parser.ast.Mode = PRG
 	var err error

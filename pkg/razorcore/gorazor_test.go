@@ -48,7 +48,7 @@ func TestLexer(t *testing.T) {
 		t.Error("token number")
 	}
 	for i, x := range res {
-		if i%2 == 0 && x.Type != KEYWORD {
+		if i%2 == 0 && x.Type != tkKeyword {
 			t.Error("KEYWORD", x)
 		}
 	}
@@ -63,10 +63,10 @@ func TestLexer(t *testing.T) {
 	}
 	for i, x := range res {
 		if i == 0 || i == 4 || i == 8 || i == 12 || i == 14 {
-			if x.Type != KEYWORD {
+			if x.Type != tkKeyword {
 				t.Error("KEYWORD")
 			}
-		} else if x.Type == KEYWORD {
+		} else if x.Type == tkKeyword {
 			t.Error("Should NOT KEYWORD", x)
 		}
 	}

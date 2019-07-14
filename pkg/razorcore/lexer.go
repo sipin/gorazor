@@ -7,39 +7,39 @@ import (
 )
 
 const (
-	UNDEF = iota
-	AT
-	ASSIGN_OPERATOR
-	AT_COLON
-	AT_STAR_CLOSE
-	AT_STAR_OPEN
-	BACKSLASH
-	BRACE_CLOSE
-	BRACE_OPEN
-	CONTENT
-	EMAIL
-	ESCAPED_QUOTE
-	HARD_PAREN_CLOSE
-	HARD_PAREN_OPEN
-	HTML_TAG_OPEN
-	HTML_TAG_CLOSE
-	HTML_TAG_VOID_CLOSE
-	IDENTIFIER
-	KEYWORD
-	LOGICAL
-	NEWLINE
-	NUMERIC_CONTENT
-	OPERATOR
-	PAREN_CLOSE
-	PAREN_OPEN
-	PERIOD
-	SINGLE_QUOTE
-	DOUBLE_QUOTE
-	TextareaTagClose
-	TextareaTagOpen
-	COMMENT_TAG_OPEN
-	COMMENT_TAG_CLOSE
-	WHITESPACE
+	tkUnDef = iota
+	tkAt
+	tkAssignOperator
+	tkAtColon
+	tkAtStarClose
+	tkAtStarOpen
+	tkBackslash
+	tkBraceClose
+	tkBraceOpen
+	tkContent
+	tkEmail
+	tkEscapedQuote
+	tkHardParenClose
+	tkHardParenOpen
+	tkHTMLTagOpen
+	tkHTMLTagClose
+	tkHTMLTagVoidClose
+	tkIdentifier
+	tkKeyword
+	tkLogical
+	tkNewline
+	tkNumericContent
+	tkOperator
+	tkParenClose
+	tkParenOpen
+	tkPeriod
+	tkSingleQuote
+	tkDoubleQuote
+	tkTextareaTagClose
+	tkTextareaTagOpen
+	tkCommentTagOpen
+	tkCommentTagClose
+	tkWhitespace
 )
 
 var typeStr = [...]string{
@@ -74,16 +74,16 @@ func rec(reg string) *regexp.Regexp {
 
 // Tests stores TokenMatch list, TokenMatch order is important
 var Tests = []TokenMatch{
-	TokenMatch{EMAIL, "EMAIL", rec(`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\b`)},
-	TokenMatch{HTML_TAG_OPEN, "HTML_TAG_OPEN", rec(`(<[a-zA-Z@]+?[^>]*?["a-zA-Z]*>)`)},
-	TokenMatch{HTML_TAG_CLOSE, "HTML_TAG_CLOSE", rec(`(</[^>@]+?>)`)},
-	TokenMatch{HTML_TAG_VOID_CLOSE, "HTML_TAG_VOID_CLOSE", rec(`(\/\s*>)`)},
-	TokenMatch{KEYWORD, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|var|with)([^\d\w])`)},
-	TokenMatch{IDENTIFIER, "IDENTIFIER", rec(`([_$a-zA-Z][_$a-zA-Z0-9]*(\.\.\.)?)`)}, //need verify
-	TokenMatch{OPERATOR, "OPERATOR", rec(`(==|!=|>>|<<|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
-	TokenMatch{ESCAPED_QUOTE, "ESCAPED_QUOTE", rec(`(\\+['\"])`)},
-	TokenMatch{NUMERIC_CONTENT, "NUMERIC_CONTENT", rec(`([0-9]+)`)},
-	TokenMatch{CONTENT, "CONTENT", rec(`([^\s})@.]+?)`)},
+	TokenMatch{tkEmail, "EMAIL", rec(`([a-zA-Z0-9.%]+@[a-zA-Z0-9.\-]+\.(?:ca|co\.uk|com|edu|net|org))\b`)},
+	TokenMatch{tkHTMLTagOpen, "HTML_TAG_OPEN", rec(`(<[a-zA-Z@]+?[^>]*?["a-zA-Z]*>)`)},
+	TokenMatch{tkHTMLTagClose, "HTML_TAG_CLOSE", rec(`(</[^>@]+?>)`)},
+	TokenMatch{tkHTMLTagVoidClose, "HTML_TAG_VOID_CLOSE", rec(`(\/\s*>)`)},
+	TokenMatch{tkKeyword, "KEYWORD", rec(`(case|do|else|section|for|func|goto|if|return|switch|var|with)([^\d\w])`)},
+	TokenMatch{tkIdentifier, "IDENTIFIER", rec(`([_$a-zA-Z][_$a-zA-Z0-9]*(\.\.\.)?)`)}, //need verify
+	TokenMatch{tkOperator, "OPERATOR", rec(`(==|!=|>>|<<|>=|<=|>|<|\+|-|\/|\*|\^|%|\:|\?)`)},
+	TokenMatch{tkEscapedQuote, "ESCAPED_QUOTE", rec(`(\\+['\"])`)},
+	TokenMatch{tkNumericContent, "NUMERIC_CONTENT", rec(`([0-9]+)`)},
+	TokenMatch{tkContent, "CONTENT", rec(`([^\s})@.]+?)`)},
 }
 
 // Token represent a token in code
@@ -167,46 +167,46 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 		var tok Token
 		switch val {
 		case '\n':
-			tok = makeToken(string(val), NEWLINE)
+			tok = makeToken(string(val), tkNewline)
 		case ' ', '\t', '\f', '\r':
-			tok = makeToken(string(val), WHITESPACE)
+			tok = makeToken(string(val), tkWhitespace)
 		case '(':
-			tok = makeToken(string(val), PAREN_OPEN)
+			tok = makeToken(string(val), tkParenOpen)
 		case ')':
-			tok = makeToken(string(val), PAREN_CLOSE)
+			tok = makeToken(string(val), tkParenClose)
 		case '[':
-			tok = makeToken(string(val), HARD_PAREN_OPEN)
+			tok = makeToken(string(val), tkHardParenOpen)
 		case ']':
-			tok = makeToken(string(val), HARD_PAREN_CLOSE)
+			tok = makeToken(string(val), tkHardParenClose)
 		case '{':
-			tok = makeToken(string(val), BRACE_OPEN)
+			tok = makeToken(string(val), tkBraceOpen)
 		case '}':
-			tok = makeToken(string(val), BRACE_CLOSE)
+			tok = makeToken(string(val), tkBraceClose)
 		case '"', '`':
-			tok = makeToken(string(val), DOUBLE_QUOTE)
+			tok = makeToken(string(val), tkDoubleQuote)
 		case '\'':
-			tok = makeToken(string(val), SINGLE_QUOTE)
+			tok = makeToken(string(val), tkSingleQuote)
 		case '.':
-			tok = makeToken(string(val), PERIOD)
+			tok = makeToken(string(val), tkPeriod)
 		case '@':
 			if peekNext(string(':'), left[1:]) {
-				tok = makeToken("@:", AT_COLON)
+				tok = makeToken("@:", tkAtColon)
 			} else if peekNext(string('*'), left[1:]) {
-				tok = makeToken("@*", AT_STAR_OPEN)
+				tok = makeToken("@*", tkAtStarOpen)
 			} else {
-				tok = makeToken("@", AT)
+				tok = makeToken("@", tkAt)
 			}
 		default:
 			if peekNext("*@", left) {
-				tok = makeToken("*@", AT_STAR_CLOSE)
+				tok = makeToken("*@", tkAtStarClose)
 			} else if peekNext("<textarea>", left) {
-				tok = makeToken("<textarea>", TextareaTagOpen)
+				tok = makeToken("<textarea>", tkTextareaTagOpen)
 			} else if peekNext("</textarea>", left) {
-				tok = makeToken("</textarea>", TextareaTagClose)
+				tok = makeToken("</textarea>", tkTextareaTagClose)
 			} else if peekNext("<!--", left) {
-				tok = makeToken("<!--", COMMENT_TAG_OPEN)
+				tok = makeToken("<!--", tkCommentTagOpen)
 			} else if peekNext("-->", left) {
-				tok = makeToken("-->", COMMENT_TAG_CLOSE)
+				tok = makeToken("-->", tkCommentTagClose)
 			} else {
 				//try rec
 				match := false
@@ -215,9 +215,9 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 					if found != nil {
 						match = true
 						tokenVal := left[found[0]:found[1]]
-						if m.Type == HTML_TAG_OPEN {
+						if m.Type == tkHTMLTagOpen {
 							tokenVal = tagClean(tokenVal)
-						} else if m.Type == KEYWORD {
+						} else if m.Type == tkKeyword {
 							tokenVal = keyClean(tokenVal)
 						}
 						tok = makeToken(tokenVal, m.Type)
@@ -233,7 +233,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 		tok.Line, tok.Pos = line, pos
 		toks = append(toks, tok)
 		cur += len(tok.Text)
-		if tok.Type == NEWLINE {
+		if tok.Type == tkNewline {
 			line, pos = line+1, 0
 		} else {
 			pos += len(tok.Text)

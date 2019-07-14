@@ -41,7 +41,7 @@ func getValStr(e interface{}) string {
 	case *Ast:
 		return v.TagName
 	case Token:
-		if !(v.Type == AT || v.Type == AT_COLON) {
+		if !(v.Type == tkAt || v.Type == tkAtColon) {
 			return v.Text
 		}
 		return ""
