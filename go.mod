@@ -1,4 +1,4 @@
-module github.com/sipin/gorazor/v2
+module github.com/sipin/gorazor
 
 go 1.12
 
