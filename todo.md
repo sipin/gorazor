@@ -32,3 +32,4 @@
 - [ ] Dynamic compile?
 - [ ] Support webassembly
 - [ ] Publish go module version
+  - [ ] Update readme
