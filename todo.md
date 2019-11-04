@@ -31,3 +31,4 @@
 - [ ] Quick Start guide
 - [ ] Dynamic compile?
 - [ ] Support webassembly
+- [ ] Publish go module version
