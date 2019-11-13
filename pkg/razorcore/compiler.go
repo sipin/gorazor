@@ -184,11 +184,11 @@ func makeCompiler(ast *Ast, options Option, input string) *Compiler {
 	return cp
 }
 
-func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
+func (cp *Compiler) visitBLK(child interface{}) {
 	cp.addPart(Part{CBLK, getValStr(child)})
 }
 
-func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
+func (cp *Compiler) visitMKP(child interface{}) {
 	cp.addPart(Part{CMKP, getValStr(child)})
 }
 
@@ -359,7 +359,7 @@ func (cp *Compiler) visitAstBlk(ast *Ast) {
 				continue
 			}
 			if _, ok := c.(Token); ok {
-				cp.visitBLK(c, ast)
+				cp.visitBLK(c)
 			} else {
 				cp.visitAst(c.(*Ast))
 			}
@@ -373,7 +373,7 @@ func (cp *Compiler) visitAst(ast *Ast) {
 		cp.firstBLK = 1
 		for _, c := range ast.Children {
 			if _, ok := c.(Token); ok {
-				cp.visitMKP(c, ast)
+				cp.visitMKP(c)
 			} else {
 				cp.visitAst(c.(*Ast))
 			}
