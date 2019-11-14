@@ -1,15 +1,11 @@
 # Backlog
 
-- [ ] Codegen options
-  - [ ] gen string args override
+- [ ] html compact mode option
 - [ ] Return error during rendering?
 - [ ] Better error msg during codegen
 - [ ] Performance Optimize
   - [ ] Auto convert helper func to writer
   - [ ] Unsafe write?
-- [ ] Refactor
-  - [ ] cmd options into struct
-  - [ ] refactor lexer, keep line number
 - [ ] VS Code plugin
 - [ ] Quick Start guide
 - [ ] Dynamic compile?
@@ -21,7 +17,9 @@
 # v1.2.2
 - [X] Line number support
   - [X] option
-- [ ] html compact mode option
+- [X] Refactor
+  - [X] cmd options into struct
+  - [X] refactor lexer, keep line number
 
 # v1.2.1
 - [X] Add version
