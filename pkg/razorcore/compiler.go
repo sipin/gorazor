@@ -103,8 +103,8 @@ func (cp *Compiler) isLayoutSectionPart(p Part) (is bool, val string) {
 	}
 
 	val = p.value[21 : len(p.value)-3]
-	for _, p := range cp.paramNames {
-		if val == p {
+	for _, name := range cp.paramNames {
+		if val == name {
 			return true, val
 		}
 	}
@@ -156,6 +156,7 @@ func (cp *Compiler) genPart() {
 				res += p.value + "\n"
 			}
 		} else if ok, val := cp.isLayoutSectionPart(p); ok {
+			res += "// Line: " + strconv.Itoa(p.line) + "\n"
 			res += val + "(_buffer)\n"
 		} else {
 			res += p.value
@@ -331,21 +332,27 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 		end += ")"
 	}
 
+	lineHint := ""
+	lineNumber := 0
 	if ppNotExp && idx == 0 {
-		lineHint := ""
 		if token, ok := child.(Token); ok {
+			lineNumber = token.Line
 			lineHint = "// Line: " + strconv.Itoa(token.Line) + "\n"
 		}
-		start = lineHint + "_buffer.WriteString(" + start
+		start = "_buffer.WriteString(" + start
 	}
 	if ppNotExp && idx == ppChildCnt-1 {
 		end += ")\n"
 	}
 
 	if val == "raw" {
-		cp.addPart(Part{CSTAT, start + end, 0})
+		cp.addPart(Part{CSTAT, lineHint + start + end, lineNumber})
 	} else {
-		cp.addPart(Part{CSTAT, start + val + end, 0})
+		p := Part{CSTAT, start + val + end, lineNumber}
+		if ok, _ := cp.isLayoutSectionPart(p); !ok {
+			p.value = lineHint + p.value
+		}
+		cp.addPart(p)
 	}
 }
 
