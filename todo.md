@@ -20,7 +20,7 @@
 
 # v1.2.2
 - [X] Line number support
-  - [ ] option
+  - [X] option
 - [ ] html compact mode option
 
 # v1.2.1

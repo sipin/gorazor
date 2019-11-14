@@ -58,6 +58,7 @@ var typeStr = [...]string{
 // Option have following options:
 type Option struct {
 	IsDebug       bool
+	NoLineNumber  bool
 	NameNotChange bool
 }
 

@@ -17,6 +17,7 @@ func usage() {
 func main() {
 	flag.Usage = usage
 	isDebug := flag.Bool("debug", false, "use debug mode")
+	noLine := flag.Bool("noline", false, "skip line number hint in generated code")
 	version := flag.Bool("version", false, "show gorazor version info")
 	quick := flag.Bool("q", false, "enable quick mode; skip template render optimzation")
 	namespacePrefix := flag.String("prefix", "", "tpl namespace prefix")
@@ -31,12 +32,9 @@ func main() {
 
 	options := razorcore.Option{}
 
-	if *isDebug {
-		options.IsDebug = *isDebug
-	}
-	if *nameNotChange {
-		options.NameNotChange = *nameNotChange
-	}
+	options.IsDebug = *isDebug
+	options.NameNotChange = *nameNotChange
+	options.NoLineNumber = *noLine
 
 	if len(flag.Args()) != 2 {
 		flag.Usage()

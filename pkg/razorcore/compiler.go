@@ -133,6 +133,9 @@ func (cp *Compiler) isLayoutSectionTest(p Part) (is bool, val string) {
 }
 
 func (cp *Compiler) getLineHint(line int) string {
+	if cp.options.NoLineNumber {
+		return ""
+	}
 	return "// Line: " + strconv.Itoa(line) + "\n"
 }
 
