@@ -56,10 +56,11 @@ var typeStr = [...]string{
 	"TEXT_TAG_OPEN", "COMMENT_TAG_OPEN", "COMMENT_TAG_CLOSE", "WHITESPACE"}
 
 // Option have following options:
-//   Debug bool
-//   Watch bool
-//   NameNotChange bool
-type Option map[string]interface{}
+type Option struct {
+	IsDebug       bool
+	NoLineNumber  bool
+	NameNotChange bool
+}
 
 // TokenMatch store matched token
 type TokenMatch struct {
@@ -194,9 +195,8 @@ func tryPeekNext(text string) (match string, tokVal int, ok bool) {
 func (lexer *Lexer) Scan() ([]Token, error) {
 	toks := []Token{}
 	text := strings.Replace(lexer.Text, "\r\n", "\n", -1)
-	text = strings.Replace(text, "\r", "\n", -1)
 	text += "\n"
-	cur, line, pos := 0, 0, 0
+	cur, line, pos := 0, 1, 0
 	for cur < len(text) {
 		val, left := text[cur], text[cur:]
 		var tok Token

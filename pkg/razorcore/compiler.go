@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -54,6 +55,7 @@ func getValStr(e interface{}) string {
 type Part struct {
 	ptype int
 	value string
+	line  int
 }
 
 // Compiler generate go code for gorazor template
@@ -101,8 +103,8 @@ func (cp *Compiler) isLayoutSectionPart(p Part) (is bool, val string) {
 	}
 
 	val = p.value[21 : len(p.value)-3]
-	for _, p := range cp.paramNames {
-		if val == p {
+	for _, name := range cp.paramNames {
+		if val == name {
 			return true, val
 		}
 	}
@@ -130,6 +132,13 @@ func (cp *Compiler) isLayoutSectionTest(p Part) (is bool, val string) {
 	return
 }
 
+func (cp *Compiler) getLineHint(line int) string {
+	if cp.options.NoLineNumber {
+		return ""
+	}
+	return "// Line: " + strconv.Itoa(line) + "\n"
+}
+
 func (cp *Compiler) genPart() {
 	res := ""
 
@@ -141,6 +150,10 @@ func (cp *Compiler) genPart() {
 			}
 			if p.value != "" {
 				p.value = fmt.Sprintf("%#v", p.value)
+				if p.line > 0 {
+					res += cp.getLineHint(p.line)
+				}
+
 				res += "_buffer.WriteString(" + p.value + ")\n"
 			}
 		} else if p.ptype == CBLK {
@@ -150,6 +163,7 @@ func (cp *Compiler) genPart() {
 				res += p.value + "\n"
 			}
 		} else if ok, val := cp.isLayoutSectionPart(p); ok {
+			res += cp.getLineHint(p.line)
 			res += val + "(_buffer)\n"
 		} else {
 			res += p.value
@@ -161,7 +175,7 @@ func (cp *Compiler) genPart() {
 func makeCompiler(ast *Ast, options Option, input string) *Compiler {
 	dir := filepath.Base(filepath.Dir(input))
 	file := strings.Replace(filepath.Base(input), gzExtension, "", 1)
-	if options["NameNotChange"] == nil {
+	if !options.NameNotChange {
 		file = Capitalize(file)
 	}
 	cp := &Compiler{
@@ -184,12 +198,12 @@ func makeCompiler(ast *Ast, options Option, input string) *Compiler {
 	return cp
 }
 
-func (cp *Compiler) visitBLK(child interface{}, ast *Ast) {
-	cp.addPart(Part{CBLK, getValStr(child)})
+func (cp *Compiler) visitBLK(child Token) {
+	cp.addPart(Part{CBLK, getValStr(child), child.Line})
 }
 
-func (cp *Compiler) visitMKP(child interface{}, ast *Ast) {
-	cp.addPart(Part{CMKP, getValStr(child)})
+func (cp *Compiler) visitMKP(child Token) {
+	cp.addPart(Part{CMKP, getValStr(child), child.Line})
 }
 
 func (cp *Compiler) settleLayout(layoutFunc string) {
@@ -325,7 +339,13 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 		end += ")"
 	}
 
+	lineHint := ""
+	lineNumber := 0
 	if ppNotExp && idx == 0 {
+		if token, ok := child.(Token); ok {
+			lineNumber = token.Line
+			lineHint = cp.getLineHint(token.Line)
+		}
 		start = "_buffer.WriteString(" + start
 	}
 	if ppNotExp && idx == ppChildCnt-1 {
@@ -333,9 +353,13 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 	}
 
 	if val == "raw" {
-		cp.addPart(Part{CSTAT, start + end})
+		cp.addPart(Part{CSTAT, lineHint + start + end, lineNumber})
 	} else {
-		cp.addPart(Part{CSTAT, start + val + end})
+		p := Part{CSTAT, start + val + end, lineNumber}
+		if ok, _ := cp.isLayoutSectionPart(p); !ok {
+			p.value = lineHint + p.value
+		}
+		cp.addPart(p)
 	}
 }
 
@@ -358,8 +382,8 @@ func (cp *Compiler) visitAstBlk(ast *Ast) {
 			if remove && (idx == 0 || idx == len(ast.Children)-1) {
 				continue
 			}
-			if _, ok := c.(Token); ok {
-				cp.visitBLK(c, ast)
+			if token, ok := c.(Token); ok {
+				cp.visitBLK(token)
 			} else {
 				cp.visitAst(c.(*Ast))
 			}
@@ -372,8 +396,8 @@ func (cp *Compiler) visitAst(ast *Ast) {
 	case MKP:
 		cp.firstBLK = 1
 		for _, c := range ast.Children {
-			if _, ok := c.(Token); ok {
-				cp.visitMKP(c, ast)
+			if token, ok := c.(Token); ok {
+				cp.visitMKP(token)
 			} else {
 				cp.visitAst(c.(*Ast))
 			}
@@ -594,7 +618,7 @@ func run(path string, Options Option) (*Compiler, error) {
 	}
 
 	//DEBUG
-	if Options["Debug"] != nil {
+	if Options.IsDebug {
 		fmt.Println("------------------- TOKEN START -----------------")
 		for _, elem := range res {
 			elem.P()
@@ -610,7 +634,7 @@ func run(path string, Options Option) (*Compiler, error) {
 	}
 
 	//DEBUG
-	if Options["Debug"] != nil {
+	if Options.IsDebug {
 		fmt.Println("--------------------- AST START -----------------")
 		parser.ast.debug(0, 20)
 		fmt.Println("--------------------- AST END -----------------")
