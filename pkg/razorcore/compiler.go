@@ -132,6 +132,10 @@ func (cp *Compiler) isLayoutSectionTest(p Part) (is bool, val string) {
 	return
 }
 
+func (cp *Compiler) getLineHint(line int) string {
+	return "// Line: " + strconv.Itoa(line) + "\n"
+}
+
 func (cp *Compiler) genPart() {
 	res := ""
 
@@ -144,7 +148,7 @@ func (cp *Compiler) genPart() {
 			if p.value != "" {
 				p.value = fmt.Sprintf("%#v", p.value)
 				if p.line > 0 {
-					res += "// Line: " + strconv.Itoa(p.line) + "\n"
+					res += cp.getLineHint(p.line)
 				}
 
 				res += "_buffer.WriteString(" + p.value + ")\n"
@@ -156,7 +160,7 @@ func (cp *Compiler) genPart() {
 				res += p.value + "\n"
 			}
 		} else if ok, val := cp.isLayoutSectionPart(p); ok {
-			res += "// Line: " + strconv.Itoa(p.line) + "\n"
+			res += cp.getLineHint(p.line)
 			res += val + "(_buffer)\n"
 		} else {
 			res += p.value
@@ -337,7 +341,7 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 	if ppNotExp && idx == 0 {
 		if token, ok := child.(Token); ok {
 			lineNumber = token.Line
-			lineHint = "// Line: " + strconv.Itoa(token.Line) + "\n"
+			lineHint = cp.getLineHint(token.Line)
 		}
 		start = "_buffer.WriteString(" + start
 	}
