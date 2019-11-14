@@ -25,8 +25,11 @@ func RenderArgsbug(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	messages := []string{}
 
+	// Line: 13
 	_buffer.WriteString("\n\n<p>")
+	// Line: 15
 	_buffer.WriteString(gorazor.HTMLEscape(gorazor.Itoa(args(messages...))))
+	// Line: 15
 	_buffer.WriteString("</p>")
 
 }

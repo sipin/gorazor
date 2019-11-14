@@ -19,8 +19,11 @@ func Email() string {
 
 // RenderEmail render cases/email.gohtml
 func RenderEmail(_buffer io.StringWriter) {
+	// Line: 1
 	_buffer.WriteString("<span>rememberingsteve@apple.com ")
+	// Line: 1
 	_buffer.WriteString(gorazor.HTMLEscape(username))
+	// Line: 1
 	_buffer.WriteString("</span>")
 
 }

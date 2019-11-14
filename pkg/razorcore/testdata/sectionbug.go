@@ -29,8 +29,11 @@ func RenderSectionbug(_buffer io.StringWriter) {
 	_js := func(_buffer io.StringWriter) {
 		for _, jsFile := range ctx.GetJS() {
 
+			// Line: 12
 			_buffer.WriteString("<script src=\"")
+			// Line: 12
 			_buffer.WriteString(gorazor.HTMLEscape(jsFile))
+			// Line: 12
 			_buffer.WriteString("\"></script>")
 
 		}

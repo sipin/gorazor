@@ -23,6 +23,7 @@ func Import() string {
 
 // RenderImport render cases/import.gohtml
 func RenderImport(_buffer io.StringWriter) {
+	// Line: 11
 	_buffer.WriteString("\n\n\n<p>hello</p>")
 
 }

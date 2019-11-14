@@ -9,6 +9,7 @@ import (
 	"path"
 	"path/filepath"
 	"runtime"
+	"strconv"
 	"strings"
 )
 
@@ -54,6 +55,7 @@ func getValStr(e interface{}) string {
 type Part struct {
 	ptype int
 	value string
+	line  int
 }
 
 // Compiler generate go code for gorazor template
@@ -141,6 +143,10 @@ func (cp *Compiler) genPart() {
 			}
 			if p.value != "" {
 				p.value = fmt.Sprintf("%#v", p.value)
+				if p.line > 0 {
+					res += "// Line: " + strconv.Itoa(p.line) + "\n"
+				}
+
 				res += "_buffer.WriteString(" + p.value + ")\n"
 			}
 		} else if p.ptype == CBLK {
@@ -184,12 +190,12 @@ func makeCompiler(ast *Ast, options Option, input string) *Compiler {
 	return cp
 }
 
-func (cp *Compiler) visitBLK(child interface{}) {
-	cp.addPart(Part{CBLK, getValStr(child)})
+func (cp *Compiler) visitBLK(child Token) {
+	cp.addPart(Part{CBLK, getValStr(child), child.Line})
 }
 
-func (cp *Compiler) visitMKP(child interface{}) {
-	cp.addPart(Part{CMKP, getValStr(child)})
+func (cp *Compiler) visitMKP(child Token) {
+	cp.addPart(Part{CMKP, getValStr(child), child.Line})
 }
 
 func (cp *Compiler) settleLayout(layoutFunc string) {
@@ -326,16 +332,20 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 	}
 
 	if ppNotExp && idx == 0 {
-		start = "_buffer.WriteString(" + start
+		lineHint := ""
+		if token, ok := child.(Token); ok {
+			lineHint = "// Line: " + strconv.Itoa(token.Line) + "\n"
+		}
+		start = lineHint + "_buffer.WriteString(" + start
 	}
 	if ppNotExp && idx == ppChildCnt-1 {
 		end += ")\n"
 	}
 
 	if val == "raw" {
-		cp.addPart(Part{CSTAT, start + end})
+		cp.addPart(Part{CSTAT, start + end, 0})
 	} else {
-		cp.addPart(Part{CSTAT, start + val + end})
+		cp.addPart(Part{CSTAT, start + val + end, 0})
 	}
 }
 
@@ -358,8 +368,8 @@ func (cp *Compiler) visitAstBlk(ast *Ast) {
 			if remove && (idx == 0 || idx == len(ast.Children)-1) {
 				continue
 			}
-			if _, ok := c.(Token); ok {
-				cp.visitBLK(c)
+			if token, ok := c.(Token); ok {
+				cp.visitBLK(token)
 			} else {
 				cp.visitAst(c.(*Ast))
 			}
@@ -372,8 +382,8 @@ func (cp *Compiler) visitAst(ast *Ast) {
 	case MKP:
 		cp.firstBLK = 1
 		for _, c := range ast.Children {
-			if _, ok := c.(Token); ok {
-				cp.visitMKP(c)
+			if token, ok := c.(Token); ok {
+				cp.visitMKP(token)
 			} else {
 				cp.visitAst(c.(*Ast))
 			}

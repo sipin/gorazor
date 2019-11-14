@@ -18,6 +18,7 @@ func Header() string {
 
 // RenderHeader render cases/header.gohtml
 func RenderHeader(_buffer io.StringWriter) {
+	// Line: 1
 	_buffer.WriteString("<div>Page Header</div>")
 
 }

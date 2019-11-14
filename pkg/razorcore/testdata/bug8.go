@@ -19,8 +19,11 @@ func Bug8(l *Locale) string {
 
 // RenderBug8 render cases/bug8.gohtml
 func RenderBug8(_buffer io.StringWriter, l *Locale) {
+	// Line: 3
 	_buffer.WriteString("\n<span>")
+	// Line: 4
 	_buffer.WriteString(gorazor.HTMLEscape(l.T("for")))
+	// Line: 4
 	_buffer.WriteString("</span>")
 
 }

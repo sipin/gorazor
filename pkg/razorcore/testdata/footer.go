@@ -18,6 +18,7 @@ func Footer() string {
 
 // RenderFooter render cases/footer.gohtml
 func RenderFooter(_buffer io.StringWriter) {
+	// Line: 1
 	_buffer.WriteString("<div>copyright 2014</div>")
 
 }

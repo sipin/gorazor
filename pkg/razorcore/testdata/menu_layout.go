@@ -36,16 +36,22 @@ func Menu_layout(body string, title string, menu string) string {
 func RenderMenu_layout(_buffer io.StringWriter, body func(_buffer io.StringWriter), title func(_buffer io.StringWriter), menu func(_buffer io.StringWriter)) {
 
 	_body := func(_buffer io.StringWriter) {
+		// Line: 13
 		_buffer.WriteString("\n\n<div id=\"body\">\n    <div id=\"menu\">")
+		// Line: 16
 		_buffer.WriteString(gorazor.HTMLEscape(menu))
+		// Line: 16
 		_buffer.WriteString("</div>\n    <div id=\"content\">")
+		// Line: 17
 		_buffer.WriteString(gorazor.HTMLEscape(body))
+		// Line: 17
 		_buffer.WriteString("</div>\n</div>")
 
 	}
 
 	_title := func(_buffer io.StringWriter) {
 
+		// Line: 21
 		_buffer.WriteString(gorazor.HTMLEscape(title))
 
 	}

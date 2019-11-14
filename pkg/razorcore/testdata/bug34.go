@@ -18,6 +18,7 @@ func Bug34() string {
 
 // RenderBug34 render cases/bug34.gohtml
 func RenderBug34(_buffer io.StringWriter) {
+	// Line: 1
 	_buffer.WriteString("value=\\\"<?= h(aabasdf\\Admin\\Document::$asdf) ?>\\\"/>\\n")
 
 }

@@ -20,8 +20,11 @@ func Bug42() string {
 
 // RenderBug42 render cases/bug42.gohtml
 func RenderBug42(_buffer io.StringWriter) {
+	// Line: 5
 	_buffer.WriteString("\n<div class=\"container\">\n    ")
+	// Line: 7
 	_buffer.WriteString(gorazor.HTMLEscape((Tpl.TplBread([]string{"选择邮寄方式"}))))
+	// Line: 7
 	_buffer.WriteString("\n</div>")
 
 }

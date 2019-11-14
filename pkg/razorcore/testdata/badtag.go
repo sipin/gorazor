@@ -21,25 +21,42 @@ func Badtag(w *gorazor.Widget) string {
 func RenderBadtag(_buffer io.StringWriter, w *gorazor.Widget) {
 	if w.ErrorMsg != "" {
 
+		// Line: 6
 		_buffer.WriteString("<div class=\"form-group has-error\">\n\t<div class=\"alert alert-danger\">")
+		// Line: 7
 		_buffer.WriteString(gorazor.HTMLEscape(w.ErrorMsg))
+		// Line: 7
 		_buffer.WriteString("</div>")
 	} else {
 
+		// Line: 9
 		_buffer.WriteString("<div class=\"form-group\">")
 	}
+	// Line: 10
 	_buffer.WriteString("\n\n\t<label for=\"")
+	// Line: 12
 	_buffer.WriteString(gorazor.HTMLEscape(w.Name))
+	// Line: 12
 	_buffer.WriteString("\">")
+	// Line: 12
 	_buffer.WriteString(gorazor.HTMLEscape(w.Label))
+	// Line: 12
 	_buffer.WriteString("</label>\n\t<input type=\"text\" name=\"")
+	// Line: 13
 	_buffer.WriteString(gorazor.HTMLEscape(w.Name))
+	// Line: 13
 	_buffer.WriteString("\" class=\"form-control\" id=\"")
+	// Line: 13
 	_buffer.WriteString(gorazor.HTMLEscape(w.Name))
+	// Line: 13
 	_buffer.WriteString("\" placeholder=\"")
+	// Line: 13
 	_buffer.WriteString(gorazor.HTMLEscape(w.PlaceHolder))
+	// Line: 13
 	_buffer.WriteString("\" value=\"")
+	// Line: 13
 	_buffer.WriteString(gorazor.HTMLEscape(w.Value))
+	// Line: 13
 	_buffer.WriteString("\">\n</div>")
 
 }

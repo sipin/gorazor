@@ -195,7 +195,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 	toks := []Token{}
 	text := strings.Replace(lexer.Text, "\r\n", "\n", -1)
 	text += "\n"
-	cur, line, pos := 0, 0, 0
+	cur, line, pos := 0, 1, 0
 	for cur < len(text) {
 		val, left := text[cur], text[cur:]
 		var tok Token

@@ -1,6 +1,5 @@
 # Backlog
 
-- [ ] Line number support
 - [ ] Codegen options
   - [ ] gen string args override
 - [ ] Return error during rendering?
@@ -20,6 +19,8 @@
   - [ ] Unsafe write?
 
 # v1.2.2
+- [X] Line number support
+  - [ ] option
 - [ ] html compact mode option
 
 # v1.2.1

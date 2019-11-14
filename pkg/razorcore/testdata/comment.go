@@ -18,6 +18,7 @@ func Comment() string {
 
 // RenderComment render cases/comment.gohtml
 func RenderComment(_buffer io.StringWriter) {
+	// Line: 2
 	_buffer.WriteString("\n\n\n\n<p>hello </p>")
 
 	hello

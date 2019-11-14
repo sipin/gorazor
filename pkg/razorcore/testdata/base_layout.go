@@ -28,10 +28,15 @@ func Base_layout(body string, title string) string {
 
 // RenderBase_layout render cases/base_layout.gohtml
 func RenderBase_layout(_buffer io.StringWriter, body func(_buffer io.StringWriter), title func(_buffer io.StringWriter)) {
+	// Line: 5
 	_buffer.WriteString("\n<html>\n    <head>\n        <title>")
+	// Line: 8
 	_buffer.WriteString(gorazor.HTMLEscape(title))
+	// Line: 8
 	_buffer.WriteString("</title>\n    </head>\n    <body>")
+	// Line: 10
 	_buffer.WriteString(gorazor.HTMLEscape(body))
+	// Line: 10
 	_buffer.WriteString("</body>\n</html>")
 
 }

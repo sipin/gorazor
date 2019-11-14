@@ -19,8 +19,11 @@ func Keyword() string {
 
 // RenderKeyword render cases/keyword.gohtml
 func RenderKeyword(_buffer io.StringWriter) {
+	// Line: 1
 	_buffer.WriteString("BLK(<span>rememberingsteve@apple.com ")
+	// Line: 1
 	_buffer.WriteString(gorazor.HTMLEscape(username))
+	// Line: 1
 	_buffer.WriteString("</span>)BLK")
 
 }

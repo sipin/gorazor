@@ -23,16 +23,22 @@ func Edit(u *models.User) string {
 func RenderEdit(_buffer io.StringWriter, u *models.User) {
 
 	_body := func(_buffer io.StringWriter) {
+		// Line: 8
 		_buffer.WriteString("\n<div style=\"width: 500px\">\n<form role=\"form\">\n  <div class=\"form-group\">\n    <label for=\"exampleInputEmail1\">名字</label>\n    <input type=\"email\" class=\"form-control\" id=\"exampleInputEmail1\" placeholder=\"Enter email\" value=\"")
+		// Line: 13
 		_buffer.WriteString(gorazor.HTMLEscape(u.Name))
+		// Line: 13
 		_buffer.WriteString("\">\n  </div>\n  <div class=\"form-group\">\n    <label for=\"exampleInputPassword1\">电邮</label>\n    <input type=\"email\" class=\"form-control\" id=\"exampleInputPassword1\" placeholder=\"电邮\" value=\"")
+		// Line: 17
 		_buffer.WriteString(gorazor.HTMLEscape(u.Email))
+		// Line: 17
 		_buffer.WriteString("\">\n  </div>\n  <button type=\"submit\" class=\"btn btn-primary\">保存</button>\n  <a href=\"/admin/user\" class=\"btn btn-default pull-right\">返回</a>\n</form>\n</div>")
 
 	}
 
 	_title := func(_buffer io.StringWriter) {
 
+		// Line: 26
 		_buffer.WriteString("用户管理")
 
 	}

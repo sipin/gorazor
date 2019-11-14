@@ -18,6 +18,7 @@ func Bug() string {
 
 // RenderBug render cases/bug.gohtml
 func RenderBug(_buffer io.StringWriter) {
+	// Line: 1
 	_buffer.WriteString("<html>\n  <head>\n    <title>Title</title>\n  </head>\n\n  <body>\n  Body\n  </body>\n</html>")
 
 }

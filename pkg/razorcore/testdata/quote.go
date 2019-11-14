@@ -18,6 +18,7 @@ func Quote() string {
 
 // RenderQuote render cases/quote.gohtml
 func RenderQuote(_buffer io.StringWriter) {
+	// Line: 1
 	_buffer.WriteString("<html>'text'</html>")
 
 }

@@ -30,10 +30,15 @@ func RenderMsg(_buffer io.StringWriter, u *User) {
 		username = getName(u) + "(" + u.Email + ")"
 	}
 
+	// Line: 18
 	_buffer.WriteString("\n<div class=\"welcome\">\n<h4>Hello ")
+	// Line: 20
 	_buffer.WriteString(gorazor.HTMLEscape(username))
+	// Line: 20
 	_buffer.WriteString("</h4>\n\n<div>")
+	// Line: 22
 	_buffer.WriteString((u.Intro))
+	// Line: 22
 	_buffer.WriteString("</div>\n</div>")
 
 }

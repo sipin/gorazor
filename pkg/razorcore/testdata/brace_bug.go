@@ -22,9 +22,11 @@ func RenderBrace_bug(_buffer io.StringWriter) {
 	isActive := func(name string) {
 		if active == name {
 
+			// Line: 7
 			_buffer.WriteString("<li class=\"active\">\n        ")
 		} else {
 
+			// Line: 9
 			_buffer.WriteString("<li>\n        ")
 		}
 	}

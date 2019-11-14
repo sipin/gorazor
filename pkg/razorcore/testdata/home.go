@@ -24,29 +24,42 @@ func Home(totalMessage int, u *User) string {
 func RenderHome(_buffer io.StringWriter, totalMessage int, u *User) {
 
 	_body := func(_buffer io.StringWriter) {
+		// Line: 13
 		_buffer.WriteString((helper.Header()))
+		// Line: 14
 		_buffer.WriteString((helper.Msg(u)))
 		for i := 0; i < 2; i++ {
 			if totalMessage > 0 {
 				if totalMessage == 1 {
 
+					// Line: 19
 					_buffer.WriteString("<p>")
+					// Line: 19
 					_buffer.WriteString(gorazor.HTMLEscape(u.Name))
+					// Line: 19
 					_buffer.WriteString(" has 1 message</p>")
 
 				} else {
 
+					// Line: 21
 					_buffer.WriteString("<p>")
+					// Line: 21
 					_buffer.WriteString(gorazor.HTMLEscape(u.Name))
+					// Line: 21
 					_buffer.WriteString(" has ")
+					// Line: 21
 					_buffer.WriteString(gorazor.HTMLEscape(gorazor.Itoa(totalMessage)))
+					// Line: 21
 					_buffer.WriteString(" messages</p>")
 
 				}
 			} else {
 
+				// Line: 24
 				_buffer.WriteString("<p>")
+				// Line: 24
 				_buffer.WriteString(gorazor.HTMLEscape(u.Name))
+				// Line: 24
 				_buffer.WriteString(" has no messages</p>")
 
 			}
@@ -56,23 +69,34 @@ func RenderHome(_buffer io.StringWriter, totalMessage int, u *User) {
 			if totalMessage > 0 {
 				if totalMessage == 1 {
 
+					// Line: 33
 					_buffer.WriteString("<p>")
+					// Line: 33
 					_buffer.WriteString(gorazor.HTMLEscape(u.Name))
+					// Line: 33
 					_buffer.WriteString(" has 1 message</p>")
 
 				} else {
 
+					// Line: 35
 					_buffer.WriteString("<p>")
+					// Line: 35
 					_buffer.WriteString(gorazor.HTMLEscape(u.Name))
+					// Line: 35
 					_buffer.WriteString(" has ")
+					// Line: 35
 					_buffer.WriteString(gorazor.HTMLEscape(gorazor.Itoa(totalMessage)))
+					// Line: 35
 					_buffer.WriteString(" messages</p>")
 
 				}
 			} else {
 
+				// Line: 38
 				_buffer.WriteString("<p>")
+				// Line: 38
 				_buffer.WriteString(gorazor.HTMLEscape(u.Name))
+				// Line: 38
 				_buffer.WriteString(" has no messages</p>")
 
 			}
@@ -81,32 +105,45 @@ func RenderHome(_buffer io.StringWriter, totalMessage int, u *User) {
 		switch totalMessage {
 		case 1:
 
+			// Line: 46
 			_buffer.WriteString("<p>")
+			// Line: 46
 			_buffer.WriteString(gorazor.HTMLEscape(u.Name))
+			// Line: 46
 			_buffer.WriteString(" has 1  message</p>")
 
 		case 2:
 
+			// Line: 48
 			_buffer.WriteString("<p>")
+			// Line: 48
 			_buffer.WriteString(gorazor.HTMLEscape(u.Name))
+			// Line: 48
 			_buffer.WriteString(" has 2 messages</p>")
 
 		default:
 
+			// Line: 50
 			_buffer.WriteString("<p>")
+			// Line: 50
 			_buffer.WriteString(gorazor.HTMLEscape(u.Name))
+			// Line: 50
 			_buffer.WriteString(" has no messages</p>")
 
 		}
 
+		// Line: 54
 		_buffer.WriteString((helper.Footer()))
 
 	}
 
 	_title := func(_buffer io.StringWriter) {
 
+		// Line: 57
 		_buffer.WriteString("<title>")
+		// Line: 57
 		_buffer.WriteString(gorazor.HTMLEscape(u.Name))
+		// Line: 57
 		_buffer.WriteString("'s homepage</title>")
 
 	}

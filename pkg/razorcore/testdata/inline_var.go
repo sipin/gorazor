@@ -20,8 +20,11 @@ func Inline_var() string {
 
 // RenderInline_var render cases/inline_var.gohtml
 func RenderInline_var(_buffer io.StringWriter) {
+	// Line: 5
 	_buffer.WriteString("\n\n<body>")
+	// Line: 8
 	_buffer.WriteString(gorazor.HTMLEscape(Hello("Felix Sun", "h1", 30, &models.Author{"Van", 20}, 10)))
+	// Line: 8
 	_buffer.WriteString("\n</body>")
 
 }

@@ -18,6 +18,7 @@ func Escapebug() string {
 
 // RenderEscapebug render cases/escapebug.gohtml
 func RenderEscapebug(_buffer io.StringWriter) {
+	// Line: 1
 	_buffer.WriteString("<script type=\"text/javascript\">console.log(\"\\n\");</script>")
 
 }

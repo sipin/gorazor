@@ -28,9 +28,11 @@ func RenderScopebug(_buffer io.StringWriter, obj *models.Widget) {
 		for _, v := range values {
 			if v, ok := v.(type); ok {
 
+				// Line: 16
 				_buffer.WriteString("<a>\n\t\t\t\t\t")
 				for _, v := range values {
 				}
+				// Line: 18
 				_buffer.WriteString("\n\t\t\t\t</a>")
 
 			} else {

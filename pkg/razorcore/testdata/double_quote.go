@@ -18,6 +18,7 @@ func Double_quote() string {
 
 // RenderDouble_quote render cases/double_quote.gohtml
 func RenderDouble_quote(_buffer io.StringWriter) {
+	// Line: 1
 	_buffer.WriteString("<meta charset=\"utf-8\" />")
 
 }
