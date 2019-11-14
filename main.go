@@ -32,10 +32,10 @@ func main() {
 	options := razorcore.Option{}
 
 	if *isDebug {
-		options["Debug"] = *isDebug
+		options.IsDebug = *isDebug
 	}
 	if *nameNotChange {
-		options["NameNotChange"] = *nameNotChange
+		options.NameNotChange = *nameNotChange
 	}
 
 	if len(flag.Args()) != 2 {

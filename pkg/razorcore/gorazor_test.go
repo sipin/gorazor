@@ -78,7 +78,7 @@ func TestDebug(t *testing.T) {
 	casedir, _ := filepath.Abs(filepath.Dir("./cases/"))
 	outdir, _ := filepath.Abs(filepath.Dir("./" + testdata + "/"))
 	option := Option{}
-	option["Debug"] = true
+	option.IsDebug = true
 	GenFile(casedir+"/var.gohtml", outdir+"/_var.gohtml", option)
 }
 

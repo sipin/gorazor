@@ -56,10 +56,10 @@ var typeStr = [...]string{
 	"TEXT_TAG_OPEN", "COMMENT_TAG_OPEN", "COMMENT_TAG_CLOSE", "WHITESPACE"}
 
 // Option have following options:
-//   Debug bool
-//   Watch bool
-//   NameNotChange bool
-type Option map[string]interface{}
+type Option struct {
+	IsDebug       bool
+	NameNotChange bool
+}
 
 // TokenMatch store matched token
 type TokenMatch struct {

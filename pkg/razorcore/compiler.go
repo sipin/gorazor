@@ -172,7 +172,7 @@ func (cp *Compiler) genPart() {
 func makeCompiler(ast *Ast, options Option, input string) *Compiler {
 	dir := filepath.Base(filepath.Dir(input))
 	file := strings.Replace(filepath.Base(input), gzExtension, "", 1)
-	if options["NameNotChange"] == nil {
+	if !options.NameNotChange {
 		file = Capitalize(file)
 	}
 	cp := &Compiler{
@@ -615,7 +615,7 @@ func run(path string, Options Option) (*Compiler, error) {
 	}
 
 	//DEBUG
-	if Options["Debug"] != nil {
+	if Options.IsDebug {
 		fmt.Println("------------------- TOKEN START -----------------")
 		for _, elem := range res {
 			elem.P()
@@ -631,7 +631,7 @@ func run(path string, Options Option) (*Compiler, error) {
 	}
 
 	//DEBUG
-	if Options["Debug"] != nil {
+	if Options.IsDebug {
 		fmt.Println("--------------------- AST START -----------------")
 		parser.ast.debug(0, 20)
 		fmt.Println("--------------------- AST END -----------------")
