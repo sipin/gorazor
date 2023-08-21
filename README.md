@@ -361,7 +361,7 @@ Here is a simple example of [gorazor templates](https://github.com/sipin/gorazor
 ### Sublime Text 2/3
 
 * **Syntax highlight** Search & install `gorazor` via Package Control.
-* **Context aware auto-completion**, you may need to [manually modify](https://github.com/sipin/GoSublime/commit/fd0b979e7cc1d8f2438bb314399c2456d16f3ffb) GoSublime package, bascially replace `gscomplete.py` in with [this](https://raw.githubusercontent.com/sipin/GoSublime/gorazor/gscomplete.py) and `gslint.py` with [this](https://raw.githubusercontent.com/sipin/GoSublime/gorazor/gslint.py)
+* **Context aware auto-completion**, you may need to [manually modify](https://github.com/sipin/GoSublime/commit/fd0b979e7cc1d8f2438bb314399c2456d16f3ffb) GoSublime package, basically replace `gscomplete.py` in with [this](https://raw.githubusercontent.com/sipin/GoSublime/gorazor/gscomplete.py) and `gslint.py` with [this](https://raw.githubusercontent.com/sipin/GoSublime/gorazor/gslint.py)
 
 ### Emacs
 [web-mode](http://web-mode.org/) supports Razor template engine, so add this into your Emacs config file:
