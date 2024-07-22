@@ -30,7 +30,7 @@ func GenFile(input string, output string, options Option) error {
 // of .gohtml and generate it into target dir.
 func GenFolder(indir string, outdir string, options Option) (err error) {
 	if !exists(indir) {
-		return errors.New("Input directory does not exsit")
+		return errors.New("input directory does not exsit")
 	}
 
 	//Make it

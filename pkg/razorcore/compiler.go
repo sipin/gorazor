@@ -22,7 +22,7 @@ var TemplateNamespacePrefix = ""
 // QuickMode enabled to skip template optimization
 var QuickMode = false
 
-//------------------------------ Compiler ------------------------------ //
+// ------------------------------ Compiler ------------------------------ //
 const (
 	CMKP = iota
 	CBLK
@@ -173,7 +173,8 @@ func (cp *Compiler) genPart() {
 }
 
 func makeCompiler(ast *Ast, options Option, input string) *Compiler {
-	dir := filepath.Base(filepath.Dir(input))
+	inputPath, _ := filepath.Abs(input)
+	dir := filepath.Base(filepath.Dir(inputPath))
 	file := strings.Replace(filepath.Base(input), gzExtension, "", 1)
 	if !options.NameNotChange {
 		file = Capitalize(file)
@@ -477,7 +478,7 @@ func (cp *Compiler) processLayout() {
 	for _, l := range lines {
 		l = strings.TrimSpace(l)
 		if strings.HasPrefix(l, "section") && strings.HasSuffix(l, "{") {
-			if hasBodyClosed == false {
+			if !hasBodyClosed {
 				hasBodyClosed = true
 				out += "\n}\n"
 			}
@@ -504,7 +505,7 @@ func (cp *Compiler) processLayout() {
 		}
 	}
 
-	if cp.hasLayout() && hasBodyClosed == false {
+	if cp.hasLayout() && !hasBodyClosed {
 		out += "\n}\n"
 	}
 
