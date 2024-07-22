@@ -173,7 +173,8 @@ func (cp *Compiler) genPart() {
 }
 
 func makeCompiler(ast *Ast, options Option, input string) *Compiler {
-	dir := filepath.Base(filepath.Dir(input))
+	inputPath, _ := filepath.Abs(input)
+	dir := filepath.Base(filepath.Dir(inputPath))
 	file := strings.Replace(filepath.Base(input), gzExtension, "", 1)
 	if !options.NameNotChange {
 		file = Capitalize(file)
