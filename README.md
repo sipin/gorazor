@@ -1,6 +1,5 @@
 # gorazor
 
-[![Build Status](https://travis-ci.org/sipin/gorazor.svg?branch=master)](https://travis-ci.org/sipin/gorazor)
 [![Go Report Card](https://goreportcard.com/badge/github.com/sipin/gorazor?v=1)](https://goreportcard.com/report/github.com/sipin/gorazor)
 <a href='https://github.com/jpoles1/gopherbadger' target='_blank'>![gopherbadger-tag-do-not-edit](https://img.shields.io/badge/Go%20Coverage-90%25-brightgreen.svg?longCache=true&style=flat)</a>
 [![996.icu](https://img.shields.io/badge/link-996.icu-red.svg)](https://996.icu)
@@ -385,6 +384,8 @@ The very [first version](https://github.com/sipin/gorazor/releases/tag/vash) of 
 
 [LICENSE](LICENSE)? Well, [WTFPL](http://www.wtfpl.net/about/) and [996.icu](LICENSE).
 
-# Todo
+# Project Status
 
-[Todo](https://github.com/sipin/gorazor/blob/master/todo.md)
+Feature completed.
+
+Archived [todo](https://github.com/sipin/gorazor/blob/master/todo.md)
