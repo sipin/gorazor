@@ -241,64 +241,130 @@ func (cp *Compiler) settleLayout(layoutFunc string) {
 // First block contains imports and parameters, specific action for layout,
 // NOTE, layout have some conventions.
 func (cp *Compiler) visitFirstBLK(blk *Ast) {
+	blockContent := cp.extractBlockContent(blk)
+	cp.processImports(blockContent)
+	layoutFunc := cp.processDeclarations(blockContent)
+	cp.finalizeLayout(layoutFunc)
+}
+
+// extractBlockContent processes the AST block and returns the generated content
+func (cp *Compiler) extractBlockContent(blk *Ast) string {
 	pre := cp.buf
 	cp.buf = ""
-	first := ""
 	backup := cp.parts
 	cp.parts = []Part{}
+	
 	cp.visitAst(blk)
 	cp.genPart()
-	first, cp.buf = cp.buf, pre
+	
+	content := cp.buf
+	cp.buf = pre
 	cp.parts = backup
+	
+	return content
+}
 
+// processImports parses and processes Go imports from the block content
+func (cp *Compiler) processImports(content string) {
 	fset := token.NewFileSet()
-	f, err := parser.ParseFile(fset, "", "package main\n"+first, parser.ImportsOnly)
+	f, err := parser.ParseFile(fset, "", "package main\n"+content, parser.ImportsOnly)
 	if err != nil {
 		fmt.Println(err)
 		os.Exit(1)
-	} else {
-		for _, s := range f.Imports {
-			v := s.Path.Value
-			if s.Name != nil {
-				v = s.Name.Name + " " + v
-			}
-			parts := strings.SplitN(v, "/", -1)
-
-			if len(parts) >= 1 && parts[len(parts)-1] == `layout"` {
-				cp.layout = strings.Replace(v, "\"", "", -1)
-			}
-
-			cp.imports[v] = true
-		}
 	}
+	
+	for _, s := range f.Imports {
+		importPath := s.Path.Value
+		if s.Name != nil {
+			importPath = s.Name.Name + " " + importPath
+		}
+		
+		cp.imports[importPath] = true
+		cp.detectLayoutImport(importPath)
+	}
+}
 
-	lines := strings.SplitN(first, "\n", -1)
+// detectLayoutImport checks if an import path is a layout import and sets cp.layout
+func (cp *Compiler) detectLayoutImport(importPath string) {
+	parts := strings.SplitN(importPath, "/", -1)
+	if len(parts) >= 1 && parts[len(parts)-1] == `layout"` {
+		cp.layout = strings.Replace(importPath, "\"", "", -1)
+	}
+}
+
+// processDeclarations processes variable declarations and layout assignments
+func (cp *Compiler) processDeclarations(content string) string {
+	lines := strings.SplitN(content, "\n", -1)
 	var layoutFunc string
-	for _, l := range lines {
-		l = strings.TrimSpace(l)
-		if strings.HasPrefix(l, "var") {
-			vname := l[4:]
-			if strings.HasSuffix(l, "gorazor.Widget") {
-				cp.imports[GorazorNamespace] = true
-				cp.params = append(cp.params, vname[:len(vname)-14]+"gorazor.Widget")
-				name := strings.SplitN(vname, " ", 2)[0]
-				cp.paramNames = append(cp.paramNames, name)
-			} else if strings.HasPrefix(vname, "layout") {
-				funcName := strings.SplitN(vname, ".", -1)
-				layoutFunc = funcName[len(funcName)-1]
-			} else {
-				cp.params = append(cp.params, vname)
-				name := strings.SplitN(vname, " ", 2)[0]
-				cp.paramNames = append(cp.paramNames, name)
-			}
-		} else if strings.HasPrefix(l, "isLayout") {
-			cp.isLayout = strings.HasSuffix(l, "true")
-		} else if strings.HasPrefix(l, "layout:=") || strings.HasPrefix(l, "layout :=") {
-			vname := strings.TrimSpace(strings.Split(l, ":=")[1])
-			funcName := strings.SplitN(vname, ".", -1)
-			layoutFunc = funcName[len(funcName)-1]
-		}
+	
+	for _, line := range lines {
+		line = strings.TrimSpace(line)
+		layoutFunc = cp.processDeclarationLine(line, layoutFunc)
 	}
+	
+	return layoutFunc
+}
+
+// processDeclarationLine processes a single line of declarations
+func (cp *Compiler) processDeclarationLine(line, currentLayoutFunc string) string {
+	switch {
+	case strings.HasPrefix(line, "var"):
+		return cp.processVariableDeclaration(line, currentLayoutFunc)
+	case strings.HasPrefix(line, "isLayout"):
+		cp.isLayout = strings.HasSuffix(line, "true")
+		return currentLayoutFunc
+	case strings.HasPrefix(line, "layout:=") || strings.HasPrefix(line, "layout :="):
+		return cp.processLayoutAssignment(line)
+	default:
+		return currentLayoutFunc
+	}
+}
+
+// processVariableDeclaration processes variable declarations (var statements)
+func (cp *Compiler) processVariableDeclaration(line, currentLayoutFunc string) string {
+	vname := line[4:] // Remove "var " prefix
+	
+	switch {
+	case strings.HasSuffix(line, "gorazor.Widget"):
+		cp.processWidgetVariable(vname)
+		return currentLayoutFunc
+	case strings.HasPrefix(vname, "layout"):
+		return cp.extractLayoutFunctionName(vname)
+	default:
+		cp.processRegularVariable(vname)
+		return currentLayoutFunc
+	}
+}
+
+// processWidgetVariable handles gorazor.Widget variable declarations
+func (cp *Compiler) processWidgetVariable(vname string) {
+	cp.imports[GorazorNamespace] = true
+	cp.params = append(cp.params, vname[:len(vname)-14]+"gorazor.Widget")
+	name := strings.SplitN(vname, " ", 2)[0]
+	cp.paramNames = append(cp.paramNames, name)
+}
+
+// processRegularVariable handles regular variable declarations
+func (cp *Compiler) processRegularVariable(vname string) {
+	cp.params = append(cp.params, vname)
+	name := strings.SplitN(vname, " ", 2)[0]
+	cp.paramNames = append(cp.paramNames, name)
+}
+
+// processLayoutAssignment processes layout := assignments
+func (cp *Compiler) processLayoutAssignment(line string) string {
+	vname := strings.TrimSpace(strings.Split(line, ":=")[1])
+	return cp.extractLayoutFunctionName(vname)
+}
+
+// extractLayoutFunctionName extracts function name from layout variable assignments
+func (cp *Compiler) extractLayoutFunctionName(vname string) string {
+	funcName := strings.SplitN(vname, ".", -1)
+	return funcName[len(funcName)-1]
+}
+
+// finalizeLayout completes layout processing if layout was detected
+func (cp *Compiler) finalizeLayout(layoutFunc string) {
 	if cp.layout != "" {
 		cp.settleLayout(layoutFunc)
 	}
