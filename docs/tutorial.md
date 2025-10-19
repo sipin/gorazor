@@ -114,9 +114,7 @@ Open [localhost:9999](http://localhost:9999) to see `Hello from gorazor`.
 
 ![page index](img/page_index.png)
 
-
-
-## Code sections
+## Add Code sections to `gohtml` files
 
 In `gohtml` you may insert `Go` code snippet, like this:
 ```html
@@ -125,17 +123,29 @@ In `gohtml` you may insert `Go` code snippet, like this:
     "time"
   )
 }
-
-<p>This is Index</p>
-
 @{
    t := time.Now()
    StrTime := t.Format("2006-01-02 15:04:05")
-   <p>Time now is:  @StrTime </p>
 }
+<div>
+    <!-- tpl/index.gohtml -->
+    <main>
+        <h1>Hello from gorazor</h1>
+        <div>
+        This is your index.gohtml file
+         at <i>@StrTime </i>
+        </div>
+    </main>
+</div>
 ```
+The result looks like this
+
+![page index with time](img/page_time.png)
 
 For more details syntax please refer to [Web programming using the Razor syntax](http://www.asp.net/web-pages/tutorials/basics/2-introduction-to-asp-net-web-programming-using-the-razor-syntax).
+
+## Use Javascript in `gohtml` files
+
 And you may also add `javascript` code in `gohtml`, where ctx is `var ctx *web.Context`, details please refer to [sipin/web](http://github.com/sipin/web).
 
 
