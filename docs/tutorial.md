@@ -1,6 +1,6 @@
 # gorazor tutorial
 
-## Hello world
+## Intro
 
 `gorazor` is a translator from `gohtml` to `go`. For every `gohtml` file will be translated into a Go program with a function declared, which will return a `string` value as HTML output.
 
@@ -69,7 +69,7 @@ After that create a new directory named `tpl` in your project directory `razor_t
 <div>
     <!-- tpl/index.gohtml -->
     <main>
-        <h1>Hello from gorazor!</h1>
+        <h1>Hello from gorazor</h1>
         <div>This is your index.gohtml file</div>
     </main>
 </div>
@@ -110,7 +110,7 @@ func main() {
 }
 ```
 
-Open [localhost:9999](http://localhost:9999) to see `Hello from gorazor!`.
+Open [localhost:9999](http://localhost:9999) to see `Hello from gorazor`.
 
 ![page index](img/page_index.png)
 
