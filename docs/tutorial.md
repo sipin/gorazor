@@ -32,18 +32,17 @@ func RenderHello(_buffer io.StringWriter) {
 ```
 
 Note: put hello.gohtml in a directory, the directory name will be used as package name in go program.
+## Create a `Hello world` demo   
+Create the `razor_tut` project that uses Go's built-in [HTTP server](https://gowebexamples.com/http-server/) 
 
-## Routes
-
-Let's use golang's built in [HTTP Server](https://gowebexamples.com/http-server/) as example,
-
-Firstly let's install web.go as below:
 ```shell
-mkdir src
+mkdir razor_tut
+cd razor_tut
+go mod init razor_tut
 export GOPATH=$PWD
 ```
 
-the `Hello world` example in web.go is main.go:
+Now create `main.go` like this:
 
 ```go
 package main
@@ -57,21 +56,36 @@ func main() {
 	http.HandleFunc("/hello", func(w http.ResponseWriter, r *http.Request) {
 		fmt.Fprintf(w, "Hello world!")
 	})
-
-	http.ListenAndServe(":8080", nil)
+	fmt.Print("Server + Handler started on http://localhost:9999/hello")
+	http.ListenAndServe(":9999", nil)
 }
 ```
+Inside `razor_tut` folder type `go run main.go` to start the web server and open [localhost:9999/hello](http://localhost:9999/hello) to see `Hello world!`.
 
-use command: `go run src/main.go` to start web server, and localhost:9999 will ready for use.
-
-Then we make a new directory named `tpl` in project dir, and write an `index.gohtml` in it.
+## Use `gorazor` for  `Hello world` demo  
+After that create a new directory named `tpl` in your project directory `razor_tut`, create the file `index.gohtml` and write in it.
 
 ```html
-<p>This is Index</p>
+<div>
+    <!-- tpl/index.gohtml -->
+    <main>
+        <h1>Hello from gorazor</h1>
+        <div>This is your index.gohtml file</div>
+    </main>
+</div>
 ```
 
-and then use : `gorazor tpl src/tpl` will generate `Go` files into `src/tpl`.
-and then modify main.go:
+The project should look like this 
+
+```bash
+razor_tut
+├───tpl
+│   └───index.gohtml
+├───go.mod
+└───main.go
+```
+
+Run `gorazor tpl tpl` to generate `Go` files into `tpl`. Now add import `"razor_tut/tpl"` to main.go:
 
 ```go
 package main
@@ -80,7 +94,7 @@ import (
 	"fmt"
 	"net/http"
 
-	"tpl"
+	"razor_tut/tpl" // import the generated code
 )
 
 func main() {
@@ -89,12 +103,18 @@ func main() {
   })
 
 	http.HandleFunc("/", func(w http.ResponseWriter, r *http.Request) {
-		fmt.Fprintf(w, tpl.Index())
+		fmt.Fprintf(w, tpl.Index()) // tpl.Index() was generated
 	})
-
-	http.ListenAndServe(":8080", nil)
+    fmt.Print("Server + Handler started on http://localhost:9999")
+	http.ListenAndServe(":9999", nil)
 }
 ```
+
+Open [localhost:9999](http://localhost:9999) to see `Hello world!`.
+
+![page index](img/page_index.png)
+
+
 
 ## Code sections
 
