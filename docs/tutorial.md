@@ -69,7 +69,7 @@ After that create a new directory named `tpl` in your project directory `razor_t
 <div>
     <!-- tpl/index.gohtml -->
     <main>
-        <h1>Hello from gorazor</h1>
+        <h1>Hello from gorazor!</h1>
         <div>This is your index.gohtml file</div>
     </main>
 </div>
@@ -110,7 +110,7 @@ func main() {
 }
 ```
 
-Open [localhost:9999](http://localhost:9999) to see `Hello world!`.
+Open [localhost:9999](http://localhost:9999) to see `Hello from gorazor!`.
 
 ![page index](img/page_index.png)
 
