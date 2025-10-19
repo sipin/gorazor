@@ -2,13 +2,11 @@
 
 ## Intro
 
-`gorazor` is a translator from `gohtml` to `go`. For every `gohtml` file will be translated into a Go program with a function declared, which will return a `string` value as HTML output.
-
-For example:
-
+`gorazor` is a translator that generates go code from  `gohtml` files that contain [razory syntax](https://haacked.com/archive/2011/01/06/razor-syntax-quick-reference.aspx/). Every `gohtml` file will be translated into a Go program with a function declared, which will return a `string` value as HTML output. 
+For example the file `demo/intro.gohtml` that contains 
 ```html
 <p>Hello world</p>
-```
+``` 
 
 will be translated into:
 
