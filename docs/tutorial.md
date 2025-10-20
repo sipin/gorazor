@@ -140,6 +140,81 @@ The result looks like this
 
 ![page index with time](img/page_time.png)
 
+### Iterate over a slice 
+Create file `user.go` in folder `models` like this:
+
+```go
+package models
+
+// User stores information of a users
+type User struct {
+	Name  string
+	Email string
+	Intro string
+}
+```
+and create file `userlist.gohtml` in folder `tpl` like this: 
+
+```html
+@{
+  // file tpl/userlist.gohtml 
+  import (
+    "razor_tut/models"
+  )
+  
+  var user *models.User
+  var userSlice *[]models.User
+}
+
+@{
+  userName := user.Name
+  userEmail := user.Email
+  numberOfUsers := len(*userSlice)
+  users := *userSlice
+}
+<div>
+    <h2>Hello @userName</h2>
+    <label>E-Mail: @userEmail</label>
+    <h2>List of @numberOfUsers Users</h2>
+    <ul data-comment="render users below">
+      @for _, usr := range users {
+        <li>Email of @usr.Name: @usr.Email</li>  
+      }
+    </ul>
+</div>
+```
+Now generate the code with `gorazor tpl tpl`. After this add this to `main.go`
+
+```go
+func main() {
+
+    // new render userlist.gohtml at route /users
+	http.HandleFunc("/users", func(w http.ResponseWriter, r *http.Request) {
+		fmt.Fprintf(w, "%s", tpl.Userlist(GetUser(), GetUsers()))
+	})
+
+    // code from above goes here 
+}
+
+func GetUser() *models.User {
+	return &models.User{
+		Name: "Harry", Email: "Vanderspeigle@example.com", Intro: "Resident Alien",
+	}
+}
+
+func GetUsers() *[]models.User {
+	return &[]models.User{
+		{Name: "Barny", Email: "barny.brocode@example.com", Intro: "HIMYM"},
+		{Name: "Raj", Email: "raj.muted@example.com", Intro: "TBBT"},
+		{Name: "Harry", Email: "Vanderspeigle@example.com", Intro: "Resident Alien"},
+	}
+}
+```
+Open [localhost:9999/users](http://localhost:9999/users) to see the userlist
+
+![page userlist](img/page_userlist.png)
+
+
 For more details syntax please refer to [Web programming using the Razor syntax](http://www.asp.net/web-pages/tutorials/basics/2-introduction-to-asp-net-web-programming-using-the-razor-syntax).
 
 ## Use Javascript in `gohtml` files
