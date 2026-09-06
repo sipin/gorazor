@@ -61,7 +61,7 @@ gorazor tpl tpl
 
 This compiles `tpl/index.gohtml` into a native Go source file `tpl/index.go`. Under the hood, this file exports:
 * `tpl.Index(name string, items []string) string`: Renders the template to a string.
-* `tpl.RenderIndex(_buffer io.StringWriter, name string, items []string)`: Renders directly into a buffer/writer for zero-allocation performance.
+* `tpl.RenderIndex(_buffer io.StringWriter, name string, items []string)`: Renders directly into an `io.StringWriter` (such as `*strings.Builder`, `*bufio.Writer`, or a custom buffer) for zero-allocation performance. Note: standard `http.ResponseWriter` does not implement `io.StringWriter`, so in HTTP handlers use `io.WriteString(w, tpl.Index(...))` or wrap `w` with `bufio.NewWriter(w)`.
 
 ---
 
@@ -87,6 +87,13 @@ func main() {
 
 		// Render index template to HTTP response writer
 		io.WriteString(w, tpl.Index(name, items))
+
+		// Note on Zero-Allocation:
+		// Standard http.ResponseWriter does not implement io.StringWriter.
+		// For high-throughput zero-allocation streaming, wrap w with a buffered writer:
+		//   bw := bufio.NewWriter(w)
+		//   tpl.RenderIndex(bw, name, items)
+		//   bw.Flush()
 	})
 
 	log.Println("Server running at http://localhost:8080")

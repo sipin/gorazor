@@ -53,4 +53,3 @@ type Widget struct {
 	Type        string
 	ErrorMsg    string
 }
-
