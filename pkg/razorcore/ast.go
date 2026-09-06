@@ -104,7 +104,6 @@ func (ast *Ast) hasNonExp() bool {
 				return true
 			}
 		}
-		return false
 	}
 
 	return false

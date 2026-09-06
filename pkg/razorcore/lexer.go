@@ -237,7 +237,7 @@ func (lexer *Lexer) Scan() ([]Token, error) {
 				}
 				if !match {
 					return toks, fmt.Errorf("%d:%d: Illegal character: %s",
-						line, pos, string(text[pos]))
+						line, pos, string(text[cur]))
 				}
 			}
 		}

@@ -1,12 +1,8 @@
 package razorcore
 
-// Widget represent an HTML input widget
-// Currently not in used
-type Widget struct {
-	Label       string
-	Value       string
-	Name        string
-	PlaceHolder string
-	Type        string
-	ErrorMsg    string
-}
+import "github.com/sipin/gorazor/runtime"
+
+// Widget represents an HTML input widget
+// Alias to runtime.Widget for backward compatibility
+type Widget = runtime.Widget
+

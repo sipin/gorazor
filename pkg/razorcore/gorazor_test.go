@@ -23,6 +23,20 @@ func TestCap(t *testing.T) {
 	}
 }
 
+func TestWidget(t *testing.T) {
+	w := Widget{
+		Label:       "Username",
+		Value:       "test",
+		Name:        "username",
+		PlaceHolder: "Enter username",
+		Type:        "text",
+		ErrorMsg:    "invalid",
+	}
+	if w.Label != "Username" || w.Value != "test" || w.Name != "username" {
+		t.Errorf("unexpected widget values: %+v", w)
+	}
+}
+
 func TestLayoutCache(t *testing.T) {
 	cache := NewLayoutCache()
 	cache.Set("hello", []string{"this", "is", "good"})
@@ -229,6 +243,19 @@ func TestAdditionalCoverage(t *testing.T) {
 		}
 	})
 
+	t.Run("ast_has_non_exp_multiple_children_second_match", func(t *testing.T) {
+		root := &Ast{Mode: EXP}
+		child1 := &Ast{Mode: EXP} // child1 has no non-exp
+		child2 := &Ast{Mode: EXP}
+		leaf := &Ast{Mode: MKP} // child2 has non-exp
+		child2.addChild(leaf)
+		root.addChild(child1)
+		root.addChild(child2)
+		if !root.hasNonExp() {
+			t.Error("expected true when second child has non-exp")
+		}
+	})
+
 	t.Run("isLayoutSection_direct", func(t *testing.T) {
 		cp := &Compiler{
 			isLayout:   true,
@@ -307,8 +334,15 @@ func TestAdditionalCoverage(t *testing.T) {
 	t.Run("lexer_illegal_character", func(t *testing.T) {
 		lex := &Lexer{"abc", []TokenMatch{}}
 		_, err := lex.Scan()
-		if err == nil || !strings.Contains(err.Error(), "Illegal character") {
-			t.Error("expected Illegal character error, got:", err)
+		if err == nil || !strings.Contains(err.Error(), "Illegal character: a") {
+			t.Error("expected Illegal character: a, got:", err)
+		}
+
+		// Test multiline illegal character reporting: line 2 column 3 should report 'a', not text[pos] which would be ' '
+		lex2 := &Lexer{"(\n   abc", []TokenMatch{}}
+		_, err2 := lex2.Scan()
+		if err2 == nil || !strings.Contains(err2.Error(), "2:3: Illegal character: a") {
+			t.Error("expected '2:3: Illegal character: a', got:", err2)
 		}
 	})
 
@@ -324,6 +358,17 @@ func TestAdditionalCoverage(t *testing.T) {
 		if ok {
 			t.Error("expected optimize to return false on type checking error")
 		}
+
+		// Non-ident selector call (e.g. getP().HTMLEscape()) should not panic
+		codeNonIdent := `package main
+type P struct{}
+func (p P) HTMLEscape(s string) string { return s }
+func getP() P { return P{} }
+func main() { _ = getP().HTMLEscape("test") }`
+		ok, _ = optimize("dummy.go", "main", codeNonIdent)
+		if ok {
+			t.Error("expected optimize to return false for non-gorazor selector")
+		}
 	})
 
 	t.Run("layout_args_zero_sections", func(t *testing.T) {
@@ -338,6 +383,57 @@ func TestAdditionalCoverage(t *testing.T) {
 		foot := cp.generateFoot([]string{"mysection"})
 		if !strings.Contains(foot, ", mysection()") {
 			t.Error("expected section invocation in foot, got:", foot)
+		}
+	})
+
+	t.Run("layout_args_with_string_substring", func(t *testing.T) {
+		cache := NewLayoutCache()
+		cache.Set("tpl/layout/base", []string{"body string", "queryString string", "stringVal string"})
+		cp := &Compiler{
+			layout: "tpl/layout/base",
+			options: Option{
+				LayoutCache: cache,
+			},
+		}
+		foot := cp.generateFoot([]string{"queryString", "stringVal"})
+		if !strings.Contains(foot, ", _queryString, _stringVal)") {
+			t.Errorf("expected matching for queryString and stringVal, got: %s", foot)
+		}
+	})
+
+	t.Run("layout_import_alias", func(t *testing.T) {
+		tmpDir := filepath.Join(t.TempDir(), "tpl")
+		os.MkdirAll(tmpDir, 0755)
+		tplFile := filepath.Join(tmpDir, "alias.gohtml")
+		outFile := filepath.Join(tmpDir, "alias.go")
+		content := `@{
+	import (
+		share "cases/layout"
+	)
+	layout := share.base
+}
+<h1>Hello with alias layout</h1>`
+		if err := os.WriteFile(tplFile, []byte(content), 0644); err != nil {
+			t.Fatal(err)
+		}
+		cache := NewLayoutCache()
+		cache.Set("cases/layout/base", []string{"body string", "title string", "js string"})
+		err := GenFile(context.Background(), tplFile, outFile, Option{
+			LayoutCache: cache,
+		})
+		if err != nil {
+			t.Fatalf("failed to compile template with layout alias: %v", err)
+		}
+		outBytes, err := os.ReadFile(outFile)
+		if err != nil {
+			t.Fatal(err)
+		}
+		outStr := string(outBytes)
+		if !strings.Contains(outStr, `share.RenderBase(_buffer, _body`) {
+			t.Errorf("expected share.RenderBase in generated code, got:\n%s", outStr)
+		}
+		if !strings.Contains(outStr, `share "cases/layout"`) {
+			t.Errorf("expected share \"cases/layout\" import in generated code, got:\n%s", outStr)
 		}
 	})
 
@@ -634,6 +730,27 @@ func TestAdditionalCoverage(t *testing.T) {
 		}
 	})
 
+	t.Run("genfolder_panic_recovery", func(t *testing.T) {
+		tmpDir := t.TempDir()
+		inDir := filepath.Join(tmpDir, "in")
+		outDir := filepath.Join(tmpDir, "out")
+		os.MkdirAll(inDir, 0755)
+
+		// Create a template that will cause FormatBuffer to panic due to invalid Go syntax
+		panicContent := `@{
+	var totalMessage i nt
+}`
+		os.WriteFile(filepath.Join(inDir, "panic.gohtml"), []byte(panicContent), 0644)
+
+		err := GenFolder(context.Background(), inDir, outDir, Option{QuickMode: true})
+		if err == nil {
+			t.Error("expected error from GenFolder due to panic in file, got nil")
+		}
+		if !strings.Contains(err.Error(), "error processing") {
+			t.Errorf("expected error processing prefix, got: %v", err)
+		}
+	})
+
 	t.Run("html_compact_mode", func(t *testing.T) {
 		tmpOut := filepath.Join(os.TempDir(), "gorazor_compact_out.go")
 		defer os.Remove(tmpOut)
@@ -681,6 +798,16 @@ func TestAdditionalCoverage(t *testing.T) {
 		expectedPayload := `_buffer.WriteString("<div class=\"header\" id=\"top\"><h1>Hello World!</h1></div><pre class=\"code-block\">\n\t\t\tline 1\n\t\t\t  line 2\n\t\t</pre><script>\n\t\t\tconsole.log( \"test\" );\n\t\t</script><style>\n\t\t\tbody {  margin: 0;  }\n\t\t</style>")`
 		if !strings.Contains(contentStr, expectedPayload) {
 			t.Errorf("expected combined compact HTML statement not found in:\n%s", contentStr)
+		}
+
+		// Test script with '<' comparison operators inside to ensure they are preserved and tag does not break
+		scriptWithComparison := "<script>\nfor (var i = 0; i < 10; i++) {\n    if (i < 5) {\n        console.log(i);\n    }\n}\n</script>"
+		compacted := compactHTML(scriptWithComparison)
+		if !strings.Contains(compacted, "i < 10") || !strings.Contains(compacted, "i < 5") {
+			t.Errorf("compactHTML corrupted '<' inside script: %s", compacted)
+		}
+		if !strings.HasSuffix(compacted, "</script>") {
+			t.Errorf("compactHTML did not properly close script tag: %s", compacted)
 		}
 	})
 }

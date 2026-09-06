@@ -92,6 +92,22 @@ func compactHTML(html string) string {
 	n := len(html)
 	for i < n {
 		if html[i] == '<' {
+			if inPre {
+				closingPrefix := "</" + inTagName
+				isActualClosing := false
+				if len(html)-i >= len(closingPrefix) && strings.EqualFold(html[i:i+len(closingPrefix)], closingPrefix) {
+					afterIdx := i + len(closingPrefix)
+					if afterIdx == len(html) || html[afterIdx] == '>' || isWhitespace(html[afterIdx]) || html[afterIdx] == '/' {
+						isActualClosing = true
+					}
+				}
+				if !isActualClosing {
+					result.WriteByte(html[i])
+					i++
+					continue
+				}
+			}
+
 			// Scan the entire tag up to '>'
 			j := i
 			inQuote := byte(0)
@@ -201,6 +217,7 @@ type Compiler struct {
 	buf         string //the final result
 	isLayout    bool
 	layout      string
+	layoutAlias string
 	firstBLK    int
 	params      []string
 	paramNames  []string
@@ -357,7 +374,14 @@ func makeCompiler(ctx context.Context, ast *Ast, options Option, input string) *
 	}
 
 	cp.inputPath = strings.ReplaceAll(input, "\\", "/")
-	cp.tplPath = strings.ReplaceAll(cp.inputPath, execDir, "")
+	tplPath := strings.ReplaceAll(cp.inputPath, execDir, "")
+	if filepath.IsAbs(tplPath) {
+		if cwd, err := os.Getwd(); err == nil && cwd != "" {
+			cwdSlash := strings.ReplaceAll(cwd, "\\", "/") + "/"
+			tplPath = strings.TrimPrefix(tplPath, cwdSlash)
+		}
+	}
+	cp.tplPath = strings.TrimPrefix(tplPath, "./")
 	return cp
 }
 
@@ -445,20 +469,24 @@ func (cp *Compiler) processImports(content string) {
 	
 	for _, s := range f.Imports {
 		importPath := s.Path.Value
+		alias := ""
 		if s.Name != nil {
-			importPath = s.Name.Name + " " + importPath
+			alias = s.Name.Name
+			importPath = alias + " " + importPath
 		}
 		
 		cp.imports[importPath] = true
-		cp.detectLayoutImport(importPath)
+		cp.detectLayoutImport(s.Path.Value, alias)
 	}
 }
 
-// detectLayoutImport checks if an import path is a layout import and sets cp.layout
-func (cp *Compiler) detectLayoutImport(importPath string) {
-	parts := strings.SplitN(importPath, "/", -1)
-	if len(parts) >= 1 && parts[len(parts)-1] == `layout"` {
-		cp.layout = strings.ReplaceAll(importPath, "\"", "")
+// detectLayoutImport checks if an import path is a layout import and sets cp.layout and cp.layoutAlias
+func (cp *Compiler) detectLayoutImport(pathValue, alias string) {
+	cleanPath := strings.ReplaceAll(pathValue, "\"", "")
+	parts := strings.SplitN(cleanPath, "/", -1)
+	if len(parts) >= 1 && parts[len(parts)-1] == "layout" {
+		cp.layout = cleanPath
+		cp.layoutAlias = alias
 	}
 }
 
@@ -671,7 +699,11 @@ func (cp *Compiler) generateFoot(sections []string) string {
 		foot += "\n"
 		parts := strings.SplitN(cp.layout, "/", -1)
 		base := Capitalize(parts[len(parts)-1])
-		foot += "layout.Render" + base + "("
+		pkgPrefix := "layout"
+		if cp.layoutAlias != "" {
+			pkgPrefix = cp.layoutAlias
+		}
+		foot += pkgPrefix + ".Render" + base + "("
 		foot += "_buffer, _body"
 	} else if len(sections) > 0 {
 		cp.errorf(1, "expect layout for sections: %s", cp.file)
@@ -684,8 +716,12 @@ func (cp *Compiler) generateFoot(sections []string) string {
 		}
 	} else {
 		for _, arg := range args[1:] {
-			arg = strings.ReplaceAll(arg, "string", "")
-			arg = strings.TrimSpace(arg)
+			parts := strings.Fields(arg)
+			if len(parts) > 0 {
+				arg = parts[0]
+			} else {
+				arg = strings.TrimSpace(arg)
+			}
 			found := false
 			for _, sec := range sections {
 				if sec == arg {

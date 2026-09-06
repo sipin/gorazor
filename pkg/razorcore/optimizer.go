@@ -37,7 +37,8 @@ func optimize(filename string, pkgname string, content string) (optimized bool, 
 		case *ast.CallExpr:
 			switch t2 := t.Fun.(type) {
 			case *ast.SelectorExpr:
-				if t2.Sel.Name == "HTMLEscape" && t2.X.(*ast.Ident).String() == "gorazor" {
+				ident, ok := t2.X.(*ast.Ident)
+				if ok && t2.Sel.Name == "HTMLEscape" && ident.Name == "gorazor" && len(t.Args) > 0 {
 					typ := info.Types[t.Args[0]]
 					if typ.Type != nil {
 						if typ.Type.String() == "int" {

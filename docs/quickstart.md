@@ -73,6 +73,7 @@ Create a `main.go` file in your root folder:
 package main
 
 import (
+	"io"
 	"log"
 	"net/http"
 
@@ -84,8 +85,8 @@ func main() {
 		name := "Developer"
 		items := []string{"Go", "Gorazor", "Zero-alloc speed"}
 
-		// Render index template directly to HTTP response writer
-		tpl.RenderIndex(w, name, items)
+		// Render index template to HTTP response writer
+		io.WriteString(w, tpl.Index(name, items))
 	})
 
 	log.Println("Server running at http://localhost:8080")

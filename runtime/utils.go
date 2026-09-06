@@ -43,3 +43,14 @@ func Capitalize(str string) string {
 	}
 	return strings.ToUpper(str[0:1]) + str[1:]
 }
+
+// Widget represents an HTML input widget
+type Widget struct {
+	Label       string
+	Value       string
+	Name        string
+	PlaceHolder string
+	Type        string
+	ErrorMsg    string
+}
+

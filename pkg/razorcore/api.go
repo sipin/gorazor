@@ -77,6 +77,17 @@ func GenFolder(ctx context.Context, indir string, outdir string, options Option)
 	var firstErr error
 
 	fun := func(path string, res chan<- string) {
+		defer func() {
+			if r := recover(); r != nil {
+				errMutex.Lock()
+				if firstErr == nil {
+					firstErr = fmt.Errorf("error processing %s: %v", path, r)
+				}
+				errMutex.Unlock()
+				res <- fmt.Sprintf("error: %s: %v", path, r)
+			}
+		}()
+
 		if err := ctx.Err(); err != nil {
 			errMutex.Lock()
 			if firstErr == nil {
@@ -87,9 +98,14 @@ func GenFolder(ctx context.Context, indir string, outdir string, options Option)
 			return
 		}
 
-		//adjust with the abs path, so that we keep the same directory hierarchy
-		input, _ := filepath.Abs(path)
-		output := strings.Replace(input, incdirAbs, outdirAbs, 1)
+		rel, relErr := filepath.Rel(indir, path)
+		var output string
+		if relErr == nil {
+			output = filepath.Join(outdir, rel)
+		} else {
+			input, _ := filepath.Abs(path)
+			output = strings.Replace(input, incdirAbs, outdirAbs, 1)
+		}
 		output = strings.ReplaceAll(output, gzExtension, goExtension)
 		genErr := GenFile(ctx, path, output, options)
 		if genErr != nil {
@@ -106,23 +122,39 @@ func GenFolder(ctx context.Context, indir string, outdir string, options Option)
 	if err != nil {
 		return err
 	}
-	runtime.GOMAXPROCS(runtime.NumCPU())
 	result := make(chan string, len(paths))
-
-	for w := 0; w < len(paths); w++ {
-		go fun(paths[w], result)
+	jobs := make(chan string, len(paths))
+	for _, p := range paths {
+		jobs <- p
 	}
-	for i := 0; i < len(paths); i++ {
-		select {
-		case <-ctx.Done():
-			errMutex.Lock()
-			if firstErr == nil {
-				firstErr = ctx.Err()
+	close(jobs)
+
+	numWorkers := runtime.NumCPU()
+	if numWorkers > len(paths) {
+		numWorkers = len(paths)
+	}
+	if numWorkers < 1 {
+		numWorkers = 1
+	}
+
+	var wg sync.WaitGroup
+	for w := 0; w < numWorkers; w++ {
+		wg.Add(1)
+		go func() {
+			defer wg.Done()
+			for p := range jobs {
+				fun(p, result)
 			}
-			errMutex.Unlock()
-		case res := <-result:
-			fmt.Println(res)
-		}
+		}()
+	}
+
+	go func() {
+		wg.Wait()
+		close(result)
+	}()
+
+	for res := range result {
+		fmt.Println(res)
 	}
 
 	return firstErr

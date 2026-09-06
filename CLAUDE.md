@@ -27,7 +27,7 @@ Gorazor is a Go port of the Razor view engine, providing a fast template compila
 
 ### Core Components
 
-**`cmd/gorazor/main.go`** - CLI entry point that parses flags and delegates to razorcore package
+**`main.go`** - CLI entry point that parses flags and delegates to razorcore package
 
 **`pkg/razorcore/`** - Core template processing engine:
 - `api.go` - Public API for file/folder generation (`GenFile`, `GenFolder`)
