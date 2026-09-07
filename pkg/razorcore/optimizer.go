@@ -27,9 +27,12 @@ func optimize(filename string, pkgname string, content string) (optimized bool, 
 		return false, content
 	}
 
-	replacedCount := 0
-	var intPos []token.Pos
-	var strPos []token.Pos
+	type replacement struct {
+		offset  int
+		oldName string
+		newName string
+	}
+	var replacements []replacement
 
 	// traverse all tokens
 	ast.Inspect(node, func(n ast.Node) bool {
@@ -38,32 +41,59 @@ func optimize(filename string, pkgname string, content string) (optimized bool, 
 			switch t2 := t.Fun.(type) {
 			case *ast.SelectorExpr:
 				ident, ok := t2.X.(*ast.Ident)
-				if ok && t2.Sel.Name == "HTMLEscape" && ident.Name == "gorazor" && len(t.Args) > 0 {
-					typ := info.Types[t.Args[0]]
-					if typ.Type != nil {
-						if typ.Type.String() == "int" {
-							intPos = append(intPos, t2.Pos())
-						} else if typ.Type.String() == "string" {
-							strPos = append(strPos, t2.Pos())
-						}
+				if !ok || ident.Name != "gorazor" || len(t.Args) == 0 {
+					return true
+				}
+				typ := info.Types[t.Args[0]]
+				if typ.Type == nil {
+					return true
+				}
+				argType := typ.Type.String()
+				var newName string
+				switch t2.Sel.Name {
+				case "HTMLEscape":
+					if argType == "int" {
+						newName = "HTMLEscInt"
+					} else if argType == "string" {
+						newName = "HTMLEscStr"
 					}
+				case "URLEscape":
+					if argType == "string" {
+						newName = "URLEscStr"
+					}
+				case "URLQueryEscape":
+					if argType == "string" {
+						newName = "URLQueryEscStr"
+					}
+				case "JSEscape":
+					if argType == "string" {
+						newName = "JSEscStr"
+					}
+				case "JSAttrEscape":
+					if argType == "string" {
+						newName = "JSAttrEscStr"
+					}
+				}
+				if newName != "" {
+					offset := fset.Position(t2.Sel.Pos()).Offset
+					replacements = append(replacements, replacement{
+						offset:  offset,
+						oldName: t2.Sel.Name,
+						newName: newName,
+					})
 				}
 			}
 		}
 		return true
 	})
 
-	replacedCount = len(intPos) + len(strPos)
-
-	for _, pos := range intPos {
-		pos += 7
-		content = content[0:pos] + "HTMLEscInt" + content[pos+10:]
+	// Replace in reverse order so any offset changes would not affect earlier replacements.
+	for i := len(replacements) - 1; i >= 0; i-- {
+		r := replacements[i]
+		if r.offset >= 0 && r.offset+len(r.oldName) <= len(content) && content[r.offset:r.offset+len(r.oldName)] == r.oldName {
+			content = content[:r.offset] + r.newName + content[r.offset+len(r.oldName):]
+		}
 	}
 
-	for _, pos := range strPos {
-		pos += 7
-		content = content[0:pos] + "HTMLEscStr" + content[pos+10:]
-	}
-
-	return replacedCount > 0, content
+	return len(replacements) > 0, content
 }

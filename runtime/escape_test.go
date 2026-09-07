@@ -212,3 +212,22 @@ func TestToString(t *testing.T) {
 		t.Errorf("toString(float) = %q", got)
 	}
 }
+
+func TestJSAttrEscape(t *testing.T) {
+	cases := map[string]string{
+		`hello`:              `hello`,
+		`"`:                  `\&#34;`,
+		`'`:                  `\&#39;`,
+		`'); alert(1); //`:   `\&#39;); alert(1); //`,
+		`"><script>alert(1)`: `\&#34;\u003E\u003Cscript\u003Ealert(1)`,
+		`x\y`:                `x\\y`,
+	}
+	for in, want := range cases {
+		if got := JSAttrEscStr(in); got != want {
+			t.Errorf("JSAttrEscStr(%q) = %q, want %q", in, got, want)
+		}
+	}
+	if got := JSAttrEscape(42); got != "42" {
+		t.Errorf("JSAttrEscape(42) = %q, want \"42\"", got)
+	}
+}

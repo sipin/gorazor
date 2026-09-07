@@ -18,6 +18,9 @@ const (
 	ctxURLQuery
 	// ctxScript is the raw-text content of a <script> element.
 	ctxScript
+	// ctxJSAttr is an inline event handler attribute (onclick, onmouseover, ...)
+	// where JavaScript escaping followed by HTML entity escaping is required.
+	ctxJSAttr
 )
 
 // urlAttrs are the attributes whose value is a single URL.
@@ -53,6 +56,12 @@ const (
 	stAttrValueQuoted
 	stAttrValueUnquoted
 	stRawText // inside <script> or <style>, only looking for the end tag
+	stBang
+	stDocType
+	stCommentDash1
+	stComment
+	stCommentCloseDash1
+	stCommentCloseDash2
 )
 
 // htmlScanner tracks just enough HTML structure to answer "what kind of place
@@ -107,17 +116,50 @@ func (s *htmlScanner) context() htmlContext {
 	if s.rawTag != "" {
 		return ctxText
 	}
+	// If the scanner is right after "=" (e.g. <a href=@url> or <button onclick=@handler>),
+	// this expression is an unquoted attribute value.
+	if s.state == stBeforeAttrValue {
+		s.state = stAttrValueUnquoted
+	}
 	if s.state != stAttrValueQuoted && s.state != stAttrValueUnquoted {
 		return ctxText
+	}
+	if s.attrIsEvent() {
+		return ctxJSAttr
 	}
 	if !s.attrIsURL() {
 		return ctxText
 	}
 	// Past a "?" the expression is a query component, not the URL itself.
-	if strings.ContainsRune(s.attrVal.String(), '?') {
+	val := s.attrVal.String()
+	if strings.ContainsRune(val, '?') {
 		return ctxURLQuery
 	}
+	// In RFC 3986, a scheme cannot contain '/' or '#' and only appears at the
+	// very start of a URL. If the attribute value seen so far already contains
+	// '/' or '#', the expression is in the path, authority, or fragment
+	// component of the URL, not the scheme. HTMLEscape is sufficient and avoids
+	// false-positive #ZgotmplZ replacements on path segments containing colons
+	// (e.g. <a href="/items/@id"> where id is "doc:123").
+	if strings.ContainsRune(val, '/') || strings.ContainsRune(val, '#') {
+		return ctxText
+	}
 	return ctxURL
+}
+
+// attrIsEvent reports whether the attribute currently being scanned is an inline
+// event handler such as onclick, onmouseover, onerror, etc.
+func (s *htmlScanner) attrIsEvent() bool {
+	return strings.HasPrefix(s.attrName, "on") && len(s.attrName) > 2
+}
+
+// notifyExp informs the scanner that an expression was emitted. If the scanner
+// is currently waiting for an attribute value (stBeforeAttrValue), the expression
+// serves as the unquoted attribute value.
+func (s *htmlScanner) notifyExp() {
+	if s.state == stBeforeAttrValue {
+		s.state = stAttrValueUnquoted
+	}
 }
 
 // attrIsURL reports whether the attribute currently being scanned holds a URL.
@@ -164,9 +206,59 @@ func (s *htmlScanner) step(c byte) {
 		case isTagNameStart(c):
 			s.tagName = strings.ToLower(string(c))
 			s.state = stTagName
+		case c == '!' && s.rawTag == "":
+			s.state = stBang
 		default:
 			// Not a tag after all ("a < b"); fall back to where we were.
 			s.state = s.textState()
+		}
+
+	case stBang:
+		switch c {
+		case '-':
+			s.state = stCommentDash1
+		case '>':
+			s.state = stText
+		default:
+			s.state = stDocType
+		}
+
+	case stDocType:
+		if c == '>' {
+			s.state = stText
+		}
+
+	case stCommentDash1:
+		switch c {
+		case '-':
+			s.state = stComment
+		case '>':
+			s.state = stText
+		default:
+			s.state = stDocType
+		}
+
+	case stComment:
+		if c == '-' {
+			s.state = stCommentCloseDash1
+		}
+
+	case stCommentCloseDash1:
+		switch c {
+		case '-':
+			s.state = stCommentCloseDash2
+		default:
+			s.state = stComment
+		}
+
+	case stCommentCloseDash2:
+		switch c {
+		case '>':
+			s.state = stText
+		case '-':
+			// stay in stCommentCloseDash2, handles --->
+		default:
+			s.state = stComment
 		}
 
 	case stTagName:

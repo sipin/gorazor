@@ -22,15 +22,15 @@ func RenderEscaping(_buffer io.StringWriter, url string, q string, name string) 
 	// Line: 5
 	_buffer.WriteString("\n<a href=\"")
 	// Line: 6
-	_buffer.WriteString(gorazor.URLEscape(url))
+	_buffer.WriteString(gorazor.URLEscStr(url))
 	// Line: 6
 	_buffer.WriteString("\">link</a>\n<a href=\"/search?q=")
 	// Line: 7
-	_buffer.WriteString(gorazor.URLQueryEscape(q))
+	_buffer.WriteString(gorazor.URLQueryEscStr(q))
 	// Line: 7
 	_buffer.WriteString("\">search</a>\n<img src=\"")
 	// Line: 8
-	_buffer.WriteString(gorazor.URLEscape(url))
+	_buffer.WriteString(gorazor.URLEscStr(url))
 	// Line: 8
 	_buffer.WriteString("\" alt=\"")
 	// Line: 8
@@ -38,7 +38,7 @@ func RenderEscaping(_buffer io.StringWriter, url string, q string, name string) 
 	// Line: 8
 	_buffer.WriteString("\">\n<script>\nvar n = \"")
 	// Line: 10
-	_buffer.WriteString(gorazor.JSEscape(name))
+	_buffer.WriteString(gorazor.JSEscStr(name))
 	// Line: 10
 	_buffer.WriteString("\";\nfor (var i = 0; i < 10; i++) { if (i < 5) { log(n); } }\n</script>\n<p>")
 	// Line: 13

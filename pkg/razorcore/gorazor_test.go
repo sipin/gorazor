@@ -371,6 +371,42 @@ func main() { _ = getP().HTMLEscape("test") }`
 		}
 	})
 
+	t.Run("optimize_typed_escapers", func(t *testing.T) {
+		code := `package main
+
+import gorazor "github.com/sipin/gorazor/runtime"
+
+func main() {
+	var i int = 42
+	var s string = "hello"
+	_ = gorazor.HTMLEscape(i)
+	_ = gorazor.HTMLEscape(s)
+	_ = gorazor.URLEscape(s)
+	_ = gorazor.URLQueryEscape(s)
+	_ = gorazor.JSEscape(s)
+	_ = gorazor.JSAttrEscape(s)
+	_ = gorazor.URLEscape(i)
+}`
+		ok, out := optimize("dummy.go", "main", code)
+		if !ok {
+			t.Fatal("expected optimize to return true")
+		}
+		expectedReplacements := []string{
+			"gorazor.HTMLEscInt(i)",
+			"gorazor.HTMLEscStr(s)",
+			"gorazor.URLEscStr(s)",
+			"gorazor.URLQueryEscStr(s)",
+			"gorazor.JSEscStr(s)",
+			"gorazor.JSAttrEscStr(s)",
+			"gorazor.URLEscape(i)", // int arg to URLEscape should not be rewritten
+		}
+		for _, want := range expectedReplacements {
+			if !strings.Contains(out, want) {
+				t.Errorf("optimized output missing %q:\n%s", want, out)
+			}
+		}
+	})
+
 	t.Run("layout_args_zero_sections", func(t *testing.T) {
 		cache := NewLayoutCache()
 		cache.Set("tpl/layout/zero_args", []string{})

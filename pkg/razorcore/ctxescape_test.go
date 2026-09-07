@@ -104,6 +104,30 @@ func TestContextEscapeCodegen(t *testing.T) {
 			markup: `<style>.a { color: @name; }</style>`,
 			want:   "gorazor.HTMLEscape(name)",
 		},
+		{
+			name:     "unquoted href",
+			markup:   `<a href=@url>x</a>`,
+			want:     "gorazor.URLEscape(url)",
+			unwanted: "gorazor.HTMLEscape(url)",
+		},
+		{
+			name:     "path segment with colon",
+			markup:   `<a href="/items/@name">x</a>`,
+			want:     "gorazor.HTMLEscape(name)",
+			unwanted: "gorazor.URLEscape(name)",
+		},
+		{
+			name:     "onclick event handler",
+			markup:   `<button onclick="handleClick('@name')">click</button>`,
+			want:     "gorazor.JSAttrEscape(name)",
+			unwanted: "gorazor.HTMLEscape(name)",
+		},
+		{
+			name:     "element following html comment with script",
+			markup:   `<!-- <script>alert(1)</script> --><p>@name</p>`,
+			want:     "gorazor.HTMLEscape(name)",
+			unwanted: "gorazor.JSEscape(name)",
+		},
 	}
 
 	for _, tc := range cases {
@@ -201,31 +225,61 @@ func TestDisableContextEscape(t *testing.T) {
 	}
 }
 
-// TestContextEscapeOptimizerLeavesContextEscapersAlone guards the interaction
-// with the optimizer, which rewrites HTMLEscape into type-specific helpers. It
-// must not touch the context-specific escapers, whose argument handling
-// differs.
-func TestContextEscapeOptimizerLeavesContextEscapersAlone(t *testing.T) {
+// TestContextEscapeOptimizerOptimizesContextEscapers verifies that the optimizer
+// rewrites string arguments to context-specific escapers into their zero-boxing
+// EscStr variants.
+func TestContextEscapeOptimizerOptimizesContextEscapers(t *testing.T) {
 	code := `package main
 
 import gorazor "github.com/sipin/gorazor/runtime"
 
 func main() {
 	var s string
+	_ = gorazor.HTMLEscape(s)
 	_ = gorazor.URLEscape(s)
 	_ = gorazor.JSEscape(s)
 	_ = gorazor.URLQueryEscape(s)
+	_ = gorazor.JSAttrEscape(s)
 }`
 
-	_, out := optimize("dummy.go", "main", code)
-	if out == "" {
-		// The optimizer could not type-check here; nothing was rewritten,
-		// which is the outcome this test cares about.
-		return
+	ok, out := optimize("dummy.go", "main", code)
+	if !ok {
+		t.Fatalf("expected optimize to succeed, got false")
 	}
-	for _, want := range []string{"URLEscape", "JSEscape", "URLQueryEscape"} {
+	for _, want := range []string{"HTMLEscStr", "URLEscStr", "JSEscStr", "URLQueryEscStr", "JSAttrEscStr"} {
 		if !strings.Contains(out, want) {
-			t.Errorf("optimizer rewrote %s away:\n%s", want, out)
+			t.Errorf("optimizer did not rewrite to %s:\n%s", want, out)
+		}
+	}
+	for _, unwant := range []string{"gorazor.HTMLEscape(", "gorazor.URLEscape(", "gorazor.JSEscape(", "gorazor.URLQueryEscape(", "gorazor.JSAttrEscape("} {
+		if strings.Contains(out, unwant) {
+			t.Errorf("optimizer left unoptimized call %s:\n%s", unwant, out)
+		}
+	}
+}
+
+// TestContextEscapeOptimizerLeavesNonStringContextEscapersAlone guards against
+// rewriting calls with non-string arguments (e.g. interface{}).
+func TestContextEscapeOptimizerLeavesNonStringContextEscapersAlone(t *testing.T) {
+	code := `package main
+
+import gorazor "github.com/sipin/gorazor/runtime"
+
+func main() {
+	var v interface{}
+	_ = gorazor.URLEscape(v)
+	_ = gorazor.JSEscape(v)
+	_ = gorazor.URLQueryEscape(v)
+	_ = gorazor.JSAttrEscape(v)
+}`
+
+	ok, out := optimize("dummy.go", "main", code)
+	if ok {
+		t.Fatalf("expected optimizer not to rewrite interface{} args, got true")
+	}
+	for _, want := range []string{"URLEscape", "JSEscape", "URLQueryEscape", "JSAttrEscape"} {
+		if !strings.Contains(out, want) {
+			t.Errorf("optimizer rewrote %s away for interface{} argument:\n%s", want, out)
 		}
 	}
 }

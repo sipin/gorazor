@@ -609,6 +609,8 @@ func (cp *Compiler) escaperFor() string {
 		return "URLQueryEscape"
 	case ctxScript:
 		return "JSEscape"
+	case ctxJSAttr:
+		return "JSAttrEscape"
 	default:
 		return "HTMLEscape"
 	}
@@ -625,6 +627,7 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 	val := getValStr(child)
 
 	if ppNotExp && idx == 0 && isHomo {
+		cp.scanner.notifyExp()
 		if cp.isExpNeedEscape(val) {
 			start += "gorazor." + cp.escaperFor() + "("
 			cp.imports[GorazorNamespace] = true

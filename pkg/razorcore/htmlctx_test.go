@@ -12,6 +12,8 @@ func (c htmlContext) String() string {
 		return "ctxURLQuery"
 	case ctxScript:
 		return "ctxScript"
+	case ctxJSAttr:
+		return "ctxJSAttr"
 	}
 	return "unknown"
 }
@@ -33,7 +35,7 @@ func TestHTMLScannerContext(t *testing.T) {
 		// URL attributes
 		{"href double quoted", `<a href="`, ctxURL},
 		{"href single quoted", `<a href='`, ctxURL},
-		{"href unquoted", `<a href=`, ctxText}, // value not started yet
+		{"href unquoted", `<a href=`, ctxURL},
 		{"href unquoted started", `<a href=x`, ctxURL},
 		{"src", `<img src="`, ctxURL},
 		{"uppercase attr", `<a HREF="`, ctxURL},
@@ -46,7 +48,9 @@ func TestHTMLScannerContext(t *testing.T) {
 		{"href after other attrs", `<a class="x" id="y" href="`, ctxURL},
 		{"href before other attrs", `<a href="`, ctxURL},
 		{"attr with spaces around eq", `<a href = "`, ctxURL},
-		{"href with prefix", `<a href="/base/`, ctxURL},
+		{"href with path prefix stays text", `<a href="/base/`, ctxText},
+		{"href with path segment colon stays text", `<a href="/items/doc:`, ctxText},
+		{"href with fragment stays text", `<a href="/p#`, ctxText},
 
 		// Non-URL attributes stay on HTML escaping
 		{"class attr", `<div class="`, ctxText},
@@ -63,8 +67,23 @@ func TestHTMLScannerContext(t *testing.T) {
 		// Query position inside a URL attribute
 		{"query after ?", `<a href="/search?q=`, ctxURLQuery},
 		{"query second param", `<a href="/s?a=1&b=`, ctxURLQuery},
-		{"fragment is not query", `<a href="/p#`, ctxURL},
+		{"fragment is not query", `<a href="/p#foo`, ctxText},
 		{"question mark outside attr", `<p>what? <a href="`, ctxURL},
+
+		// Inline event handlers
+		{"onclick double quoted", `<button onclick="alert('`, ctxJSAttr},
+		{"onclick single quoted", `<button onclick='alert("`, ctxJSAttr},
+		{"onclick unquoted", `<button onclick=`, ctxJSAttr},
+		{"onmouseover", `<div onmouseover="`, ctxJSAttr},
+		{"not event attr on", `<div on="`, ctxText},
+		{"data-onload", `<div data-onload="`, ctxText},
+
+		// HTML comments and DOCTYPE
+		{"script in comment", `<!-- <script>alert(1)</script> --> <p>`, ctxText},
+		{"unclosed script in comment", `<!-- <script>alert(1) --> <p>`, ctxText},
+		{"comment with dashes", `<!-- a-b--c --> <p>`, ctxText},
+		{"doctype", `<!DOCTYPE html> <p>`, ctxText},
+		{"href in comment", `<!-- <a href="`, ctxText},
 
 		// Script raw text
 		{"in script", `<script>var a = "`, ctxScript},
@@ -145,13 +164,16 @@ func TestHTMLScannerMultipleExpressions(t *testing.T) {
 		markup string
 		want   htmlContext
 	}{
-		{`<a href="`, ctxURL},                // @url
-		{`?ref=`, ctxURLQuery},               // @ref
-		{`" title="`, ctxText},               // @title
-		{`">`, ctxText},                      // @label
-		{`</a><script>var n = "`, ctxScript}, // @name
-		{`"; var m = "`, ctxScript},          // @other
-		{`";</script><p>`, ctxText},          // @body
+		{`<a href="`, ctxURL},                             // @url
+		{`?ref=`, ctxURLQuery},                            // @ref
+		{`" title="`, ctxText},                            // @title
+		{`">`, ctxText},                                   // @label
+		{`</a><script>var n = "`, ctxScript},              // @name
+		{`"; var m = "`, ctxScript},                       // @other
+		{`";</script><p>`, ctxText},                       // @body
+		{`</p><button onclick="handleClick('`, ctxJSAttr}, // @user
+		{`')">click</button><a href=`, ctxURL},            // @unquotedUrl
+		{` class="btn">`, ctxText},                        // @btnText
 	}
 
 	s := &htmlScanner{}

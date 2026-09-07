@@ -123,3 +123,16 @@ func JSEscStr(s string) string {
 	// start of this new escape sequence.
 	return strings.ReplaceAll(template.JSEscapeString(s), "`", "\\u0060")
 }
+
+// JSAttrEscape escapes m for use inside an inline event handler attribute
+// (such as onclick="handleClick('@name')"). It applies JavaScript string
+// escaping followed by HTML entity escaping so that neither the JS string literal
+// nor the HTML attribute delimiter can be broken out of.
+func JSAttrEscape(m interface{}) string {
+	return JSAttrEscStr(toString(m))
+}
+
+// JSAttrEscStr is JSAttrEscape for a value already known to be a string.
+func JSAttrEscStr(s string) string {
+	return template.HTMLEscapeString(JSEscStr(s))
+}

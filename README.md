@@ -134,21 +134,33 @@ directly, with no runtime cost:
 | --- | --- |
 | Element content, ordinary attribute | HTML escaping |
 | URL attribute (`href`, `src`, `action`, ...) | Scheme filtering + HTML escaping |
+| URL path / fragment (e.g. `/items/@id`, `#@frag`) | HTML escaping (preserves colons like `doc:123`) |
 | Query part of a URL attribute (after `?`) | Percent-encoding + HTML escaping |
 | Inside `<script>` | JavaScript escaping |
+| Inline event handlers (`onclick`, `on*`) | JavaScript escaping + HTML escaping (`JSAttrEscape`) |
 
 ```html
 <a href="@url">link</a>              <!-- javascript: is filtered out -->
+<a href="/items/@id">doc</a>         <!-- path colons (e.g. doc:123) preserved safely -->
 <a href="/search?q=@q">search</a>    <!-- cannot inject extra parameters -->
 <script>var n = "@name";</script>    <!-- cannot close the string or the tag -->
+<button onclick="fn('@name')">ok</button> <!-- dual JS + HTML escaping prevents breakout -->
 <p>@name</p>                         <!-- HTML escaped -->
 ```
 
-Two notes:
+Notes:
 
 * A URL whose scheme is not one of `http`, `https`, `mailto`, `tel`, `ftp` or
   `ftps` is replaced by `#ZgotmplZ`, the same failsafe `html/template` uses. Use
   `@raw(url)` if you really need another scheme.
+* If a URL attribute already has a path prefix (e.g. `/items/@id`), the expression
+  is in the path or fragment component, so scheme-filtering is bypassed to prevent
+  false-positive `#ZgotmplZ` flags on colon-separated IDs (RFC 3986).
+* Inline event handlers (`onclick`, `onmouseover`, etc.) undergo dual JS and HTML
+  escaping (`JSAttrEscape`) so that values cannot break out of JavaScript string
+  literals or HTML attribute quotes.
+* The optimizer automatically rewrites all typed string calls to zero-boxing
+  `*EscStr` variants (`URLEscStr`, `URLQueryEscStr`, `JSEscStr`, `JSAttrEscStr`, `HTMLEscStr`).
 * `<style>` blocks are still HTML-escaped; gorazor has no CSS escaper yet, so do
   not put untrusted values there.
 
