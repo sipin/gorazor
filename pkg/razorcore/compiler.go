@@ -226,6 +226,7 @@ type Compiler struct {
 	options     Option
 	dir         string
 	file        string
+	scanner     *htmlScanner
 }
 
 type compilerError struct {
@@ -367,6 +368,7 @@ func makeCompiler(ctx context.Context, ast *Ast, options Option, input string) *
 		options:     options,
 		dir:         dir,
 		file:        file,
+		scanner:     &htmlScanner{},
 	}
 
 	if dir == "layout" {
@@ -390,7 +392,9 @@ func (cp *Compiler) visitBLK(child Token) {
 }
 
 func (cp *Compiler) visitMKP(child Token) {
-	cp.addPart(Part{CMKP, getValStr(child), child.Line})
+	markup := getValStr(child)
+	cp.addPart(Part{CMKP, markup, child.Line})
+	cp.scanner.feed(markup)
 }
 
 func (cp *Compiler) settleLayout(layoutFunc string) {
@@ -439,13 +443,18 @@ func (cp *Compiler) extractBlockContent(blk *Ast) string {
 	cp.buf = ""
 	backup := cp.parts
 	cp.parts = []Part{}
-	
+	// The declaration block is compiled on the side, so any markup it
+	// contains must not move the document-level HTML context.
+	scannerBackup := cp.scanner
+	cp.scanner = cp.scanner.clone()
+
 	cp.visitAst(blk)
 	cp.genPart()
-	
+
 	content := cp.buf
 	cp.buf = pre
 	cp.parts = backup
+	cp.scanner = scannerBackup
 	
 	return content
 }
@@ -582,6 +591,29 @@ func (cp *Compiler) isExpNeedEscape(val string) (needEsape bool) {
 	return true
 }
 
+// escaperFor returns the runtime escaping function to apply to an expression
+// emitted at the current position in the document.
+//
+// Escaping HTML is only correct in element content and ordinary attributes. A
+// URL attribute needs its scheme checked so that "javascript:" cannot become a
+// live link, and a <script> body needs JavaScript escaping because a browser
+// never HTML-decodes raw text.
+func (cp *Compiler) escaperFor() string {
+	if cp.options.DisableContextEscape {
+		return "HTMLEscape"
+	}
+	switch cp.scanner.context() {
+	case ctxURL:
+		return "URLEscape"
+	case ctxURLQuery:
+		return "URLQueryEscape"
+	case ctxScript:
+		return "JSEscape"
+	default:
+		return "HTMLEscape"
+	}
+}
+
 func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo bool) {
 	start := ""
 	end := ""
@@ -594,7 +626,7 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 
 	if ppNotExp && idx == 0 && isHomo {
 		if cp.isExpNeedEscape(val) {
-			start += "gorazor.HTMLEscape("
+			start += "gorazor." + cp.escaperFor() + "("
 			cp.imports[GorazorNamespace] = true
 		} else {
 			start += "("

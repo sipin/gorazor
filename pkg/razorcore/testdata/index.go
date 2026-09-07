@@ -42,7 +42,7 @@ func RenderIndex(_buffer io.StringWriter, users []*models.User, total int, limit
 			// Line: 28
 			_buffer.WriteString("</td>\n\t\t\t\t<td><a href=\"/admin/user/edit?id=")
 			// Line: 29
-			_buffer.WriteString(gorazor.HTMLEscape(u.ID.Hex()))
+			_buffer.WriteString(gorazor.URLQueryEscape(u.ID.Hex()))
 			// Line: 29
 			_buffer.WriteString("\">编辑</a></td>\n\t\t\t</tr>")
 

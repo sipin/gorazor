@@ -1,0 +1,13 @@
+@{
+	var url string
+	var q string
+	var name string
+}
+<a href="@url">link</a>
+<a href="/search?q=@q">search</a>
+<img src="@url" alt="@name">
+<script>
+var n = "@name";
+for (var i = 0; i < 10; i++) { if (i < 5) { log(n); } }
+</script>
+<p>@name</p>

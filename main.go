@@ -28,6 +28,7 @@ func main() {
 	namespacePrefix := flag.String("prefix", "", "tpl namespace prefix")
 	nameNotChange := flag.Bool("nameNotChange", false, "do not change name of the template")
 	compact := flag.Bool("compact", false, "enable compact mode; minify generated HTML")
+	noCtxEscape := flag.Bool("no-context-escape", false, "disable context-aware escaping; escape every expression as HTML")
 
 	flag.Parse()
 
@@ -44,6 +45,7 @@ func main() {
 	options.QuickMode = *quick
 	options.TemplateNamespacePrefix = *namespacePrefix
 	options.CompactMode = *compact
+	options.DisableContextEscape = *noCtxEscape
 
 	if len(flag.Args()) != 2 {
 		flag.Usage()

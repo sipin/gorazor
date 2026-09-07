@@ -64,6 +64,10 @@ type Option struct {
 	TemplateNamespacePrefix string
 	LayoutCache             *LayoutCache
 	CompactMode             bool
+	// DisableContextEscape reverts to escaping every expression as HTML,
+	// regardless of where it appears. It exists as an escape hatch for
+	// templates that relied on the old single-context behaviour.
+	DisableContextEscape bool
 }
 
 // TokenMatch store matched token

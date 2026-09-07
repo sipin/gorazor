@@ -123,6 +123,38 @@ Use `raw` to skip escaping:
 
 Only use `raw` when you are 100% sure what you are doing. Please always be aware of [XSS attacks](https://en.wikipedia.org/wiki/Cross-site_scripting).
 
+### Context-aware escaping
+
+The escaping applied to `@variable` depends on where it appears in the document.
+HTML escaping is only correct in element content and ordinary attributes, so
+gorazor picks the right escaper at **compile time** — the generated code calls it
+directly, with no runtime cost:
+
+| Where the variable appears | Escaping applied |
+| --- | --- |
+| Element content, ordinary attribute | HTML escaping |
+| URL attribute (`href`, `src`, `action`, ...) | Scheme filtering + HTML escaping |
+| Query part of a URL attribute (after `?`) | Percent-encoding + HTML escaping |
+| Inside `<script>` | JavaScript escaping |
+
+```html
+<a href="@url">link</a>              <!-- javascript: is filtered out -->
+<a href="/search?q=@q">search</a>    <!-- cannot inject extra parameters -->
+<script>var n = "@name";</script>    <!-- cannot close the string or the tag -->
+<p>@name</p>                         <!-- HTML escaped -->
+```
+
+Two notes:
+
+* A URL whose scheme is not one of `http`, `https`, `mailto`, `tel`, `ftp` or
+  `ftps` is replaced by `#ZgotmplZ`, the same failsafe `html/template` uses. Use
+  `@raw(url)` if you really need another scheme.
+* `<style>` blocks are still HTML-escaped; gorazor has no CSS escaper yet, so do
+  not put untrusted values there.
+
+Pass `-no-context-escape` to fall back to HTML-escaping everything, as gorazor
+did before this was added.
+
 ## Flow Control
 
 ```html
