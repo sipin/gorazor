@@ -138,6 +138,7 @@ directly, with no runtime cost:
 | Query part of a URL attribute (after `?`) | Percent-encoding + HTML escaping |
 | Inside `<script>` | JavaScript escaping |
 | Inline event handlers (`onclick`, `on*`) | JavaScript escaping + HTML escaping (`JSAttrEscape`) |
+| Any attribute written without quotes | the above, plus encoding of whitespace, `` ` `` and `=` |
 
 ```html
 <a href="@url">link</a>              <!-- javascript: is filtered out -->
@@ -161,6 +162,10 @@ Notes:
   literals or HTML attribute quotes.
 * The optimizer automatically rewrites all typed string calls to zero-boxing
   `*EscStr` variants (`URLEscStr`, `URLQueryEscStr`, `JSEscStr`, `JSAttrEscStr`, `HTMLEscStr`).
+* An attribute written without quotes (`<a href=@url>`) ends at the first space,
+  so escaping for the context is not enough on its own. Gorazor additionally
+  encodes the characters that would end the value, which stops a value like
+  `/x onmouseover=alert(1)` from adding a handler the template never wrote.
 * `<style>` blocks are still HTML-escaped; gorazor has no CSS escaper yet, so do
   not put untrusted values there.
 

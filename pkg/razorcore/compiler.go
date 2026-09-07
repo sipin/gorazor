@@ -17,7 +17,6 @@ import (
 // GorazorNamespace defines util pkg namespace used in template
 var GorazorNamespace = `gorazor "github.com/sipin/gorazor/runtime"`
 
-
 // ------------------------------ Compiler ------------------------------ //
 const (
 	CMKP = iota
@@ -227,6 +226,9 @@ type Compiler struct {
 	dir         string
 	file        string
 	scanner     *htmlScanner
+	// escaperClose is the text closing the escaper call opened on the first
+	// child of the expression being visited.
+	escaperClose string
 }
 
 type compilerError struct {
@@ -363,12 +365,12 @@ func makeCompiler(ctx context.Context, ast *Ast, options Option, input string) *
 		ast:         ast,
 		buf:         "",
 		layout:      "", firstBLK: 0,
-		params:      []string{}, parts: []Part{},
-		imports:     map[string]bool{},
-		options:     options,
-		dir:         dir,
-		file:        file,
-		scanner:     &htmlScanner{},
+		params: []string{}, parts: []Part{},
+		imports: map[string]bool{},
+		options: options,
+		dir:     dir,
+		file:    file,
+		scanner: &htmlScanner{},
 	}
 
 	if dir == "layout" {
@@ -455,7 +457,7 @@ func (cp *Compiler) extractBlockContent(blk *Ast) string {
 	cp.buf = pre
 	cp.parts = backup
 	cp.scanner = scannerBackup
-	
+
 	return content
 }
 
@@ -475,7 +477,7 @@ func (cp *Compiler) processImports(content string) {
 		}
 		cp.errorf(line, "failed to parse imports block: %v", err)
 	}
-	
+
 	for _, s := range f.Imports {
 		importPath := s.Path.Value
 		alias := ""
@@ -483,7 +485,7 @@ func (cp *Compiler) processImports(content string) {
 			alias = s.Name.Name
 			importPath = alias + " " + importPath
 		}
-		
+
 		cp.imports[importPath] = true
 		cp.detectLayoutImport(s.Path.Value, alias)
 	}
@@ -503,12 +505,12 @@ func (cp *Compiler) detectLayoutImport(pathValue, alias string) {
 func (cp *Compiler) processDeclarations(content string) string {
 	lines := strings.SplitN(content, "\n", -1)
 	var layoutFunc string
-	
+
 	for _, line := range lines {
 		line = strings.TrimSpace(line)
 		layoutFunc = cp.processDeclarationLine(line, layoutFunc)
 	}
-	
+
 	return layoutFunc
 }
 
@@ -530,7 +532,7 @@ func (cp *Compiler) processDeclarationLine(line, currentLayoutFunc string) strin
 // processVariableDeclaration processes variable declarations (var statements)
 func (cp *Compiler) processVariableDeclaration(line, currentLayoutFunc string) string {
 	vname := line[4:] // Remove "var " prefix
-	
+
 	switch {
 	case strings.HasSuffix(line, "gorazor.Widget"):
 		cp.processWidgetVariable(vname)
@@ -598,22 +600,34 @@ func (cp *Compiler) isExpNeedEscape(val string) (needEsape bool) {
 // URL attribute needs its scheme checked so that "javascript:" cannot become a
 // live link, and a <script> body needs JavaScript escaping because a browser
 // never HTML-decodes raw text.
-func (cp *Compiler) escaperFor() string {
+// It returns the text to open the call with and the text to close it, because
+// an unquoted attribute needs a second call wrapped around the first.
+func (cp *Compiler) escaperFor() (open, close string) {
 	if cp.options.DisableContextEscape {
-		return "HTMLEscape"
+		return "gorazor.HTMLEscape(", ")"
 	}
+
+	name := "HTMLEscape"
 	switch cp.scanner.context() {
 	case ctxURL:
-		return "URLEscape"
+		name = "URLEscape"
 	case ctxURLQuery:
-		return "URLQueryEscape"
+		name = "URLQueryEscape"
 	case ctxScript:
-		return "JSEscape"
+		name = "JSEscape"
 	case ctxJSAttr:
-		return "JSAttrEscape"
-	default:
-		return "HTMLEscape"
+		name = "JSAttrEscape"
 	}
+
+	open, close = "gorazor."+name+"(", ")"
+
+	// Without quotes around it, an attribute value ends at the first space, so
+	// escaping for the context is not enough on its own: "/x onclick=alert(1)"
+	// would leave the tag carrying a handler the template never wrote.
+	if cp.scanner.inUnquotedAttr() {
+		open, close = "gorazor.NospaceAttr("+open, close+")"
+	}
+	return open, close
 }
 
 func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo bool) {
@@ -629,14 +643,19 @@ func (cp *Compiler) visitExp(child interface{}, parent *Ast, idx int, isHomo boo
 	if ppNotExp && idx == 0 && isHomo {
 		cp.scanner.notifyExp()
 		if cp.isExpNeedEscape(val) {
-			start += "gorazor." + cp.escaperFor() + "("
+			open, close := cp.escaperFor()
+			start += open
+			// The closing text is decided here but emitted on the last
+			// child of the expression, which may be a later call.
+			cp.escaperClose = close
 			cp.imports[GorazorNamespace] = true
 		} else {
 			start += "("
+			cp.escaperClose = ")"
 		}
 	}
 	if ppNotExp && idx == ppChildCnt-1 && isHomo {
-		end += ")"
+		end += cp.escaperClose
 	}
 
 	lineHint := ""

@@ -59,6 +59,8 @@ const (
 	stBang
 	stDocType
 	stCommentDash1
+	stCommentStart
+	stCommentStartDash
 	stComment
 	stCommentCloseDash1
 	stCommentCloseDash2
@@ -116,11 +118,6 @@ func (s *htmlScanner) context() htmlContext {
 	if s.rawTag != "" {
 		return ctxText
 	}
-	// If the scanner is right after "=" (e.g. <a href=@url> or <button onclick=@handler>),
-	// this expression is an unquoted attribute value.
-	if s.state == stBeforeAttrValue {
-		s.state = stAttrValueUnquoted
-	}
 	if s.state != stAttrValueQuoted && s.state != stAttrValueUnquoted {
 		return ctxText
 	}
@@ -156,10 +153,22 @@ func (s *htmlScanner) attrIsEvent() bool {
 // notifyExp informs the scanner that an expression was emitted. If the scanner
 // is currently waiting for an attribute value (stBeforeAttrValue), the expression
 // serves as the unquoted attribute value.
+//
+// This is the only place that transition happens outside step(), so it has to
+// clear attrVal the same way step() does. Leaving it would carry the previous
+// attribute's value into this one, and attrVal decides whether a URL expression
+// sits at the scheme, path or query position.
 func (s *htmlScanner) notifyExp() {
 	if s.state == stBeforeAttrValue {
 		s.state = stAttrValueUnquoted
+		s.attrVal.Reset()
 	}
+}
+
+// inUnquotedAttr reports whether the expression position is an attribute value
+// written without quotes, where whitespace would end the value.
+func (s *htmlScanner) inUnquotedAttr() bool {
+	return s.state == stAttrValueUnquoted
 }
 
 // attrIsURL reports whether the attribute currently being scanned holds a URL.
@@ -231,11 +240,34 @@ func (s *htmlScanner) step(c byte) {
 	case stCommentDash1:
 		switch c {
 		case '-':
-			s.state = stComment
+			s.state = stCommentStart
 		case '>':
 			s.state = stText
 		default:
 			s.state = stDocType
+		}
+
+	// "<!-->" and "<!--->" are empty comments, so ">" closes the comment while
+	// it is still being opened. Only after that does ">" become ordinary
+	// comment content.
+	case stCommentStart:
+		switch c {
+		case '>':
+			s.state = stText
+		case '-':
+			s.state = stCommentStartDash
+		default:
+			s.state = stComment
+		}
+
+	case stCommentStartDash:
+		switch c {
+		case '>':
+			s.state = stText
+		case '-':
+			s.state = stCommentCloseDash2
+		default:
+			s.state = stComment
 		}
 
 	case stComment:

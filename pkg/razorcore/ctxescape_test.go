@@ -283,3 +283,111 @@ func main() {
 		}
 	}
 }
+
+// TestUnquotedAttrCodegen checks that an attribute written without quotes gets
+// the extra encoding wrapped around its context escaper.
+func TestUnquotedAttrCodegen(t *testing.T) {
+	cases := []struct {
+		name   string
+		markup string
+		want   string
+	}{
+		{
+			name:   "unquoted url attribute",
+			markup: `<a href=@url>x</a>`,
+			want:   "gorazor.NospaceAttr(gorazor.URLEscape(url))",
+		},
+		{
+			name:   "unquoted ordinary attribute",
+			markup: `<div class=@cls>x</div>`,
+			want:   "gorazor.NospaceAttr(gorazor.HTMLEscape(cls))",
+		},
+		{
+			name:   "unquoted event handler",
+			markup: `<button onclick=@name>x</button>`,
+			want:   "gorazor.NospaceAttr(gorazor.JSAttrEscape(name))",
+		},
+		{
+			name:   "quoted attribute is not wrapped",
+			markup: `<a href="@url">x</a>`,
+			want:   "gorazor.URLEscape(url)",
+		},
+		{
+			name:   "element content is not wrapped",
+			markup: `<p>@name</p>`,
+			want:   "gorazor.HTMLEscape(name)",
+		},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			got := compileTemplate(t, ctxTestDecl+tc.markup, Option{})
+			if !strings.Contains(got, tc.want) {
+				t.Errorf("generated code missing %q:\n%s", tc.want, got)
+			}
+		})
+	}
+}
+
+// TestUnquotedAttrNotWrappedWhenDisabled checks the opt-out still produces the
+// old single-call shape.
+func TestUnquotedAttrNotWrappedWhenDisabled(t *testing.T) {
+	got := compileTemplate(t, ctxTestDecl+`<a href=@url>x</a>`, Option{DisableContextEscape: true})
+	if strings.Contains(got, "NospaceAttr") {
+		t.Errorf("DisableContextEscape still wrapped the value:\n%s", got)
+	}
+	if !strings.Contains(got, "gorazor.HTMLEscape(url)") {
+		t.Errorf("expected plain HTMLEscape:\n%s", got)
+	}
+}
+
+// TestUnquotedAttrRawOptsOut checks @raw() still bypasses everything, including
+// the unquoted-attribute wrapper.
+func TestUnquotedAttrRawOptsOut(t *testing.T) {
+	got := compileTemplate(t, ctxTestDecl+`<a href=@raw(url)>x</a>`, Option{})
+	if strings.Contains(got, "NospaceAttr") || strings.Contains(got, "Escape") {
+		t.Errorf("@raw() should not be escaped or wrapped:\n%s", got)
+	}
+}
+
+// TestUnquotedAttrMultiPartExpression checks the closing text is emitted on the
+// last child of an expression that lexes into several tokens.
+func TestUnquotedAttrMultiPartExpression(t *testing.T) {
+	body := `@{
+	var u struct{ Name string }
+}
+<a href=@u.Name>x</a>`
+
+	got := compileTemplate(t, body, Option{})
+	if !strings.Contains(got, "gorazor.NospaceAttr(gorazor.URLEscape(u.Name))") {
+		t.Errorf("multi-token expression not wrapped correctly:\n%s", got)
+	}
+}
+
+// TestOptimizerRewritesInnerCall checks the optimizer still reaches the inner
+// escaper through the NospaceAttr wrapper.
+func TestOptimizerRewritesInnerCall(t *testing.T) {
+	code := `package main
+
+import gorazor "github.com/sipin/gorazor/runtime"
+
+func main() {
+	var s string
+	_ = gorazor.NospaceAttr(gorazor.URLEscape(s))
+	_ = gorazor.NospaceAttr(gorazor.HTMLEscape(s))
+}`
+
+	ok, out := optimize("dummy.go", "main", code)
+	if !ok {
+		t.Skip("optimizer could not type-check in this environment")
+	}
+	if !strings.Contains(out, "gorazor.NospaceAttr(gorazor.URLEscStr(s))") {
+		t.Errorf("inner URLEscape not optimized:\n%s", out)
+	}
+	if !strings.Contains(out, "gorazor.NospaceAttr(gorazor.HTMLEscStr(s))") {
+		t.Errorf("inner HTMLEscape not optimized:\n%s", out)
+	}
+	if strings.Contains(out, "NospaceAttrStr") {
+		t.Errorf("optimizer rewrote the wrapper itself:\n%s", out)
+	}
+}

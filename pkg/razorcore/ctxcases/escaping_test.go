@@ -23,8 +23,8 @@ func TestRenderedOutputIsSafe(t *testing.T) {
 	if strings.Contains(out, "javascript:alert(1)") {
 		t.Errorf("javascript: URL reached the output:\n%s", out)
 	}
-	if strings.Count(out, "#ZgotmplZ") != 2 {
-		t.Errorf("expected both URL attributes to be filtered:\n%s", out)
+	if strings.Count(out, "#ZgotmplZ") != 3 {
+		t.Errorf("expected every URL attribute to be filtered:\n%s", out)
 	}
 
 	// The query value must not be able to add a parameter of its own.
@@ -74,7 +74,7 @@ func TestRenderedOutputKeepsValidInput(t *testing.T) {
 		t.Errorf("query value not encoded as expected:\n%s", out)
 	}
 	// Non-ASCII content must survive both the HTML and the JS context.
-	if strings.Count(out, "张三") != 3 {
+	if strings.Count(out, "张三") != 4 {
 		t.Errorf("non-ASCII text was mangled:\n%s", out)
 	}
 	if strings.Contains(out, "#ZgotmplZ") {
@@ -92,4 +92,91 @@ func TestRenderedScriptStaysIntact(t *testing.T) {
 			t.Errorf("script literal %q missing from output:\n%s", want, out)
 		}
 	}
+}
+
+// TestUnquotedAttrCannotBreakOut renders the unquoted attributes with a payload
+// that would otherwise end the attribute value and start a handler of its own.
+func TestUnquotedAttrCannotBreakOut(t *testing.T) {
+	out := Escaping("/x onmouseover=alert(1)", "q", "y onmouseover=alert(2)")
+
+	// Only the unquoted tags matter here: the same payload also lands in a
+	// quoted href and in element content, where quoting and HTML escaping
+	// already contain it.
+	for _, val := range unquotedValues(t, out) {
+		if strings.ContainsAny(val, " \t\n\f\r") {
+			t.Errorf("value ended the attribute and started another: %q", val)
+		}
+		if strings.Contains(val, "=") {
+			t.Errorf("value introduced a second attribute: %q", val)
+		}
+	}
+
+	// The value survives, encoded, as a single attribute value.
+	if !strings.Contains(out, "href=/x&#32;onmouseover&#61;alert(1)>") {
+		t.Errorf("unquoted href not encoded as expected:\n%s", out)
+	}
+	if !strings.Contains(out, "class=y&#32;onmouseover&#61;alert(2)>") {
+		t.Errorf("unquoted class not encoded as expected:\n%s", out)
+	}
+}
+
+// TestUnquotedAttrStillFiltersScheme checks the wrapper did not displace the
+// scheme filtering underneath it.
+func TestUnquotedAttrStillFiltersScheme(t *testing.T) {
+	out := Escaping("javascript:alert(1)", "q", "n")
+	if strings.Contains(out, "javascript:alert(1)") {
+		t.Errorf("javascript: URL survived in an unquoted attribute:\n%s", out)
+	}
+	if strings.Count(out, "#ZgotmplZ") != 3 {
+		t.Errorf("expected all three URL attributes filtered:\n%s", out)
+	}
+}
+
+// TestUnquotedAttrLeavesOrdinaryValuesAlone checks the encoding does not fire
+// on values that need nothing.
+func TestUnquotedAttrLeavesOrdinaryValuesAlone(t *testing.T) {
+	out := Escaping("/page/1", "q", "btn")
+	if !strings.Contains(out, "href=/page/1>") {
+		t.Errorf("ordinary unquoted href was altered:\n%s", out)
+	}
+	if !strings.Contains(out, "class=btn>") {
+		t.Errorf("ordinary unquoted class was altered:\n%s", out)
+	}
+	if strings.Contains(out, "&#32;") {
+		t.Errorf("nothing should have been encoded:\n%s", out)
+	}
+}
+
+// unquotedValues returns the values of the two attributes the template writes
+// without quotes around them.
+func unquotedValues(t *testing.T, out string) []string {
+	t.Helper()
+
+	var values []string
+	for _, prefix := range []string{"<a href=", "<div class="} {
+		found := false
+		for i := 0; ; {
+			j := strings.Index(out[i:], prefix)
+			if j < 0 {
+				break
+			}
+			at := i + j + len(prefix)
+			i = at
+			// Skip the quoted attribute that shares this prefix.
+			if at < len(out) && (out[at] == '"' || out[at] == '\'') {
+				continue
+			}
+			end := strings.IndexByte(out[at:], '>')
+			if end < 0 {
+				t.Fatalf("unterminated tag after %q:\n%s", prefix, out)
+			}
+			values = append(values, out[at:at+end])
+			found = true
+			break
+		}
+		if !found {
+			t.Fatalf("no unquoted %q found in output:\n%s", prefix, out)
+		}
+	}
+	return values
 }

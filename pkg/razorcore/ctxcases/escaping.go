@@ -44,6 +44,14 @@ func RenderEscaping(_buffer io.StringWriter, url string, q string, name string) 
 	// Line: 13
 	_buffer.WriteString(gorazor.HTMLEscStr(name))
 	// Line: 13
-	_buffer.WriteString("</p>")
+	_buffer.WriteString("</p>\n<a href=")
+	// Line: 14
+	_buffer.WriteString(gorazor.NospaceAttr(gorazor.URLEscStr(url)))
+	// Line: 14
+	_buffer.WriteString(">unquoted</a>\n<div class=")
+	// Line: 15
+	_buffer.WriteString(gorazor.NospaceAttr(gorazor.HTMLEscStr(name)))
+	// Line: 15
+	_buffer.WriteString(">unquoted class</div>")
 
 }

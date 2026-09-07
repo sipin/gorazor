@@ -128,6 +128,7 @@ func TestHTMLScannerContext(t *testing.T) {
 		t.Run(tc.name, func(t *testing.T) {
 			s := &htmlScanner{}
 			s.feed(tc.markup)
+			s.notifyExp()
 			if got := s.context(); got != tc.want {
 				t.Errorf("after %q: context = %v, want %v", tc.markup, got, tc.want)
 			}
@@ -179,6 +180,7 @@ func TestHTMLScannerMultipleExpressions(t *testing.T) {
 	s := &htmlScanner{}
 	for i, step := range steps {
 		s.feed(step.markup)
+		s.notifyExp()
 		if got := s.context(); got != step.want {
 			t.Errorf("step %d (after %q): context = %v, want %v",
 				i, step.markup, got, step.want)
@@ -214,5 +216,117 @@ func TestHTMLScannerReset(t *testing.T) {
 	s.reset()
 	if s.context() != ctxText {
 		t.Errorf("after reset: context = %v, want ctxText", s.context())
+	}
+}
+
+// TestHTMLScannerUnquotedAttrDoesNotInheritPrevValue pins the fix for a leak
+// between attributes: the transition into an unquoted value happens in
+// notifyExp rather than step, so it has to clear attrVal itself. Carrying the
+// previous attribute's value over decided the URL position from the wrong
+// text, which silently turned scheme filtering off.
+func TestHTMLScannerUnquotedAttrDoesNotInheritPrevValue(t *testing.T) {
+	cases := []struct {
+		name   string
+		markup string
+		want   htmlContext
+	}{
+		{"prev value had a slash", `<a title="/foo/bar" href=`, ctxURL},
+		{"prev value had a question mark", `<a title="a?b" href=`, ctxURL},
+		{"prev value had a hash", `<a title="#x" href=`, ctxURL},
+		{"prev value unquoted", `<a title=/foo/bar href=`, ctxURL},
+		{"no previous attribute", `<a href=`, ctxURL},
+		{"prev value plain", `<a class=btn href=`, ctxURL},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := &htmlScanner{}
+			s.feed(tc.markup)
+			s.notifyExp()
+			if got := s.context(); got != tc.want {
+				t.Errorf("after %q: context = %v, want %v", tc.markup, got, tc.want)
+			}
+		})
+	}
+}
+
+// TestHTMLScannerContextIsPure checks that asking for the context does not
+// advance the scanner. notifyExp is the only thing that may.
+func TestHTMLScannerContextIsPure(t *testing.T) {
+	s := &htmlScanner{}
+	s.feed(`<a href=`)
+
+	if got := s.context(); got != ctxText {
+		t.Errorf("before notifyExp: context = %v, want ctxText", got)
+	}
+	// Repeated queries must keep giving the same answer.
+	if got := s.context(); got != ctxText {
+		t.Errorf("second query: context = %v, want ctxText", got)
+	}
+	if s.inUnquotedAttr() {
+		t.Error("context() moved the scanner into an unquoted attribute")
+	}
+
+	s.notifyExp()
+	if got := s.context(); got != ctxURL {
+		t.Errorf("after notifyExp: context = %v, want ctxURL", got)
+	}
+}
+
+// TestHTMLScannerUnquotedDetection covers the flag that decides whether the
+// value needs the extra unquoted-attribute encoding.
+func TestHTMLScannerUnquotedDetection(t *testing.T) {
+	cases := []struct {
+		markup string
+		want   bool
+	}{
+		{`<a href=`, true},
+		{`<a href="`, false},
+		{`<a href='`, false},
+		{`<div class=`, true},
+		{`<div class="`, false},
+		{`<button onclick=`, true},
+		{`<p>`, false},
+		{`<script>var a = "`, false},
+	}
+	for _, tc := range cases {
+		s := &htmlScanner{}
+		s.feed(tc.markup)
+		s.notifyExp()
+		if got := s.inUnquotedAttr(); got != tc.want {
+			t.Errorf("after %q: inUnquotedAttr = %v, want %v", tc.markup, got, tc.want)
+		}
+	}
+}
+
+// TestHTMLScannerEmptyComments checks that "<!-->" and "<!--->", which are
+// valid empty comments, do not leave the scanner stuck inside a comment. Being
+// stuck would drop the rest of the document to ctxText and quietly disable URL
+// filtering.
+func TestHTMLScannerEmptyComments(t *testing.T) {
+	cases := []struct {
+		name   string
+		markup string
+		want   htmlContext
+	}{
+		{"empty comment", `<!--><a href="`, ctxURL},
+		{"empty comment with dash", `<!---><a href="`, ctxURL},
+		{"empty comment extra dash", `<!----><a href="`, ctxURL},
+		{"normal comment", `<!-- x --><a href="`, ctxURL},
+		{"comment with inner dashes", `<!-- a-b--c --><a href="`, ctxURL},
+		{"doctype", `<!DOCTYPE html><a href="`, ctxURL},
+		{"bang close", `<!><a href="`, ctxURL},
+		{"script hidden in comment", `<!-- <script> --><a href="`, ctxURL},
+	}
+
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			s := &htmlScanner{}
+			s.feed(tc.markup)
+			s.notifyExp()
+			if got := s.context(); got != tc.want {
+				t.Errorf("after %q: context = %v, want %v", tc.markup, got, tc.want)
+			}
+		})
 	}
 }

@@ -1,6 +1,9 @@
 package runtime
 
-import "testing"
+import (
+	"strings"
+	"testing"
+)
 
 func TestURLEscapeSafeSchemes(t *testing.T) {
 	cases := []string{
@@ -229,5 +232,58 @@ func TestJSAttrEscape(t *testing.T) {
 	}
 	if got := JSAttrEscape(42); got != "42" {
 		t.Errorf("JSAttrEscape(42) = %q, want \"42\"", got)
+	}
+}
+
+func TestNospaceAttr(t *testing.T) {
+	cases := map[string]string{
+		"plain":            "plain",
+		"/path/to/x":       "/path/to/x",
+		"a b":              "a&#32;b",
+		"a\tb":             "a&#9;b",
+		"a\nb":             "a&#10;b",
+		"a\fb":             "a&#12;b",
+		"a\rb":             "a&#13;b",
+		"a`b":              "a&#96;b",
+		"a=b":              "a&#61;b",
+		"/x onmouseover=y": "/x&#32;onmouseover&#61;y",
+		"":                 "",
+	}
+	for in, want := range cases {
+		if got := NospaceAttr(in); got != want {
+			t.Errorf("NospaceAttr(%q) = %q, want %q", in, got, want)
+		}
+	}
+}
+
+// TestNospaceAttrDoesNotDoubleEncode checks the property that lets NospaceAttr
+// run on an escaper's output: it only touches characters the escapers leave
+// alone, so entities they produced pass through untouched.
+func TestNospaceAttrDoesNotDoubleEncode(t *testing.T) {
+	for _, in := range []string{
+		`&amp;`, `&#34;`, `&#39;`, `&lt;`, `&gt;`, `%20`, `a&amp;b`,
+	} {
+		if got := NospaceAttr(in); got != in {
+			t.Errorf("NospaceAttr(%q) = %q, want it unchanged", in, got)
+		}
+	}
+}
+
+// TestNospaceAttrClosesUnquotedBreakout is the reason it exists: escaping for
+// the context alone leaves a value able to start an attribute of its own when
+// the template wrote the attribute without quotes.
+func TestNospaceAttrClosesUnquotedBreakout(t *testing.T) {
+	payload := "/x onmouseover=alert(1)"
+
+	if bare := URLEscStr(payload); !strings.Contains(bare, " ") {
+		t.Fatalf("setup wrong: URLEscStr already removed the space: %q", bare)
+	}
+
+	got := NospaceAttr(URLEscStr(payload))
+	if strings.ContainsAny(got, " \t\n\f\r") {
+		t.Errorf("value can still end the attribute: %q", got)
+	}
+	if strings.Contains(got, "=") {
+		t.Errorf("value can still start an attribute of its own: %q", got)
 	}
 }

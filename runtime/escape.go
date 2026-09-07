@@ -136,3 +136,58 @@ func JSAttrEscape(m interface{}) string {
 func JSAttrEscStr(s string) string {
 	return template.HTMLEscapeString(JSEscStr(s))
 }
+
+// NospaceAttr encodes the characters that would end an unquoted attribute
+// value, so that a value cannot start an attribute of its own.
+//
+// It runs on the output of one of the escapers above rather than on the raw
+// value, which is why it is a separate function: it only encodes characters
+// those escapers leave alone (whitespace, "`" and "="), so it can never
+// double-encode an entity they produced.
+//
+// Encoding as numeric character references is enough. A browser tokenises the
+// raw bytes into attributes first and only then decodes entities in the value,
+// so "&#32;" is one attribute holding a space, while a literal space is two
+// attributes:
+//
+//	<a href=/x&#32;onmouseover&#61;alert(1)>   one href, no handler
+//	<a href=/x onmouseover=alert(1)>           href plus an onmouseover handler
+func NospaceAttr(s string) string {
+	if !needsNospaceAttr(s) {
+		return s
+	}
+	var b strings.Builder
+	b.Grow(len(s) + 8)
+	for i := 0; i < len(s); i++ {
+		switch c := s[i]; c {
+		case ' ':
+			b.WriteString("&#32;")
+		case '\t':
+			b.WriteString("&#9;")
+		case '\n':
+			b.WriteString("&#10;")
+		case '\f':
+			b.WriteString("&#12;")
+		case '\r':
+			b.WriteString("&#13;")
+		case '`':
+			b.WriteString("&#96;")
+		case '=':
+			b.WriteString("&#61;")
+		default:
+			b.WriteByte(c)
+		}
+	}
+	return b.String()
+}
+
+// needsNospaceAttr keeps the common case allocation-free.
+func needsNospaceAttr(s string) bool {
+	for i := 0; i < len(s); i++ {
+		switch s[i] {
+		case ' ', '\t', '\n', '\f', '\r', '`', '=':
+			return true
+		}
+	}
+	return false
+}
